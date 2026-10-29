@@ -1,0 +1,594 @@
+<!doctype html>
+<html lang="en" data-lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pm2 monitor</title>
+<style>
+:root{--bg:#14161a;--panel:#1c1f25;--line:#2a2e36;--fg:#e4e6ea;--dim:#8b919c;
+--ok:#3fb97a;--warn:#e0a63a;--bad:#e5534b;--acc:#5b9cf5}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:13px/1.4 system-ui,sans-serif;
+display:flex;flex-direction:column;height:100vh}
+header{display:flex;align-items:center;gap:16px;padding:10px 16px;border-bottom:1px solid var(--line)}
+header h1{font-size:15px;margin:0;font-weight:600}
+#summary{display:flex;gap:14px;color:var(--dim)}
+#summary b{color:var(--fg)}
+#updated{margin-left:auto;color:var(--dim);font-size:12px}
+#updated.stale{color:var(--bad);font-weight:600}
+#banner{display:none;padding:6px 16px;background:#3a2a14;color:var(--warn);border-bottom:1px solid var(--line)}
+main{flex:1;display:flex;min-height:0}
+#list{flex:1;overflow:auto;padding:8px 16px 16px}
+#logs{width:44%;border-left:1px solid var(--line);display:none;flex-direction:column;min-width:0}
+#logs.open{display:flex}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:18px 0 6px;
+display:flex;gap:10px;align-items:center}
+h2 .sp{flex:1}
+h2 .name{color:var(--fg)}
+h2 .btns button{text-transform:none;letter-spacing:0}
+table{width:100%;border-collapse:collapse;table-layout:fixed}
+th:nth-child(1){width:20%}th:nth-child(2){width:9%}th:nth-child(3){width:10%}th:nth-child(4){width:6%}
+th:nth-child(5){width:9%}th:nth-child(6){width:9%}th:nth-child(7){width:8%}th:nth-child(8){width:7%}
+th:nth-child(9){width:11%}
+td{overflow:hidden;text-overflow:ellipsis}
+th{text-align:left;font-weight:500;color:var(--dim);font-size:11px;padding:4px 8px;border-bottom:1px solid var(--line)}
+td{padding:4px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+td.num,th.num{text-align:right;font-variant-numeric:tabular-nums}
+tr.row{cursor:pointer}
+tr.row:hover{background:var(--panel)}
+tr.sel{background:#22324d !important}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px;background:var(--dim)}
+.online .dot{background:var(--ok)}
+.errored .dot{background:var(--bad)}
+.launching .dot,.stopping .dot{background:var(--warn)}
+tr.errored td.st,tr.stopped td.st{color:var(--bad)}
+tr.offline td.st,tr.absent td.st,.dim{color:var(--dim)}
+.warn{color:var(--warn);font-weight:600}
+.btns{display:flex;gap:4px;justify-content:flex-end}
+button{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:4px;
+padding:2px 8px;font:inherit;font-size:12px;cursor:pointer}
+button:hover{border-color:var(--acc)}
+button:disabled{opacity:.4;cursor:default}
+button.on{border-color:var(--acc);color:var(--acc)}
+select,input{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:4px;
+padding:1px 4px;font:inherit;font-size:12px;max-width:100%}
+input[type=number]{width:60px}
+#loghead{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:1px solid var(--line)}
+#loghead .t{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+#loghead .sp{flex:1}
+pre{margin:0;flex:1;overflow:auto;padding:10px 12px;font:12px/1.45 ui-monospace,monospace;
+white-space:pre-wrap;word-break:break-all;background:#101215}
+#jobbar{display:none;padding:8px 16px;border-top:1px solid var(--line);background:var(--panel)}
+#jobbar .fail{color:var(--bad)}
+#jobbar .good{color:var(--ok)}
+#toast{position:fixed;bottom:50px;left:50%;transform:translateX(-50%);background:var(--panel);
+border:1px solid var(--line);padding:8px 14px;border-radius:6px;display:none;max-width:80%;white-space:pre-wrap}
+#toast.bad{border-color:var(--bad)}
+dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:16px;min-width:480px;max-width:80vw}
+dialog::backdrop{background:#0008}
+dialog h3{margin:0 0 10px;font-size:14px}
+dialog .line{display:flex;gap:8px;align-items:center;margin:6px 0}
+dialog .line .grow{flex:1}
+dialog .home{color:var(--dim);font-size:11px;word-break:break-all}
+.help{width:min(760px,92vw);max-height:86vh;overflow:auto}
+.help h4{margin:16px 0 4px;font-size:13px}
+.help p,.help li{color:var(--fg);margin:4px 0}
+.help code{background:var(--panel);padding:1px 5px;border-radius:3px;font:12px ui-monospace,monospace;word-break:break-all}
+.help a{color:var(--acc)}
+.helpbody{display:none}
+html[data-lang=en] .helpbody[lang=en],html[data-lang=it] .helpbody[lang=it]{display:block}
+dialog .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
+.daemon{border-bottom:1px solid var(--line);padding:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>pm2 monitor</h1>
+  <div id="summary"></div>
+  <button id="scan" data-i18n="scan" data-i18n-title="scanTitle"></button>
+  <button id="daemons" data-i18n="daemons"></button>
+  <button id="newdomain" data-i18n="newDomain"></button>
+  <button id="help" data-i18n="help"></button>
+  <select id="lang" title="Language / Lingua"><option value="en">EN</option><option value="it">IT</option></select>
+  <div id="updated"></div>
+</header>
+<div id="banner"></div>
+<main>
+  <div id="list"></div>
+  <div id="logs">
+    <div id="loghead">
+      <span class="t" id="logtitle"></span><span class="sp"></span>
+      <button data-k="out" class="on">out</button>
+      <button data-k="err">err</button>
+      <button id="follow" class="on" data-i18n="follow" data-i18n-title="followTitle"></button>
+      <button id="closelog">✕</button>
+    </div>
+    <pre id="logtext"></pre>
+  </div>
+</main>
+<div id="jobbar"></div>
+<div id="toast"></div>
+
+<dialog id="daemondialog">
+  <h3 data-i18n="daemonsTitle"></h3>
+  <div id="daemonlist"></div>
+  <div class="line"><input id="newhome" class="grow" data-i18n-placeholder="addHomePlaceholder">
+    <button id="addhome" data-i18n="add"></button></div>
+  <div class="home" id="envinfo"></div>
+  <div class="foot"><button id="closedaemons" data-i18n="close"></button></div>
+</dialog>
+
+<dialog id="domaindialog">
+  <h3><span data-i18n="domain"></span> <span id="domaintitle"></span></h3>
+  <div class="line"><label data-i18n="name"></label><input id="domainname" class="grow"></div>
+  <div class="line"><label data-i18n="domainTimeout"></label>
+    <input id="domaintimeout" type="number" min="1" style="width:70px"></div>
+  <div class="home" data-i18n="domainHint"></div>
+  <div class="foot"><button id="deletedomain" data-i18n="deleteDomain"></button><button id="savedomain" data-i18n="save"></button><button id="closedomain" data-i18n="cancel"></button></div>
+</dialog>
+
+<dialog id="helpdialog" class="help">
+  <h3 tabindex="-1" autofocus><span data-i18n="helpTitle"></span> <span class="dim h-version"></span></h3>
+
+  <div class="helpbody" lang="en">
+    <p>Step-by-step guide to install Node.js, pm2 and this monitor on Linux, macOS and Windows: <code>docs/INSTALL.md</code> in the repository.</p>
+
+    <h4>Getting started</h4>
+    <ol>
+      <li>On startup the monitor looks for the pm2 daemons on this computer (<code>~/.pm2*</code> folders, <code>PM2_HOME</code> and running daemons). If one is missing, "daemons" → "add" accepts its <code>PM2_HOME</code> folder; "scan" repeats the search.</li>
+      <li>Each row is a process: click the row to see its logs; buttons start / stop / restart it.</li>
+      <li>Processes without a domain are listed under "No domain". Create a domain with "+ domain" or from a row's drop-down.</li>
+    </ol>
+
+    <h4>Domains and start order</h4>
+    <ul>
+      <li>A domain groups processes, even from different daemons (e.g. a database, a backend and a frontend).</li>
+      <li>The "ord" column is the start order: lower numbers start first. "start all" waits for each process to be online (and stay so for 2 s) before starting the next; if one does not start within the maximum wait (⚙, default 30 s) the sequence stops and says so.</li>
+      <li>"stop all" shuts down in reverse order. "restart" = stop everything, then start in order.</li>
+      <li>Processes that were saved but are no longer in the daemon (or whose daemon is stopped) can still be started: the monitor remembers how to launch them. "✕" next to a "not started" process forgets it.</li>
+    </ul>
+
+    <h4>Where the configuration lives</h4>
+    <p><code class="h-config"></code></p>
+    <p>It holds known daemons, domains, order and how to relaunch processes. It is readable JSON you can edit by hand (while the server is stopped). To use another file:</p>
+    <ul>
+      <li>command line: <code>python3 server.py --config /path/to/config.json</code> (a folder works too: <code>config.json</code> inside it is used)</li>
+      <li>or the <code>PM2_MONITOR_CONFIG</code> environment variable</li>
+      <li>default location: Linux <code>~/.config/pm2-monitor</code> · macOS <code>~/Library/Application Support/pm2-monitor</code> · Windows <code>%APPDATA%\pm2-monitor</code></li>
+    </ul>
+    <p>To move your settings to another computer, copy this file. Process environment variables are not saved; if one is needed to relaunch from scratch, add it by hand as <code>"env": {...}</code> in the process spec. You can also set <code>"pm2Path"</code> in the file to use a specific pm2.</p>
+
+    <h4>Common problems</h4>
+    <ul>
+      <li><b>"pm2 not found"</b>: install pm2 (<code>npm i -g pm2</code>) or set its path in <code>pm2Path</code> in the config. pm2 in use: <code class="h-pm2"></code></li>
+      <li><b>"daemon stopped"</b>: that group's daemon is not running. Its processes are listed from the saved config and "start" also brings the daemon back.</li>
+      <li><b>A daemon is missing</b>: add its folder from "daemons". On Windows running daemons are not discovered automatically.</li>
+      <li><b>"not online after Ns"</b> during a domain start: check the process logs; if it is just slow, raise the maximum wait in ⚙.</li>
+      <li><b>The header turns red "NOT UPDATED"</b>: the server stopped answering; restart it.</li>
+    </ul>
+
+    <h4>Feedback and ideas</h4>
+    <p class="h-issues"></p>
+    <p>For a bug please include: operating system, Python and pm2 versions, what you expected and what happened. If you can, attach the terminal output of the server (without sensitive data).</p>
+  </div>
+
+  <div class="helpbody" lang="it">
+    <p>Guida passo passo per installare Node.js, pm2 e questo monitor su Linux, macOS e Windows: <code>docs/INSTALL.it.md</code> nella repository.</p>
+
+    <h4>Primi passi</h4>
+    <ol>
+      <li>All'avvio il monitor cerca da solo i demoni pm2 del computer (cartelle <code>~/.pm2*</code>, <code>PM2_HOME</code> e demoni in esecuzione). Se ne manca uno, "demoni" → "aggiungi" accetta la sua cartella <code>PM2_HOME</code>; "scansiona" rifà la ricerca.</li>
+      <li>Ogni riga è un processo: clic sulla riga per vedere i log, pulsanti per start / stop / restart.</li>
+      <li>I processi senza dominio stanno in "Senza dominio". Crea un dominio con "+ dominio" o dal menu a tendina di una riga.</li>
+    </ol>
+
+    <h4>Domini e ordine di avvio</h4>
+    <ul>
+      <li>Un dominio raggruppa processi, anche di demoni diversi (es. un database, un backend e un frontend).</li>
+      <li>La colonna "ord" è l'ordine di avvio: numeri più bassi partono prima. "avvia tutti" aspetta che ogni processo sia online (e resti tale per 2 s) prima del successivo; se non parte entro il tempo massimo (⚙, default 30 s) la sequenza si ferma e lo segnala.</li>
+      <li>"ferma tutti" spegne in ordine inverso. "riavvia" = stop di tutti, poi start in ordine.</li>
+      <li>I processi salvati ma assenti dal demone (o con demone spento) si avviano lo stesso: il monitor ricorda come lanciarli. "✕" accanto a un processo "non avviato" lo dimentica.</li>
+    </ul>
+
+    <h4>Dove sta la configurazione</h4>
+    <p><code class="h-config"></code></p>
+    <p>Contiene demoni noti, domini, ordine e come rilanciare i processi. È un JSON leggibile e modificabile a mano (a server fermo). Per usarne un'altra:</p>
+    <ul>
+      <li>da riga di comando: <code>python3 server.py --config /percorso/config.json</code> (anche una cartella: userà <code>config.json</code> dentro)</li>
+      <li>oppure con la variabile d'ambiente <code>PM2_MONITOR_CONFIG</code></li>
+      <li>posizione predefinita: Linux <code>~/.config/pm2-monitor</code> · macOS <code>~/Library/Application Support/pm2-monitor</code> · Windows <code>%APPDATA%\pm2-monitor</code></li>
+    </ul>
+    <p>Per portare le impostazioni su un altro computer basta copiare questo file. L'ambiente dei processi (variabili d'ambiente) non viene salvato; se serve per un rilancio da zero va aggiunto a mano come <code>"env": {...}</code> nella specifica del processo. Dentro il file si può anche indicare <code>"pm2Path"</code> per usare un pm2 preciso.</p>
+
+    <h4>Problemi comuni</h4>
+    <ul>
+      <li><b>"pm2 non trovato"</b>: installa pm2 (<code>npm i -g pm2</code>) o indica il percorso in <code>pm2Path</code> nella config. pm2 in uso: <code class="h-pm2"></code></li>
+      <li><b>"demone spento"</b>: il demone di quel gruppo non è in esecuzione. I processi restano elencati dalla config salvata e "start" fa ripartire anche il demone.</li>
+      <li><b>Un demone non compare</b>: aggiungi la sua cartella da "demoni". Su Windows i demoni in esecuzione non si scoprono da soli.</li>
+      <li><b>"non online dopo Ns"</b> durante un avvio per dominio: guarda i log del processo; se è solo lento, alza il tempo massimo in ⚙.</li>
+      <li><b>La testata diventa rossa "NON AGGIORNATO"</b>: il server non risponde più; riavvialo.</li>
+    </ul>
+
+    <h4>Segnalazioni e idee</h4>
+    <p class="h-issues"></p>
+    <p>Per un bug indica: sistema operativo, versione di Python e di pm2, cosa ti aspettavi e cosa è successo. Allega, se puoi, l'output del terminale dove gira il server (senza dati riservati).</p>
+  </div>
+
+  <div class="foot"><button id="closehelp" data-i18n="close"></button></div>
+</dialog>
+
+<script>
+const POLL = 3000, LOGPOLL = 2000;
+const I18N = {
+  en: {
+    unitDay: 'd', scan: 'scan', scanTitle: 'Look for new pm2 daemons on this computer', daemons: 'daemons', newDomain: '+ domain', help: 'help',
+    follow: 'follow', followTitle: 'Scrolls to the bottom on every refresh',
+    close: 'close', add: 'add', save: 'save', cancel: 'cancel', name: 'name', domain: 'Domain',
+    daemonsTitle: 'pm2 daemons', addHomePlaceholder: 'add a PM2_HOME folder by hand',
+    domainTimeout: 'maximum wait per process at start (s)',
+    domainHint: 'Start follows the ascending "ord" value and waits for each process to be online before the next; stop goes in reverse.',
+    deleteDomain: 'delete domain', helpTitle: 'Help · pm2 monitor',
+    updated: 'updated {time}', unreachable: 'server unreachable', stale: 'NOT UPDATED for {s}s — server down?',
+    noDomain: 'No domain', procCount: '{n} processes', down: '{n} down', daemonOnline: '{label}: {on}/{total} online',
+    startAll: 'start all', restartAll: 'restart', stopAll: 'stop all', settings: 'settings',
+    colName: 'name', colDaemon: 'daemon', colStatus: 'status', colCpu: 'cpu', colMemory: 'memory', colUptime: 'uptime',
+    colRestarts: 'restarts', colOrd: 'ord', colDomain: 'domain', unstable: '({n} unstable)',
+    'status.online': 'online', 'status.stopped': 'stopped', 'status.errored': 'errored', 'status.launching': 'launching',
+    'status.stopping': 'stopping', 'status.offline': 'daemon stopped', 'status.absent': 'not started',
+    start: 'start', stop: 'stop', restart: 'restart', forget: 'Forget the saved launch spec', orderTitle: 'Start order in the domain',
+    newDomainOption: '+ new domain…', newDomainPrompt: 'Name of the new domain (e.g. backend):',
+    empty: 'No processes found. If pm2 is not running on this computer there is nothing to show; "daemons" lets you add a PM2_HOME folder by hand.',
+    noPm2: 'pm2 not found, neither on PATH nor in node version managers. Install it with "npm i -g pm2".',
+    confirmStop: 'Stop {name}?', confirmDomain: '{verb} all processes of "{domain}"?',
+    'verb.start': 'Start', 'verb.restart': 'Restart', 'verb.stop': 'Stop',
+    confirmDeleteDomain: 'Delete the domain "{domain}"? Its processes stay, without a domain.',
+    done: '{action} {name}: done', failed: '{action} {name} FAILED\n{msg}', serverDown: 'server unreachable',
+    scanDone: 'scan done',
+    jobRunning: '⏳', jobDone: '✓ completed', jobFailed: '✗ interrupted',
+    'step.stop': 'stop', 'step.start': 'start', 'step.already_stopped': 'already stopped',
+    'step.already_running': 'already running', 'step.error': 'error',
+    logEmpty: '[log empty]', logUnreadable: '[log unreadable: {detail}]',
+    active: 'active', hide: 'hide',
+    noDaemons: 'No daemon found.',
+    envInfo: 'pm2: {pm2} · config: {config}', notFound: 'NOT FOUND',
+    noIssues: 'The link to report issues is not configured yet (TODO: set <code>ISSUES_URL</code> in <code>pm2monitor/__init__.py</code> to the Issues URL of the public repository).',
+    issuesLink: 'Open an issue (bug or feature request) at',
+    'err.unknown_daemon': 'unknown daemon: {id}', 'err.pm2_not_found': 'pm2 not found (neither on PATH nor in node version managers)',
+    'err.pm2_bad_output': 'unreadable pm2 response: {detail}', 'err.invalid_action': 'invalid action',
+    'err.process_not_in_daemon': 'process not present in the daemon', 'err.no_saved_spec': 'no saved launch spec for this process',
+    'err.pm2_failed': '{output}', 'err.unknown_domain': 'unknown domain', 'err.domain_busy': '{domain}: an operation is already running',
+    'err.unknown_process': 'unknown process', 'err.empty_domain_name': 'the domain name is empty',
+    'err.domain_rename_invalid': 'unknown domain or name already in use',
+    'err.not_pm2_home': 'this does not look like a PM2_HOME folder (pm2.pid / dump.pm2 missing)',
+    'err.unknown_config_op': 'unknown config operation', 'err.process_not_found': 'process not found',
+    'err.unknown_job': 'unknown operation', 'err.bad_request': 'invalid request: {detail}', 'err.error_detail': '{detail}',
+    'err.folder_missing': 'folder not found', 'err.daemon_stopped': 'daemon stopped', 'err.read_failed': 'pm2 read failed: {detail}',
+    'err.start_timeout': 'not online after {timeout}s: sequence interrupted',
+    'err.config_corrupt': 'config was unreadable and was saved as {backup}; a new one was created',
+    'err.config_corrupt_locked': 'config is unreadable and could not be moved; changes will not be saved'
+  },
+  it: {
+    unitDay: 'g', scan: 'scansiona', scanTitle: 'Cerca nuovi demoni pm2 sul computer', daemons: 'demoni', newDomain: '+ dominio', help: 'aiuto',
+    follow: 'segui', followTitle: 'Scorre in fondo ad ogni aggiornamento',
+    close: 'chiudi', add: 'aggiungi', save: 'salva', cancel: 'annulla', name: 'nome', domain: 'Dominio',
+    daemonsTitle: 'Demoni pm2', addHomePlaceholder: 'aggiungi a mano una cartella PM2_HOME',
+    domainTimeout: "attesa massima per processo all'avvio (s)",
+    domainHint: 'L\'avvio segue l\'ordine crescente del campo "ord" e aspetta che ogni processo sia online prima del successivo; lo stop va al contrario.',
+    deleteDomain: 'elimina dominio', helpTitle: 'Aiuto · pm2 monitor',
+    updated: 'aggiornato {time}', unreachable: 'server non raggiungibile', stale: 'NON AGGIORNATO da {s}s — server fermo?',
+    noDomain: 'Senza dominio', procCount: '{n} processi', down: '{n} giù', daemonOnline: '{label}: {on}/{total} online',
+    startAll: 'avvia tutti', restartAll: 'riavvia', stopAll: 'ferma tutti', settings: 'impostazioni',
+    colName: 'nome', colDaemon: 'demone', colStatus: 'stato', colCpu: 'cpu', colMemory: 'memoria', colUptime: 'uptime',
+    colRestarts: 'restart', colOrd: 'ord', colDomain: 'dominio', unstable: '({n} instabili)',
+    'status.online': 'online', 'status.stopped': 'fermo', 'status.errored': 'in errore', 'status.launching': 'in avvio',
+    'status.stopping': 'in arresto', 'status.offline': 'demone spento', 'status.absent': 'non avviato',
+    start: 'start', stop: 'stop', restart: 'restart', forget: 'Dimentica la specifica di lancio salvata', orderTitle: 'Ordine di avvio nel dominio',
+    newDomainOption: '+ nuovo dominio…', newDomainPrompt: 'Nome del nuovo dominio (es. backend):',
+    empty: 'Nessun processo trovato. Se pm2 è spento su questo computer non c\'è nulla da mostrare; "demoni" permette di aggiungere una cartella PM2_HOME a mano.',
+    noPm2: 'pm2 non trovato: né nel PATH né nei gestori di versioni di node. Installalo con "npm i -g pm2".',
+    confirmStop: 'Fermare {name}?', confirmDomain: '{verb} tutti i processi di "{domain}"?',
+    'verb.start': 'Avviare', 'verb.restart': 'Riavviare', 'verb.stop': 'Fermare',
+    confirmDeleteDomain: 'Eliminare il dominio "{domain}"? I processi restano, ma senza dominio.',
+    done: '{action} {name}: fatto', failed: '{action} {name} FALLITO\n{msg}', serverDown: 'server non raggiungibile',
+    scanDone: 'scansione fatta',
+    jobRunning: '⏳', jobDone: '✓ completato', jobFailed: '✗ interrotto',
+    'step.stop': 'stop', 'step.start': 'start', 'step.already_stopped': 'già fermo',
+    'step.already_running': 'già attivo', 'step.error': 'errore',
+    logEmpty: '[log vuoto]', logUnreadable: '[log non leggibile: {detail}]',
+    active: 'attivo', hide: 'nascondi',
+    noDaemons: 'Nessun demone trovato.',
+    envInfo: 'pm2: {pm2} · config: {config}', notFound: 'NON TROVATO',
+    noIssues: 'Link alle segnalazioni non ancora configurato (TODO: impostare <code>ISSUES_URL</code> in <code>pm2monitor/__init__.py</code> con l\'URL delle Issues della repo pubblica).',
+    issuesLink: 'Apri una segnalazione (bug o richiesta di funzione) su',
+    'err.unknown_daemon': 'demone sconosciuto: {id}', 'err.pm2_not_found': 'pm2 non trovato (né nel PATH né nei gestori di versioni di node)',
+    'err.pm2_bad_output': 'risposta di pm2 non leggibile: {detail}', 'err.invalid_action': 'azione non valida',
+    'err.process_not_in_daemon': 'processo non presente nel demone', 'err.no_saved_spec': 'nessuna specifica di lancio salvata per questo processo',
+    'err.pm2_failed': '{output}', 'err.unknown_domain': 'dominio sconosciuto', 'err.domain_busy': "{domain}: un'operazione è già in corso",
+    'err.unknown_process': 'processo sconosciuto', 'err.empty_domain_name': 'nome del dominio vuoto',
+    'err.domain_rename_invalid': 'dominio inesistente o nome già usato',
+    'err.not_pm2_home': 'non sembra una cartella PM2_HOME (manca pm2.pid / dump.pm2)',
+    'err.unknown_config_op': 'operazione di config sconosciuta', 'err.process_not_found': 'processo non trovato',
+    'err.unknown_job': 'operazione sconosciuta', 'err.bad_request': 'richiesta non valida: {detail}', 'err.error_detail': '{detail}',
+    'err.folder_missing': 'cartella non trovata', 'err.daemon_stopped': 'demone spento', 'err.read_failed': 'lettura pm2 fallita: {detail}',
+    'err.start_timeout': 'non online dopo {timeout}s: sequenza interrotta',
+    'err.config_corrupt': 'config illeggibile, salvata come {backup}; ne parte una nuova',
+    'err.config_corrupt_locked': 'config illeggibile e non spostabile; le modifiche non verranno salvate'
+  }
+};
+
+// Saved choice first, then the browser language, English otherwise.
+let lang = (navigator.language || 'en').toLowerCase().startsWith('it') ? 'it' : 'en';
+try{ const saved = localStorage.getItem('lang'); if(saved === 'en' || saved === 'it') lang = saved; }catch(e){}
+
+let state = null, sel = null, logKind = 'out', follow = true, lastOk = 0, busy = new Set();
+let editedDomain = null, jobTimer = null;
+
+const $ = s => document.querySelector(s);
+const t = (key, p = {}) => String(I18N[lang][key] ?? I18N.en[key] ?? key).replace(/\{(\w+)\}/g, (_, k) => p[k] ?? '');
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+// Server errors arrive as {error: code, params}; unknown codes fall back to the raw text.
+const errText = (code, params, fallback) => {
+  const key = 'err.' + code;
+  return (I18N[lang][key] ?? I18N.en[key]) ? t(key, params || {}) : (fallback || code || '');
+};
+const mem = b => !b ? '–' : b >= 1<<30 ? (b/(1<<30)).toFixed(2)+' GB' : (b/(1<<20)).toFixed(0)+' MB';
+function dur(s){ if(s==null) return '–'; s=Math.floor(s);
+  const d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60);
+  return d? `${d}${t('unitDay')} ${h}h` : h? `${h}h ${m}m` : m? `${m}m ${s%60}s` : `${s}s`; }
+
+function toast(msg, bad){ const el=$('#toast'); el.textContent=msg; el.className=bad?'bad':'';
+  el.style.display='block'; clearTimeout(toast.h); toast.h=setTimeout(()=>el.style.display='none', bad?8000:3000); }
+
+function applyStaticTexts(){
+  document.documentElement.lang = lang; document.documentElement.dataset.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+  $('#lang').value = lang;
+  if(state) renderHelp();
+}
+function setLang(next){
+  lang = next; try{ localStorage.setItem('lang', next); }catch(e){}
+  applyStaticTexts(); updClock();
+  if(state){ render(true); if($('#daemondialog').open) renderDaemonDialog(); }
+}
+
+async function api(path, body){
+  const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  return r.json();
+}
+async function config(body){
+  try{ const j = await api('/api/config', body); if(!j.ok) toast(errText(j.error, j.params, j.output), true); }
+  catch(e){ toast(t('serverDown'), true); }
+  poll(true);
+}
+
+async function poll(force){
+  try{
+    const r = await fetch('/api/state'); state = await r.json(); lastOk = Date.now(); render(force);
+  }catch(e){ /* the "not updated" banner reports it */ }
+  updClock();
+}
+function updClock(){
+  const u=$('#updated'), age=(Date.now()-lastOk)/1000;
+  if(!lastOk){ u.textContent=t('unreachable'); u.className='stale'; return; }
+  u.className = age > 10 ? 'stale' : '';
+  u.textContent = age > 10 ? t('stale', {s: Math.floor(age)}) : t('updated', {time: new Date(lastOk).toLocaleTimeString()});
+}
+
+function groupByDomain(){
+  const groups = new Map(state.domains.map(d => [d.name, []]));
+  const visible = new Set(state.daemons.filter(d => !d.hidden).map(d => d.id));
+  const NONE = Symbol('none'); groups.set(NONE, []);
+  for(const p of state.procs){
+    if(!visible.has(p.daemon)) continue;
+    groups.get((p.domain && groups.has(p.domain)) ? p.domain : NONE).push(p);
+  }
+  for(const list of groups.values()) list.sort((a,b) => (a.order-b.order) || a.name.localeCompare(b.name));
+  const unassigned = groups.get(NONE); groups.delete(NONE);
+  if(unassigned.length) groups.set(NONE, unassigned);
+  return groups;
+}
+
+function render(force){
+  const active = document.activeElement;
+  if(!force && active && $('#list').contains(active) && ['SELECT','INPUT'].includes(active.tagName)) return; // do not disturb an edit in progress
+  const banner = [];
+  if(!state.pm2) banner.push(t('noPm2'));
+  if(state.warning) banner.push(errText(state.warning.code, state.warning.params));
+  $('#banner').style.display = banner.length ? 'block' : 'none'; $('#banner').textContent = banner.join(' · ');
+
+  const labelOf = Object.fromEntries(state.daemons.map(d => [d.id, d.label]));
+  const domainOptions = (current) => `<option value="">—</option>` +
+    state.domains.map(d => `<option ${d.name===current?'selected':''}>${esc(d.name)}</option>`).join('') +
+    `<option value="__new__">${esc(t('newDomainOption'))}</option>`;
+
+  let html = '', sum = '';
+  for(const d of state.daemons.filter(d => !d.hidden)){
+    const own = state.procs.filter(p => p.daemon === d.id);
+    const on = own.filter(p => p.status === 'online').length;
+    sum += d.alive
+      ? `<span>${esc(t('daemonOnline', {label: d.label, on, total: own.length}))}${own.length-on?` · <b style="color:var(--bad)">${esc(t('down', {n: own.length-on}))}</b>`:''}</span>`
+      : `<span>${esc(d.label)}: <b style="color:var(--bad)">${esc(errText(d.error, d.errorParams) || t('status.offline'))}</b></span>`;
+  }
+  for(const [name, procs] of groupByDomain()){
+    const isDomain = typeof name === 'string', title = isDomain ? name : t('noDomain');
+    const anyBusy = isDomain && state.jobs.some(j => j.domain === name);
+    html += `<h2><span class="name">${esc(title)}</span><span>${esc(t('procCount', {n: procs.length}))}</span><span class="sp"></span>`;
+    if(isDomain) html += `<span class="btns" data-domain="${esc(name)}">
+      <button data-da="start" ${anyBusy?'disabled':''}>${esc(t('startAll'))}</button>
+      <button data-da="restart" ${anyBusy?'disabled':''}>${esc(t('restartAll'))}</button>
+      <button data-da="stop" ${anyBusy?'disabled':''}>${esc(t('stopAll'))}</button>
+      <button data-da="settings" title="${esc(t('settings'))}">⚙</button></span>`;
+    html += `</h2>
+    <table><tr><th>${esc(t('colName'))}</th><th>${esc(t('colDaemon'))}</th><th>${esc(t('colStatus'))}</th><th class="num">${esc(t('colCpu'))}</th><th class="num">${esc(t('colMemory'))}</th>
+    <th class="num">${esc(t('colUptime'))}</th><th class="num">${esc(t('colRestarts'))}</th><th class="num">${esc(t('colOrd'))}</th><th>${esc(t('colDomain'))}</th><th></th></tr>`;
+    for(const p of procs){
+      const b = busy.has(p.key);
+      html += `<tr class="row ${esc(p.status)} ${sel&&sel.key===p.key?'sel':''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
+        <td><span class="dot"></span>${esc(p.name)}</td>
+        <td class="dim">${esc(labelOf[p.daemon])}</td>
+        <td class="st">${esc(I18N[lang]['status.'+p.status] ? t('status.'+p.status) : p.status)}</td>
+        <td class="num">${p.status==='online'?p.cpu+'%':'–'}</td>
+        <td class="num">${p.status==='online'?mem(p.memory):'–'}</td>
+        <td class="num">${dur(p.uptime)}</td>
+        <td class="num ${p.restarts?'warn':''}">${p.restarts}${p.unstable?' '+esc(t('unstable', {n: p.unstable})):''}</td>
+        <td class="num">${p.domain?`<input type="number" data-cfg="order" value="${p.order}" title="${esc(t('orderTitle'))}">`:''}</td>
+        <td><select data-cfg="domain">${domainOptions(p.domain)}</select></td>
+        <td><div class="btns">
+          ${p.status==='online'
+            ? `<button data-a="restart" ${b?'disabled':''}>${esc(t('restart'))}</button><button data-a="stop" ${b?'disabled':''}>${esc(t('stop'))}</button>`
+            : `<button data-a="start" ${b?'disabled':''}>${esc(t('start'))}</button>`}
+          ${p.status==='absent'?`<button data-a="forget" title="${esc(t('forget'))}">✕</button>`:''}
+        </div></td></tr>`;
+    }
+    html += '</table>';
+  }
+  if(!html) html = `<p class="dim">${esc(t('empty'))}</p>`;
+  $('#list').innerHTML = html; $('#summary').innerHTML = sum;
+  if(state.jobs.length && !jobTimer) trackJob(state.jobs[0].id);
+}
+
+$('#list').addEventListener('click', async e => {
+  const domainBtn = e.target.closest('[data-da]');
+  if(domainBtn) return domainAction(domainBtn.closest('[data-domain]').dataset.domain, domainBtn.dataset.da);
+  const tr = e.target.closest('tr.row'); if(!tr || e.target.closest('select,input')) return;
+  const key = tr.dataset.key, p = state.procs.find(x => x.key === key), a = e.target.dataset.a;
+  if(a === 'forget') return config({op:'forgetProcess', key});
+  if(a){
+    if(a==='stop' && !confirm(t('confirmStop', {name: p.name}))) return;
+    busy.add(key); render(true);
+    try{
+      const j = await api('/api/action', {key, action:a});
+      toast(j.ok ? t('done', {action: a, name: p.name}) : t('failed', {action: a, name: p.name, msg: errText(j.error, j.params, j.output)}), !j.ok);
+    }catch(err){ toast(`${a} ${p.name}: ${t('serverDown')}`, true); }
+    busy.delete(key); poll(true); return;
+  }
+  sel = {key, name: p.name}; $('#logs').classList.add('open');
+  $('#logtitle').textContent = `${p.name} · ${p.daemon}`; render(true); loadLogs(true);
+});
+
+$('#list').addEventListener('change', async e => {
+  const key = e.target.closest('tr.row')?.dataset.key; if(!key) return;
+  if(e.target.dataset.cfg === 'order') return config({op:'setProcess', key, order: e.target.value});
+  if(e.target.dataset.cfg === 'domain'){
+    let domain = e.target.value;
+    if(domain === '__new__'){
+      domain = (prompt(t('newDomainPrompt')) || '').trim();
+      if(!domain){ render(true); return; }
+    }
+    config({op:'setProcess', key, domain});
+  }
+});
+
+async function domainAction(domain, action){
+  if(action === 'settings') return openDomainDialog(domain);
+  if(action !== 'start' && !confirm(t('confirmDomain', {verb: t('verb.'+action), domain}))) return;
+  try{
+    const j = await api('/api/domain-action', {domain, action});
+    if(!j.ok) return toast(errText(j.error, j.params, j.output), true);
+    trackJob(j.job);
+  }catch(e){ toast(t('serverDown'), true); }
+}
+
+function trackJob(id){
+  clearInterval(jobTimer);
+  const bar = $('#jobbar');
+  const tick = async () => {
+    let job;
+    try{ job = await (await fetch('/api/job?id='+encodeURIComponent(id))).json(); }catch(e){ return; }
+    if(job.error){ clearInterval(jobTimer); jobTimer = null; bar.style.display = 'none'; return; }
+    const steps = job.steps.map(s => {
+      const proc = s.key.split('/').slice(1).join('/') || '';
+      const msg = s.message ? ': ' + errText(s.message, s.params) : '';
+      return `<span class="${s.ok?'good':'fail'}">${s.ok?'✓':'✗'} ${esc(proc)} (${esc(t('step.'+s.label))})${esc(msg)}</span>`;
+    }).join(' · ');
+    const head = job.state === 'running' ? t('jobRunning') : job.state === 'done' ? t('jobDone') : `<span class="fail">${esc(t('jobFailed'))}</span>`;
+    bar.innerHTML = `<b>${esc(job.domain)}</b> · ${esc(t('verb.'+job.action).toLowerCase())} ${head} ${steps}`;
+    bar.style.display = 'block';
+    if(job.state !== 'running'){
+      clearInterval(jobTimer); setTimeout(() => { if(!jobTimer) bar.style.display = 'none'; }, job.state==='done'?6000:20000);
+      jobTimer = null; poll(true);
+    }
+  };
+  jobTimer = setInterval(tick, 1000); tick();
+}
+
+function openDomainDialog(domain){
+  editedDomain = domain;
+  const d = state.domains.find(x => x.name === domain);
+  $('#domaintitle').textContent = domain; $('#domainname').value = domain; $('#domaintimeout').value = d.startTimeout;
+  $('#domaindialog').showModal();
+}
+$('#savedomain').onclick = async () => {
+  const newName = $('#domainname').value.trim();
+  if(newName && newName !== editedDomain) await config({op:'renameDomain', old: editedDomain, new: newName});
+  await config({op:'setDomainTimeout', name: newName || editedDomain, seconds: $('#domaintimeout').value});
+  $('#domaindialog').close();
+};
+$('#deletedomain').onclick = async () => {
+  if(!confirm(t('confirmDeleteDomain', {domain: editedDomain}))) return;
+  await config({op:'deleteDomain', name: editedDomain}); $('#domaindialog').close();
+};
+$('#closedomain').onclick = () => $('#domaindialog').close();
+
+$('#newdomain').onclick = () => {
+  const name = (prompt(t('newDomainPrompt')) || '').trim();
+  if(name) config({op:'createDomain', name});
+};
+$('#scan').onclick = async () => { await config({op:'scan'}); toast(t('scanDone')); };
+$('#lang').onchange = e => setLang(e.target.value);
+
+function renderDaemonDialog(){
+  $('#daemonlist').innerHTML = state.daemons.map(d => `<div class="daemon" data-id="${esc(d.id)}">
+    <div class="line"><input class="grow" data-f="label" value="${esc(d.label)}">
+      <span class="${d.alive?'':'dim'}">${esc(d.alive ? t('active') : (errText(d.error, d.errorParams) || t('status.offline')))}</span>
+      <label><input type="checkbox" data-f="hidden" ${d.hidden?'checked':''}> ${esc(t('hide'))}</label></div>
+    <div class="home">${esc(d.home)}</div></div>`).join('') || `<p class="dim">${esc(t('noDaemons'))}</p>`;
+  $('#envinfo').textContent = t('envInfo', {pm2: state.pm2 || t('notFound'), config: state.configPath});
+}
+$('#daemons').onclick = () => { renderDaemonDialog(); $('#daemondialog').showModal(); };
+$('#closedaemons').onclick = () => $('#daemondialog').close();
+$('#daemonlist').addEventListener('change', async e => {
+  const id = e.target.closest('.daemon').dataset.id;
+  const body = e.target.dataset.f === 'hidden' ? {hidden: e.target.checked} : {label: e.target.value};
+  await config({op:'updateDaemon', id, ...body}); renderDaemonDialog();
+});
+$('#addhome').onclick = async () => {
+  await config({op:'addHome', home: $('#newhome').value}); $('#newhome').value = ''; renderDaemonDialog();
+};
+
+function renderHelp(){
+  document.querySelectorAll('.h-version').forEach(el => el.textContent = state.version ? 'v' + state.version : '');
+  document.querySelectorAll('.h-config').forEach(el => el.textContent = state.configPath || '');
+  document.querySelectorAll('.h-pm2').forEach(el => el.textContent = state.pm2 || t('notFound'));
+  document.querySelectorAll('.h-issues').forEach(el => el.innerHTML = state.issuesUrl
+    ? `${esc(t('issuesLink'))} <a href="${esc(state.issuesUrl)}" target="_blank" rel="noopener">${esc(state.issuesUrl)}</a>.`
+    : t('noIssues'));
+}
+$('#help').onclick = () => { if(state) renderHelp(); $('#helpdialog').showModal(); };
+$('#closehelp').onclick = () => $('#helpdialog').close();
+
+async function loadLogs(reset){
+  if(!sel) return;
+  const pre=$('#logtext');
+  try{
+    const r = await fetch(`/api/logs?key=${encodeURIComponent(sel.key)}&n=400`);
+    const j = await r.json();
+    pre.textContent = j.ok === false ? `[${errText(j.error, j.params, j.output)}]`
+      : j[logKind+'_error'] ? t('logUnreadable', {detail: j[logKind+'_error']})
+      : (j[logKind] || t('logEmpty'));
+    pre.title = j[logKind+'_path'] || '';
+  }catch(e){ pre.textContent=`[${t('serverDown')}]`; }
+  if(follow || reset) pre.scrollTop = pre.scrollHeight;
+}
+document.querySelectorAll('#loghead [data-k]').forEach(b => b.onclick = () => {
+  logKind=b.dataset.k; document.querySelectorAll('#loghead [data-k]').forEach(x=>x.classList.toggle('on',x===b)); loadLogs(true); });
+$('#follow').onclick = e => { follow=!follow; e.target.classList.toggle('on',follow); };
+$('#closelog').onclick = () => { sel=null; $('#logs').classList.remove('open'); render(true); };
+
+applyStaticTexts();
+poll(true); setInterval(poll, POLL); setInterval(updClock, 1000); setInterval(()=>loadLogs(false), LOGPOLL);
+</script>
+</body>
+</html>
