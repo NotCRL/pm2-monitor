@@ -2,6 +2,8 @@
 
 **English** · [Italiano](README.it.md)
 
+[![tests](https://github.com/NotCRL/pm2-monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/NotCRL/pm2-monitor/actions/workflows/tests.yml)
+
 > **In italiano:** pm2-monitor è una UI web locale per vedere e gestire i processi pm2: scopre da sola i demoni, raggruppa i processi in domini con ordine di avvio e funziona su Linux, macOS e Windows. L'interfaccia, il README, la guida di installazione e il CHANGELOG sono disponibili **sia in inglese sia in italiano**: leggi il [README in italiano](README.it.md) e la [guida di installazione](docs/INSTALL.it.md).
 
 Local web UI to view and manage the pm2 processes of any daemon on your computer.

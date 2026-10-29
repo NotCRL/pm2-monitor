@@ -2,6 +2,8 @@
 
 [English](README.md) · **Italiano**
 
+[![tests](https://github.com/NotCRL/pm2-monitor/actions/workflows/tests.yml/badge.svg)](https://github.com/NotCRL/pm2-monitor/actions/workflows/tests.yml)
+
 UI web locale per vedere e gestire i processi pm2 di qualsiasi demone presente sul computer.
 Linux, macOS e Windows; solo libreria standard Python (3.8+), nessuna dipendenza.
 Avvio: `python3 server.py [--port N] [--config PERCORSO] [--version]` → http://127.0.0.1:8440. Il pulsante "aiuto" nell'interfaccia raccoglie guide e risoluzione dei problemi. L'interfaccia è disponibile in italiano e in inglese (selettore nella testata).
