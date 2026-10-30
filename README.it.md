@@ -16,6 +16,7 @@ Guida passo passo (Node.js, pm2, monitor, avvio automatico, per Linux / macOS / 
 - **Domini**: raggruppano processi anche di demoni diversi (es. `backend`). Un processo sta in un solo dominio.
 - **Ordine di avvio** per processo, dentro il dominio. "avvia tutti" parte dal numero più basso e, per ogni processo, aspetta che sia online e ci resti 2 s prima di passare al successivo; se uno non parte entro il timeout del dominio (default 30 s, modificabile da ⚙) la sequenza si ferma e lo dice. "ferma tutti" va al contrario; "riavvia" fa stop poi start.
 - **Avvio da config**: un processo salvato ma non più nel demone (o con demone spento) riparte da una ecosystem file generata dalla specifica salvata. Anche il demone ripartirà da solo.
+- **Dimensione regolabile**: i pulsanti `A−` / `A+` nella testata ingrandiscono o rimpiccioliscono tutta l'interfaccia (80%–200%) e ricordano la scelta.
 - Per ogni processo: stato, cpu, memoria, uptime, restart (in giallo se > 0), pid; restart / stop / start singoli; clic sulla riga → log `out` / `err` (ultime 400 righe, anche a demone spento).
 
 ## Configurazione

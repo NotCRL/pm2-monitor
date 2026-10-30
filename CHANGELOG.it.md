@@ -5,6 +5,14 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.2.0] - 2026-10-30
+
+### Aggiunto
+- Pulsanti nella testata per rimpicciolire o ingrandire tutta l'interfaccia (dall'80% al 200%) e per tornare al 100%. Testo, tabelle, finestre, log e configurazione guidata scalano insieme, e la dimensione scelta viene ricordata nel browser.
+
+### Modificato
+- Tutte le misure sono ora relative (`rem`), quindi seguono la dimensione scelta; con dimensioni grandi la testata va a capo e la tabella scorre di lato invece di schiacciarsi. La colonna "stato" è più larga.
+
 ## [1.1.0] - 2026-10-30
 
 ### Aggiunto

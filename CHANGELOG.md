@@ -5,6 +5,14 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.2.0] - 2026-10-30
+
+### Added
+- Buttons in the header to make the whole interface smaller or larger (80% to 200%) and to go back to 100%. Text, tables, dialogs, logs and the guided setup all scale together, and the chosen size is remembered in the browser.
+
+### Changed
+- All sizes are now relative (`rem`), so they follow the chosen size; at large sizes the header wraps and the table scrolls sideways instead of being squeezed. The "status" column is wider.
+
 ## [1.1.0] - 2026-10-30
 
 ### Added

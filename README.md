@@ -20,6 +20,7 @@ Step-by-step guide (Node.js, pm2, monitor, autostart, for Linux / macOS / Window
 - **Domains** group processes, even from different daemons (e.g. `backend`). A process belongs to one domain.
 - **Start order** per process within a domain. "start all" begins with the lowest number and, for each process, waits until it is online and stays so for 2 s before moving on; if one does not start within the domain timeout (default 30 s, editable from ⚙) the sequence stops and says so. "stop all" goes in reverse; "restart" stops, then starts.
 - **Start from config**: a saved process that is no longer in the daemon (or whose daemon is down) is relaunched from an ecosystem file generated from its saved spec. The daemon itself comes back too.
+- **Adjustable size**: `A−` / `A+` buttons in the header scale the whole interface (80%–200%) and remember your choice.
 - For each process: status, cpu, memory, uptime, restarts (yellow if > 0), pid; single restart / stop / start; click a row for its `out` / `err` log (last 400 lines, available even while the daemon is down).
 
 ## Configuration

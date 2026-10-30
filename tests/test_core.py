@@ -137,6 +137,12 @@ class TranslationsTest(unittest.TestCase):
         self.assertTrue(labels)
         self.assertEqual({l for l in labels if f"step.{l}" not in self.table("en")}, set())
 
+    def test_every_size_scales_with_the_zoom_buttons(self):
+        """Sizes must be rem so the zoom buttons move everything; only 1-2px hairlines and the root size stay in px."""
+        html = (self.root / "index.html").read_text(encoding="utf-8")
+        fixed = [m for m in re.findall(r"(?<![\w.])(\d+(?:\.\d+)?)px", html) if float(m) > 2]
+        self.assertEqual(fixed, ["13"])  # the root font size that the zoom factor multiplies
+
     def test_action_error_carries_code_and_params(self):
         error = ActionError("domain_busy", domain="x")
         self.assertEqual((error.code, error.params), ("domain_busy", {"domain": "x"}))
