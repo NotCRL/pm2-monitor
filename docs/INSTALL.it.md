@@ -4,6 +4,8 @@
 
 Guida per installare **pm2**, configurarlo per i tuoi processi e usare **pm2-monitor** per controllarli. Vale per Linux, macOS e Windows: dove i comandi cambiano, trovi una voce per sistema.
 
+> **Preferisci essere guidato?** Installa Python (sezione 1), avvia il monitor (sezione 7) e clicca **configurazione guidata** in alto nella pagina: controlla Node.js e pm2, può installare pm2 al posto tuo, ti aiuta a scegliere la cartella del progetto e avvia la tua prima app. Questo documento è la versione manuale.
+
 Indice
 1. [Cosa serve](#1-cosa-serve)
 2. [Installare Node.js](#2-installare-nodejs)

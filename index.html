@@ -79,12 +79,52 @@ dialog .home{color:var(--dim);font-size:11px;word-break:break-all}
 html[data-lang=en] .helpbody[lang=en],html[data-lang=it] .helpbody[lang=it]{display:block}
 dialog .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
 .daemon{border-bottom:1px solid var(--line);padding:6px 0}
+.primary{background:var(--acc);color:#0b1220;border-color:var(--acc);font-weight:600;padding:5px 14px;font-size:13px}
+.primary:hover{filter:brightness(1.1)}
+.primary:disabled{filter:grayscale(.6)}
+.btnlink{display:inline-block;text-decoration:none;border-radius:4px;padding:5px 14px;font-size:13px}
+#setupbtn.attention{border-color:var(--warn);color:var(--warn);font-weight:600;animation:pulse 1.8s ease-in-out infinite}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 #e0a63a00}50%{box-shadow:0 0 0 5px #e0a63a55}}
+@media (prefers-reduced-motion:reduce){#setupbtn.attention{animation:none}}
+.setupcard{border:2px solid var(--acc);border-radius:10px;padding:18px 22px;margin:14px 0 8px;background:linear-gradient(135deg,#1b2740,#1c1f25)}
+.setupcard h3{margin:0 0 6px;font-size:18px}
+.setupcard p{margin:4px 0 12px;color:var(--fg);font-size:14px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 12px}
+.chip{border:1px solid var(--line);border-radius:14px;padding:3px 11px;font-size:12px;color:var(--dim);background:var(--panel)}
+.chip.ok{color:var(--ok);border-color:#2c6b4a}
+.chip.cur{border-color:var(--acc);color:var(--fg)}
+.chip small{color:var(--dim)}
+dialog.wiz{width:min(780px,94vw);max-height:90vh;overflow:auto}
+.wiz h3{font-size:16px}
+.wiz h4{margin:14px 0 4px;font-size:13px}
+.wiz p{margin:6px 0}
+.wiz .ok{color:var(--ok)}
+.wiz .bad{color:var(--bad)}
+.wiz .opt{border:1px solid var(--line);border-radius:8px;padding:10px 14px;margin:10px 0;background:var(--panel)}
+.wiz label{display:block;margin:10px 0 3px;color:var(--dim);font-size:12px}
+.wiz input[type=text],.wiz input:not([type]){width:100%;padding:5px 8px;font-size:13px}
+.wiz .line{display:flex;gap:8px;align-items:center}
+.wiz .line input{flex:1}
+.wiz .sp{flex:1}
+.wiz .foot{display:flex;gap:8px;align-items:center;margin-top:16px}
+.cmd{display:flex;gap:8px;align-items:center;background:#101215;border:1px solid var(--line);border-radius:6px;padding:6px 8px;margin:6px 0}
+.cmd code{flex:1;font:13px ui-monospace,monospace;word-break:break-all;color:#cfe3ff}
+.wiz pre.out{max-height:200px;margin:8px 0;border:1px solid var(--line);border-radius:6px}
+.browse{border:1px solid var(--line);border-radius:8px;margin:8px 0;background:#101215}
+.browse .bar{padding:6px 10px;border-bottom:1px solid var(--line);word-break:break-all}
+.browse .entries{max-height:190px;overflow:auto;display:flex;flex-direction:column;align-items:stretch}
+.browse .entries button{text-align:left;border:0;border-radius:0;border-bottom:1px solid var(--line);background:transparent;padding:5px 10px}
+.browse .entries button:hover{background:var(--panel)}
+.browse .foot{padding:6px 10px;margin:0}
+.tabs{display:flex;gap:6px;margin:10px 0}
+.tabs button.on{border-color:var(--acc);color:var(--acc)}
 </style>
 </head>
 <body>
 <header>
   <h1>pm2 monitor</h1>
   <div id="summary"></div>
+  <button id="setupbtn" data-i18n="setupGuide"></button>
   <button id="scan" data-i18n="scan" data-i18n-title="scanTitle"></button>
   <button id="daemons" data-i18n="daemons"></button>
   <button id="newdomain" data-i18n="newDomain"></button>
@@ -127,10 +167,23 @@ dialog .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
   <div class="foot"><button id="deletedomain" data-i18n="deleteDomain"></button><button id="savedomain" data-i18n="save"></button><button id="closedomain" data-i18n="cancel"></button></div>
 </dialog>
 
+<dialog id="wizard" class="wiz">
+  <h3 data-i18n="wz.title"></h3>
+  <div id="wizchips" class="chips"></div>
+  <div id="wizbody"></div>
+  <div class="foot">
+    <button id="wizclose" data-i18n="close"></button><span class="sp"></span>
+    <button id="wizback" data-i18n="wz.back"></button>
+    <button id="wizcheck" class="primary" data-i18n="wz.check"></button>
+    <button id="wiznext"></button>
+  </div>
+</dialog>
+
 <dialog id="helpdialog" class="help">
   <h3 tabindex="-1" autofocus><span data-i18n="helpTitle"></span> <span class="dim h-version"></span></h3>
 
   <div class="helpbody" lang="en">
+    <p><b>New to pm2?</b> Click <b>"guided setup"</b> at the top: it checks what is missing and walks you through installing and starting everything, step by step.</p>
     <p>Step-by-step guide to install Node.js, pm2 and this monitor on Linux, macOS and Windows: <code>docs/INSTALL.md</code> in the repository.</p>
 
     <h4>Getting started</h4>
@@ -173,6 +226,7 @@ dialog .foot{display:flex;justify-content:flex-end;gap:8px;margin-top:14px}
   </div>
 
   <div class="helpbody" lang="it">
+    <p><b>Non conosci pm2?</b> Clicca <b>"configurazione guidata"</b> in alto: controlla cosa manca e ti accompagna passo passo nell'installazione e nell'avvio di tutto.</p>
     <p>Guida passo passo per installare Node.js, pm2 e questo monitor su Linux, macOS e Windows: <code>docs/INSTALL.it.md</code> nella repository.</p>
 
     <h4>Primi passi</h4>
@@ -265,7 +319,77 @@ const I18N = {
     'err.folder_missing': 'folder not found', 'err.daemon_stopped': 'daemon stopped', 'err.read_failed': 'pm2 read failed: {detail}',
     'err.start_timeout': 'not online after {timeout}s: sequence interrupted',
     'err.config_corrupt': 'config was unreadable and was saved as {backup}; a new one was created',
-    'err.config_corrupt_locked': 'config is unreadable and could not be moved; changes will not be saved'
+    'err.config_corrupt_locked': 'config is unreadable and could not be moved; changes will not be saved',
+    setupGuide: 'guided setup',
+    'wz.title': 'Guided setup', 'wz.optional': 'optional', 'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Your apps',
+    'wz.step4': 'After a reboot', 'wz.step5': 'Domains',
+    'wz.back': '← back', 'wz.next': 'next →', 'wz.finish': 'Finish', 'wz.check': 'Check again', 'wz.copy': 'Copy', 'wz.copied': 'Copied!',
+    'wz.copyFailed': 'Could not copy: select the command and copy it by hand.',
+    'wz.stillMissing': 'Not yet: this step is not complete.', 'wz.stepOk': 'This step is complete.',
+    'wz.cardNoPm2': "pm2 is not installed yet. Let's set it up together",
+    'wz.cardNoDaemons': "I cannot see any pm2 yet. Let's fix that together",
+    'wz.cardNoProcs': 'pm2 is ready, but it has nothing to run yet',
+    'wz.cardText': "No problem: I will guide you step by step. It takes about 3 minutes and you do not need to know anything about pm2.",
+    'wz.cardButton': 'Start guided setup →',
+    'wz.showFor': 'Showing commands for:', 'wz.os.windows': 'Windows', 'wz.os.macos': 'macOS', 'wz.os.linux': 'Linux',
+    'wz.term.windows': 'Open PowerShell: press the Windows key, type "PowerShell" and press Enter. Then paste the command (right-click) and press Enter.',
+    'wz.term.macos': 'Open Terminal: press Cmd+Space, type "Terminal" and press Enter. Then paste the command and press Enter.',
+    'wz.term.linux': 'Open a terminal (usually Ctrl+Alt+T). Then paste the command and press Enter.',
+    'wz.s1.title': 'Step 1 · Install Node.js',
+    'wz.s1.why': 'pm2 is built on Node.js, so Node.js has to be installed first. It is free and you only do this once.',
+    'wz.s1.found': '✓ Node.js {version} is installed ({path})',
+    'wz.s1.easy': 'The easiest way (any system)',
+    'wz.s1.easyText': 'Open the Node.js website, download the version marked "LTS", run the installer and keep clicking Next until it finishes.',
+    'wz.s1.open': 'Open nodejs.org', 'wz.s1.cmd': 'Or with a single command',
+    'wz.s1.after': 'When it finishes, click "Check again". If it still says missing, close and reopen your terminal, restart this monitor and try again.',
+    'wz.node.windowsNote': 'Windows 10 and 11 include winget. If the command is not recognized, use the easiest way above.',
+    'wz.node.macosNote': 'This needs Homebrew (brew.sh). If you do not have it, use the easiest way above.',
+    'wz.node.linuxNote': 'Debian / Ubuntu shown. On Fedora use "sudo dnf install nodejs npm", on Arch "sudo pacman -S nodejs npm".',
+    'wz.s2.title': 'Step 2 · Install pm2',
+    'wz.s2.why': 'pm2 is the program that keeps your apps running in the background. This monitor shows and controls what pm2 runs.',
+    'wz.s2.found': '✓ pm2 {version} is installed ({path})', 'wz.s2.needNode': 'Finish step 1 first: pm2 needs Node.js.',
+    'wz.s2.auto': 'Install pm2 for me',
+    'wz.s2.autoText': 'I will run this command for you. It downloads pm2 from the npm registry, needs an internet connection and can take a minute:',
+    'wz.s2.confirm': 'Run "npm install -g pm2" now?', 'wz.s2.running': 'Installing… please wait.',
+    'wz.s2.manual': 'Or do it yourself',
+    'wz.s2.fallback': 'The system folder is protected, so I installed pm2 in your own folder instead. The monitor will use it. If you also want to type "pm2" in a terminal, add ~/.npm-global/bin to your PATH.',
+    'wz.s2.failed': 'The installation did not work. Details:', 'wz.s2.failedHelp': 'You can try the manual command above, or follow docs/INSTALL.md (section 3).',
+    'wz.s2.done': '✓ pm2 installed.',
+    'wz.s3.title': 'Step 3 · Your apps',
+    'wz.s3.found': '✓ I can see {n} process(es) in {d} pm2 daemon(s). You are all set here.',
+    'wz.s3.needPm2': 'Finish step 2 first.',
+    'wz.s3.intro': 'pm2 starts its background service the first time you give it something to run. Choose what describes you:',
+    'wz.s3.optNew': 'I am new: start my first app', 'wz.s3.optOld': 'I already use pm2 but I see nothing here',
+    'wz.s3.folder': 'Folder of your app (the one that contains your project)', 'wz.s3.browse': 'Browse…',
+    'wz.s3.useFolder': 'Use this folder', 'wz.s3.up': '⬆ parent folder', 'wz.s3.noFolders': 'No sub-folders here.',
+    'wz.s3.suggest': 'This looks like {kind}. I suggest the name and command below; change them if they are not right.',
+    'wz.kind.npm': 'a Node.js project (npm)', 'wz.kind.node': 'a Node.js app', 'wz.kind.python': 'a Python app',
+    'wz.s3.noSuggest': 'I could not guess how to start this folder. Type the command you normally use in a terminal, for example "npm start" or "python3 app.py".',
+    'wz.s3.name': 'Name (how it will appear in the list)', 'wz.s3.command': 'Command that starts it',
+    'wz.s3.start': 'Start it with pm2', 'wz.s3.starting': 'Starting… this takes a few seconds.',
+    'wz.s3.started': '✓ "{name}" is running under pm2 and the list is saved. You can see it in the main window now.',
+    'wz.s3.failedTitle': 'The app stopped right away (status: {status}). I removed it so you can try again. Last log lines:',
+    'wz.s3.failedHelp': 'Check the command and the folder, then try again.',
+    'wz.s3.oldText': 'pm2 keeps its data in a hidden folder (by default ".pm2" inside your user folder). If you use another one, find it like this:',
+    'wz.s3.old1': 'Open a terminal where you normally use pm2.', 'wz.s3.old2': 'Type this and press Enter:',
+    'wz.s3.old3': 'If it prints a folder, paste it below. If it prints nothing, pm2 uses the default folder: click "Check again" and, if nothing appears, paste {home}.',
+    'wz.s3.homePlaceholder': 'Paste the pm2 folder here', 'wz.s3.addHome': 'Add this folder',
+    'wz.s4.title': 'Step 4 · Keep your apps after a reboot (optional)',
+    'wz.s4.allDone': '🎉 Everything needed is working. These last two steps are optional.',
+    'wz.s4.text': 'By default pm2 does not restart your apps when the computer restarts. You can fix that once:',
+    'wz.s4.unix1': 'Run this, then run the command it prints (it usually starts with "sudo"):', 'wz.s4.unix2': 'Then run:',
+    'wz.s4.win': 'On Windows pm2 cannot do this by itself. The installation guide explains two options (a scheduled task or a service): docs/INSTALL.md, section 6.',
+    'wz.s4.monitor': 'To open this monitor automatically too, see section 9 of the same guide.',
+    'wz.s5.title': 'Step 5 · Organize with domains (optional)',
+    'wz.s5.text': 'A domain is a group of apps that belong together, for example "my shop": database, backend and website. You can then start the whole group in the right order with one click.',
+    'wz.s5.create': 'Create my first domain', 'wz.s5.then': 'Then use the "domain" drop-down on each row to put apps in it, and the "ord" column to choose which starts first.',
+    'wz.s5.have': '✓ You already have {n} domain(s).',
+    'err.folder_not_found': 'folder not found: {path}', 'err.folder_unreadable': 'cannot read the folder: {path}',
+    'err.bad_process_name': 'the name must start with a letter or number and use only letters, numbers, dash, underscore or dot',
+    'err.bad_command': 'the command has unbalanced quotes', 'err.empty_command': 'type the command that starts your app',
+    'err.npm_not_found': 'npm not found: finish step 1 (Node.js) first', 'err.process_exists': 'a process called "{name}" already exists',
+    'err.process_failed': 'the app stopped right away ({status})', 'err.install_in_progress': 'an installation is already running',
+    'err.install_failed': 'installation failed', 'err.pm2_missing_after_install': 'pm2 was installed but I cannot find it'
   },
   it: {
     unitDay: 'g', scan: 'scansiona', scanTitle: 'Cerca nuovi demoni pm2 sul computer', daemons: 'demoni', newDomain: '+ dominio', help: 'aiuto',
@@ -312,7 +436,77 @@ const I18N = {
     'err.folder_missing': 'cartella non trovata', 'err.daemon_stopped': 'demone spento', 'err.read_failed': 'lettura pm2 fallita: {detail}',
     'err.start_timeout': 'non online dopo {timeout}s: sequenza interrotta',
     'err.config_corrupt': 'config illeggibile, salvata come {backup}; ne parte una nuova',
-    'err.config_corrupt_locked': 'config illeggibile e non spostabile; le modifiche non verranno salvate'
+    'err.config_corrupt_locked': 'config illeggibile e non spostabile; le modifiche non verranno salvate',
+    setupGuide: 'configurazione guidata',
+    'wz.title': 'Configurazione guidata', 'wz.optional': 'facoltativo', 'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Le tue app',
+    'wz.step4': 'Dopo il riavvio', 'wz.step5': 'Domini',
+    'wz.back': '← indietro', 'wz.next': 'avanti →', 'wz.finish': 'Fine', 'wz.check': 'Controlla di nuovo', 'wz.copy': 'Copia', 'wz.copied': 'Copiato!',
+    'wz.copyFailed': 'Non sono riuscito a copiare: seleziona il comando e copialo a mano.',
+    'wz.stillMissing': 'Non ancora: questo passaggio non è completo.', 'wz.stepOk': 'Questo passaggio è completo.',
+    'wz.cardNoPm2': 'pm2 non è ancora installato. Sistemiamolo insieme',
+    'wz.cardNoDaemons': 'Non vedo ancora nessun pm2. Sistemiamolo insieme',
+    'wz.cardNoProcs': 'pm2 è pronto, ma non ha ancora nulla da eseguire',
+    'wz.cardText': 'Nessun problema: ti accompagno passo passo. Servono circa 3 minuti e non devi sapere nulla di pm2.',
+    'wz.cardButton': 'Avvia la configurazione guidata →',
+    'wz.showFor': 'Comandi per:', 'wz.os.windows': 'Windows', 'wz.os.macos': 'macOS', 'wz.os.linux': 'Linux',
+    'wz.term.windows': 'Apri PowerShell: premi il tasto Windows, scrivi "PowerShell" e premi Invio. Poi incolla il comando (tasto destro) e premi Invio.',
+    'wz.term.macos': 'Apri Terminale: premi Cmd+Spazio, scrivi "Terminale" e premi Invio. Poi incolla il comando e premi Invio.',
+    'wz.term.linux': 'Apri un terminale (di solito Ctrl+Alt+T). Poi incolla il comando e premi Invio.',
+    'wz.s1.title': 'Passo 1 · Installare Node.js',
+    'wz.s1.why': 'pm2 è costruito su Node.js, quindi Node.js va installato per primo. È gratuito e si fa una volta sola.',
+    'wz.s1.found': '✓ Node.js {version} è installato ({path})',
+    'wz.s1.easy': 'Il modo più semplice (qualsiasi sistema)',
+    'wz.s1.easyText': 'Apri il sito di Node.js, scarica la versione indicata come "LTS", avvia il programma di installazione e continua a cliccare Avanti fino alla fine.',
+    'wz.s1.open': 'Apri nodejs.org', 'wz.s1.cmd': 'Oppure con un solo comando',
+    'wz.s1.after': 'Quando ha finito, clicca "Controlla di nuovo". Se dice ancora che manca, chiudi e riapri il terminale, riavvia questo monitor e riprova.',
+    'wz.node.windowsNote': 'Windows 10 e 11 includono winget. Se il comando non viene riconosciuto, usa il modo più semplice qui sopra.',
+    'wz.node.macosNote': 'Serve Homebrew (brew.sh). Se non ce l\'hai, usa il modo più semplice qui sopra.',
+    'wz.node.linuxNote': 'Qui Debian / Ubuntu. Su Fedora usa "sudo dnf install nodejs npm", su Arch "sudo pacman -S nodejs npm".',
+    'wz.s2.title': 'Passo 2 · Installare pm2',
+    'wz.s2.why': 'pm2 è il programma che tiene le tue app in esecuzione in background. Questo monitor mostra e controlla ciò che pm2 esegue.',
+    'wz.s2.found': '✓ pm2 {version} è installato ({path})', 'wz.s2.needNode': 'Completa prima il passo 1: pm2 ha bisogno di Node.js.',
+    'wz.s2.auto': 'Installa pm2 per me',
+    'wz.s2.autoText': 'Eseguo io questo comando. Scarica pm2 dal registro npm, richiede una connessione a internet e può durare un minuto:',
+    'wz.s2.confirm': 'Eseguire ora "npm install -g pm2"?', 'wz.s2.running': 'Installazione in corso… attendi.',
+    'wz.s2.manual': 'Oppure fallo tu',
+    'wz.s2.fallback': 'La cartella di sistema è protetta, quindi ho installato pm2 nella tua cartella personale. Il monitor lo userà. Se vuoi scrivere "pm2" anche in un terminale, aggiungi ~/.npm-global/bin al PATH.',
+    'wz.s2.failed': 'L\'installazione non è riuscita. Dettagli:', 'wz.s2.failedHelp': 'Puoi provare il comando manuale qui sopra, oppure seguire docs/INSTALL.it.md (sezione 3).',
+    'wz.s2.done': '✓ pm2 installato.',
+    'wz.s3.title': 'Passo 3 · Le tue app',
+    'wz.s3.found': '✓ Vedo {n} processo/i in {d} demone/i pm2. Qui è tutto a posto.',
+    'wz.s3.needPm2': 'Completa prima il passo 2.',
+    'wz.s3.intro': 'pm2 avvia il suo servizio in background la prima volta che gli dai qualcosa da eseguire. Scegli cosa ti descrive:',
+    'wz.s3.optNew': 'Sono alle prime armi: avvia la mia prima app', 'wz.s3.optOld': 'Uso già pm2 ma qui non vedo nulla',
+    'wz.s3.folder': 'Cartella della tua app (quella che contiene il progetto)', 'wz.s3.browse': 'Sfoglia…',
+    'wz.s3.useFolder': 'Usa questa cartella', 'wz.s3.up': '⬆ cartella superiore', 'wz.s3.noFolders': 'Nessuna sottocartella qui.',
+    'wz.s3.suggest': 'Sembra {kind}. Ti suggerisco nome e comando qui sotto; cambiali se non vanno bene.',
+    'wz.kind.npm': 'un progetto Node.js (npm)', 'wz.kind.node': 'un\'app Node.js', 'wz.kind.python': 'un\'app Python',
+    'wz.s3.noSuggest': 'Non sono riuscito a capire come avviare questa cartella. Scrivi il comando che usi di solito in un terminale, per esempio "npm start" o "python3 app.py".',
+    'wz.s3.name': 'Nome (come apparirà nell\'elenco)', 'wz.s3.command': 'Comando che la avvia',
+    'wz.s3.start': 'Avviala con pm2', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
+    'wz.s3.started': '✓ "{name}" è in esecuzione sotto pm2 e l\'elenco è salvato. Ora la vedi nella finestra principale.',
+    'wz.s3.failedTitle': 'L\'app si è fermata subito (stato: {status}). L\'ho rimossa così puoi riprovare. Ultime righe del log:',
+    'wz.s3.failedHelp': 'Controlla il comando e la cartella, poi riprova.',
+    'wz.s3.oldText': 'pm2 conserva i suoi dati in una cartella nascosta (di solito ".pm2" dentro la tua cartella utente). Se ne usi un\'altra, trovala così:',
+    'wz.s3.old1': 'Apri un terminale dove di solito usi pm2.', 'wz.s3.old2': 'Scrivi questo e premi Invio:',
+    'wz.s3.old3': 'Se stampa una cartella, incollala qui sotto. Se non stampa nulla, pm2 usa la cartella predefinita: clicca "Controlla di nuovo" e, se non compare nulla, incolla {home}.',
+    'wz.s3.homePlaceholder': 'Incolla qui la cartella di pm2', 'wz.s3.addHome': 'Aggiungi questa cartella',
+    'wz.s4.title': 'Passo 4 · Mantenere le app dopo un riavvio (facoltativo)',
+    'wz.s4.allDone': '🎉 Tutto il necessario funziona. Questi ultimi due passi sono facoltativi.',
+    'wz.s4.text': 'Di base pm2 non riavvia le tue app quando il computer si riavvia. Lo sistemi una volta sola:',
+    'wz.s4.unix1': 'Esegui questo, poi esegui il comando che stampa (di solito inizia con "sudo"):', 'wz.s4.unix2': 'Poi esegui:',
+    'wz.s4.win': 'Su Windows pm2 non può farlo da solo. La guida all\'installazione spiega due opzioni (un\'attività pianificata o un servizio): docs/INSTALL.it.md, sezione 6.',
+    'wz.s4.monitor': 'Per aprire automaticamente anche questo monitor, vedi la sezione 9 della stessa guida.',
+    'wz.s5.title': 'Passo 5 · Organizzare con i domini (facoltativo)',
+    'wz.s5.text': 'Un dominio è un gruppo di app che stanno insieme, per esempio "il mio negozio": database, backend e sito. Poi puoi avviare tutto il gruppo, nell\'ordine giusto, con un clic.',
+    'wz.s5.create': 'Crea il mio primo dominio', 'wz.s5.then': 'Poi usa il menu "dominio" di ogni riga per inserire le app, e la colonna "ord" per scegliere quale parte per prima.',
+    'wz.s5.have': '✓ Hai già {n} dominio/i.',
+    'err.folder_not_found': 'cartella non trovata: {path}', 'err.folder_unreadable': 'impossibile leggere la cartella: {path}',
+    'err.bad_process_name': 'il nome deve iniziare con una lettera o un numero e usare solo lettere, numeri, trattino, underscore o punto',
+    'err.bad_command': 'il comando ha virgolette non chiuse', 'err.empty_command': 'scrivi il comando che avvia la tua app',
+    'err.npm_not_found': 'npm non trovato: completa prima il passo 1 (Node.js)', 'err.process_exists': 'esiste già un processo chiamato "{name}"',
+    'err.process_failed': 'l\'app si è fermata subito ({status})', 'err.install_in_progress': 'un\'installazione è già in corso',
+    'err.install_failed': 'installazione non riuscita', 'err.pm2_missing_after_install': 'pm2 è stato installato ma non riesco a trovarlo'
   }
 };
 
@@ -350,7 +544,7 @@ function applyStaticTexts(){
 function setLang(next){
   lang = next; try{ localStorage.setItem('lang', next); }catch(e){}
   applyStaticTexts(); updClock();
-  if(state){ render(true); if($('#daemondialog').open) renderDaemonDialog(); }
+  if(state){ render(true); if($('#daemondialog').open) renderDaemonDialog(); if($('#wizard').open) renderWizard(); }
 }
 
 async function api(path, body){
@@ -360,7 +554,7 @@ async function api(path, body){
 async function config(body){
   try{ const j = await api('/api/config', body); if(!j.ok) toast(errText(j.error, j.params, j.output), true); }
   catch(e){ toast(t('serverDown'), true); }
-  poll(true);
+  await poll(true);
 }
 
 async function poll(force){
@@ -444,12 +638,17 @@ function render(force){
     }
     html += '</table>';
   }
-  if(!html) html = `<p class="dim">${esc(t('empty'))}</p>`;
+  const level = setupLevel();
+  if(level) html = setupCardHtml(level) + html;
+  else if(!html) html = `<p class="dim">${esc(t('empty'))}</p>`;
   $('#list').innerHTML = html; $('#summary').innerHTML = sum;
+  $('#setupbtn').classList.toggle('attention', level === 'hard');
+  if(level === 'hard') maybeAutoOpenWizard();
   if(state.jobs.length && !jobTimer) trackJob(state.jobs[0].id);
 }
 
 $('#list').addEventListener('click', async e => {
+  if(e.target.closest('[data-setup]')) return openWizard();
   const domainBtn = e.target.closest('[data-da]');
   if(domainBtn) return domainAction(domainBtn.closest('[data-domain]').dataset.domain, domainBtn.dataset.da);
   const tr = e.target.closest('tr.row'); if(!tr || e.target.closest('select,input')) return;
@@ -568,6 +767,240 @@ function renderHelp(){
 }
 $('#help').onclick = () => { if(state) renderHelp(); $('#helpdialog').showModal(); };
 $('#closehelp').onclick = () => $('#helpdialog').close();
+
+/* ---------- guided setup ---------- */
+const OS_COMMANDS = {
+  node: {windows: 'winget install OpenJS.NodeJS.LTS', macos: 'brew install node', linux: 'sudo apt install nodejs npm'},
+  pm2: 'npm install -g pm2',
+  echoHome: {windows: 'echo $env:PM2_HOME', macos: 'echo $PM2_HOME', linux: 'echo $PM2_HOME'}
+};
+let setup = null, wizardOffered = false;
+const wiz = {step: 1, os: 'linux', osChosen: false, tab: 'new', folder: '', name: '', command: '', kind: null, inspected: false,
+             browse: null, busy: false, result: null, installState: null, output: '', fallback: false, timer: null};
+
+async function loadSetup(){
+  try{ setup = await (await fetch('/api/setup')).json(); }catch(e){ /* the wizard shows what it can */ }
+}
+function stepDone(n){
+  if(n === 1) return setup ? !!setup.node.path : !!(state && state.pm2);
+  if(n === 2) return !!(state && state.pm2);
+  if(n === 3) return !!(state && state.procs.length > 0);
+  if(n === 5) return !!(state && state.domains.length > 0);
+  return false;
+}
+function firstPending(){ for(const n of [1, 2, 3]) if(!stepDone(n)) return n; return 4; }
+// 'hard': no pm2 or no daemon visible (the guided setup is shown prominently); 'soft': ready but empty.
+function setupLevel(){
+  if(!state) return null;
+  if(!state.pm2 || state.daemons.filter(d => !d.hidden).length === 0) return 'hard';
+  return state.procs.length === 0 ? 'soft' : null;
+}
+function setupCardHtml(level){
+  const title = !state.pm2 ? 'wz.cardNoPm2' : level === 'hard' ? 'wz.cardNoDaemons' : 'wz.cardNoProcs';
+  const chips = [1, 2, 3].map(n => `<span class="chip ${stepDone(n) ? 'ok' : ''}">${stepDone(n) ? '✓' : n} ${esc(t(`wz.step${n}`))}</span>`).join('');
+  return `<div class="setupcard"><h3>${esc(t(title))}</h3><p>${esc(t('wz.cardText'))}</p>
+    <div class="chips">${chips}</div><button class="primary" data-setup="open">${esc(t('wz.cardButton'))}</button></div>`;
+}
+function maybeAutoOpenWizard(){
+  let shown = false;
+  try{ shown = sessionStorage.getItem('wizardShown') === '1'; }catch(e){}
+  if(shown || wizardOffered) return;
+  wizardOffered = true;
+  try{ sessionStorage.setItem('wizardShown', '1'); }catch(e){}
+  openWizard();
+}
+async function openWizard(step){
+  await loadSetup();
+  if(!wiz.osChosen && setup && setup.os) wiz.os = setup.os;
+  wiz.step = step || firstPending();
+  renderWizard();
+  if(!$('#wizard').open) $('#wizard').showModal();
+}
+
+const cmdBox = cmd => `<div class="cmd"><code>${esc(cmd)}</code><button data-copy="${esc(cmd)}">${esc(t('wz.copy'))}</button></div>`;
+const osSelect = () => `<p class="dim">${esc(t('wz.showFor'))} <select data-wos>${['windows', 'macos', 'linux'].map(o =>
+  `<option value="${o}" ${o === wiz.os ? 'selected' : ''}>${esc(t(`wz.os.${o}`))}</option>`).join('')}</select></p>`;
+
+function wizStep1(){
+  const title = `<h3>${esc(t('wz.s1.title'))}</h3>`, node = setup && setup.node;
+  if(node && node.path) return title + `<p class="ok">${esc(t('wz.s1.found', {version: node.version || '', path: node.path}))}</p>`;
+  return title + `<p>${esc(t('wz.s1.why'))}</p>
+    <div class="opt"><h4>${esc(t('wz.s1.easy'))}</h4><p>${esc(t('wz.s1.easyText'))}</p>
+      <a class="btnlink primary" href="https://nodejs.org" target="_blank" rel="noopener">${esc(t('wz.s1.open'))}</a></div>
+    <div class="opt"><h4>${esc(t('wz.s1.cmd'))}</h4>${osSelect()}<p class="dim">${esc(t(`wz.term.${wiz.os}`))}</p>
+      ${cmdBox(OS_COMMANDS.node[wiz.os])}<p class="dim">${esc(t(`wz.node.${wiz.os}Note`))}</p></div>
+    <p>${esc(t('wz.s1.after'))}</p>`;
+}
+
+function wizStep2(){
+  const title = `<h3>${esc(t('wz.s2.title'))}</h3>`, pm2 = setup && setup.pm2;
+  if(state.pm2) return title + `<p class="ok">${esc(t('wz.s2.found', {version: pm2 && pm2.version || '', path: state.pm2}))}</p>`
+    + (wiz.fallback ? `<p>${esc(t('wz.s2.fallback'))}</p>` : '');
+  const npmOk = setup && setup.npm && setup.npm.path, running = wiz.installState === 'running';
+  let h = title + `<p>${esc(t('wz.s2.why'))}</p>`;
+  if(!npmOk) h += `<p class="bad">${esc(t('wz.s2.needNode'))}</p>`;
+  else h += `<div class="opt"><h4>${esc(t('wz.s2.auto'))}</h4><p>${esc(t('wz.s2.autoText'))}</p>${cmdBox(OS_COMMANDS.pm2)}
+    <button class="primary" data-wact="install" ${wiz.busy ? 'disabled' : ''}>${esc(running ? t('wz.s2.running') : t('wz.s2.auto'))}</button></div>`;
+  if(wiz.installState === 'failed')
+    h += `<p class="bad">${esc(t('wz.s2.failed'))}</p><pre class="out">${esc(wiz.output)}</pre><p>${esc(t('wz.s2.failedHelp'))}</p>`;
+  h += `<div class="opt"><h4>${esc(t('wz.s2.manual'))}</h4>${osSelect()}<p class="dim">${esc(t(`wz.term.${wiz.os}`))}</p>${cmdBox(OS_COMMANDS.pm2)}</div>`;
+  return h;
+}
+
+function browseHtml(){
+  const b = wiz.browse;
+  const entries = b.folders.map(f => `<button data-wfolder="${esc(f.path)}">📁 ${esc(f.name)}</button>`).join('');
+  return `<div class="browse"><div class="bar"><b>${esc(b.path)}</b></div><div class="entries">
+    ${b.parent ? `<button data-wfolder="${esc(b.parent)}">${esc(t('wz.s3.up'))}</button>` : ''}
+    ${entries || `<p class="dim" style="padding:6px 10px">${esc(t('wz.s3.noFolders'))}</p>`}</div>
+    <div class="foot"><span class="sp"></span><button class="primary" data-wact="usefolder">${esc(t('wz.s3.useFolder'))}</button></div></div>`;
+}
+function wizNewApp(){
+  let h = `<label>${esc(t('wz.s3.folder'))}</label>
+    <div class="line"><input id="wizfolder" value="${esc(wiz.folder)}" placeholder="${esc(setup ? setup.home : '')}" autocomplete="off">
+    <button data-wact="browse">${esc(t('wz.s3.browse'))}</button></div>`;
+  if(wiz.browse) h += browseHtml();
+  if(wiz.inspected) h += wiz.command
+    ? `<p class="ok">${esc(t('wz.s3.suggest', {kind: t(`wz.kind.${wiz.kind}`)}))}</p>`
+    : `<p class="warn">${esc(t('wz.s3.noSuggest'))}</p>`;
+  h += `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" value="${esc(wiz.name)}" autocomplete="off">
+    <label>${esc(t('wz.s3.command'))}</label><input id="wizcmd" value="${esc(wiz.command)}" placeholder="npm start" autocomplete="off">
+    <p><button class="primary" data-wact="addproc" ${wiz.busy ? 'disabled' : ''}>${esc(wiz.busy ? t('wz.s3.starting') : t('wz.s3.start'))}</button></p>`;
+  if(wiz.result && !wiz.result.ok)
+    h += `<p class="bad">${esc(t('wz.s3.failedTitle', {status: wiz.result.status}))}</p><pre class="out">${esc(wiz.result.log || '–')}</pre><p>${esc(t('wz.s3.failedHelp'))}</p>`;
+  return h;
+}
+function wizOldPm2(){
+  return `<p>${esc(t('wz.s3.oldText'))}</p><ol><li>${esc(t('wz.s3.old1'))}</li>
+    <li>${esc(t('wz.s3.old2'))}${cmdBox(OS_COMMANDS.echoHome[wiz.os])}</li>
+    <li>${esc(t('wz.s3.old3', {home: setup ? setup.pm2Home : '~/.pm2'}))}</li></ol>${osSelect()}
+    <div class="line"><input id="wizhome" placeholder="${esc(t('wz.s3.homePlaceholder'))}" autocomplete="off">
+    <button data-wact="addhome">${esc(t('wz.s3.addHome'))}</button></div>`;
+}
+function wizStep3(){
+  const title = `<h3>${esc(t('wz.s3.title'))}</h3>`;
+  const started = wiz.result && wiz.result.ok ? `<p class="ok">${esc(t('wz.s3.started', {name: wiz.result.name}))}</p>` : '';
+  if(state.procs.length > 0)
+    return title + started + `<p class="ok">${esc(t('wz.s3.found', {n: state.procs.length, d: state.daemons.filter(d => !d.hidden).length}))}</p>`;
+  if(!state.pm2) return title + `<p class="bad">${esc(t('wz.s3.needPm2'))}</p>`;
+  const tab = (id, key) => `<button data-wtab="${id}" class="${wiz.tab === id ? 'on' : ''}">${esc(t(key))}</button>`;
+  return title + `<p>${esc(t('wz.s3.intro'))}</p><div class="tabs">${tab('new', 'wz.s3.optNew')}${tab('old', 'wz.s3.optOld')}</div>`
+    + (wiz.tab === 'new' ? wizNewApp() : wizOldPm2());
+}
+function wizStep4(){
+  let h = `<h3>${esc(t('wz.s4.title'))}</h3>`;
+  if(firstPending() === 4) h += `<p class="ok">${esc(t('wz.s4.allDone'))}</p>`;
+  h += `<p>${esc(t('wz.s4.text'))}</p>`;
+  h += wiz.os === 'windows' ? `<p>${esc(t('wz.s4.win'))}</p>`
+    : `<p>${esc(t('wz.s4.unix1'))}</p>${cmdBox('pm2 startup')}<p>${esc(t('wz.s4.unix2'))}</p>${cmdBox('pm2 save')}`;
+  return h + `<p class="dim">${esc(t('wz.s4.monitor'))}</p>` + osSelect();
+}
+function wizStep5(){
+  return `<h3>${esc(t('wz.s5.title'))}</h3><p>${esc(t('wz.s5.text'))}</p>`
+    + (state.domains.length ? `<p class="ok">${esc(t('wz.s5.have', {n: state.domains.length}))}</p>` : '')
+    + `<p><button class="primary" data-wact="createdomain">${esc(t('wz.s5.create'))}</button></p><p class="dim">${esc(t('wz.s5.then'))}</p>`;
+}
+
+function renderWizard(){
+  $('#wizchips').innerHTML = [1, 2, 3, 4, 5].map(n => {
+    const done = stepDone(n);
+    return `<button class="chip ${wiz.step === n ? 'cur' : ''} ${done ? 'ok' : ''}" data-wstep="${n}">${done ? '✓' : n} ${esc(t(`wz.step${n}`))}${n >= 4 ? ` <small>(${esc(t('wz.optional'))})</small>` : ''}</button>`;
+  }).join('');
+  $('#wizbody').innerHTML = [null, wizStep1, wizStep2, wizStep3, wizStep4, wizStep5][wiz.step]();
+  $('#wizback').disabled = wiz.step === 1;
+  $('#wizcheck').style.display = wiz.step <= 3 ? '' : 'none';
+  $('#wiznext').textContent = wiz.step === 5 ? t('wz.finish') : t('wz.next');
+  $('#wiznext').className = wiz.step >= 4 || stepDone(wiz.step) ? 'primary' : '';
+  const log = $('#wizbody pre.out'); if(log) log.scrollTop = log.scrollHeight;
+}
+
+async function browseTo(path){
+  try{
+    const j = await (await fetch('/api/browse?path=' + encodeURIComponent(path))).json();
+    if(j.ok === false) toast(errText(j.error, j.params, j.output), true); else wiz.browse = j;
+  }catch(e){ toast(t('serverDown'), true); }
+  renderWizard();
+}
+async function inspectFolder(){
+  wiz.inspected = false; wiz.result = null;
+  if(!wiz.folder.trim()) return;
+  try{
+    const j = await (await fetch('/api/inspect?path=' + encodeURIComponent(wiz.folder.trim()))).json();
+    if(j.ok === false) return toast(errText(j.error, j.params, j.output), true);
+    Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, inspected: true});
+  }catch(e){ toast(t('serverDown'), true); }
+}
+async function addFirstProcess(){
+  wiz.busy = true; wiz.result = null; renderWizard();
+  try{
+    const j = await api('/api/setup/add-process', {name: wiz.name, folder: wiz.folder, command: wiz.command});
+    if(j.ok) wiz.result = {ok: true, name: wiz.name};
+    else if(j.error === 'process_failed') wiz.result = {ok: false, status: j.params.status, log: j.params.log};
+    else toast(errText(j.error, j.params, j.output), true);
+  }catch(e){ toast(t('serverDown'), true); }
+  wiz.busy = false; await loadSetup(); await poll(true); renderWizard();
+}
+async function runInstall(){
+  if(!confirm(t('wz.s2.confirm'))) return;
+  Object.assign(wiz, {busy: true, installState: 'running', output: '', fallback: false}); renderWizard();
+  let started;
+  try{ started = await api('/api/setup/install-pm2', {}); }catch(e){ started = {ok: false, error: 'error_detail', params: {detail: t('serverDown')}}; }
+  if(!started.ok){ Object.assign(wiz, {busy: false, installState: null}); toast(errText(started.error, started.params, started.output), true); return renderWizard(); }
+  clearInterval(wiz.timer);
+  wiz.timer = setInterval(async () => {
+    let job; try{ job = await (await fetch('/api/setup-job?id=' + encodeURIComponent(started.job))).json(); }catch(e){ return; }
+    Object.assign(wiz, {output: job.output || '', fallback: !!job.fallback, installState: job.state});
+    if(job.state !== 'running'){
+      clearInterval(wiz.timer); wiz.busy = false; await loadSetup(); await poll(true);
+      if(job.state === 'done' && wiz.step === 2) wiz.step = firstPending();
+    }
+    renderWizard();
+  }, 1000);
+}
+async function wizAction(action){
+  if(action === 'install') return runInstall();
+  if(action === 'browse') return browseTo(wiz.folder || (setup && setup.home) || '');
+  if(action === 'usefolder'){ wiz.folder = wiz.browse.path; wiz.browse = null; await inspectFolder(); return renderWizard(); }
+  if(action === 'addproc') return addFirstProcess();
+  if(action === 'addhome'){ await config({op: 'addHome', home: $('#wizhome').value}); await loadSetup(); return renderWizard(); }
+  if(action === 'createdomain'){
+    const name = (prompt(t('newDomainPrompt')) || '').trim();
+    if(name){ await config({op: 'createDomain', name}); renderWizard(); }
+  }
+}
+
+$('#wizard').addEventListener('click', async e => {
+  const copy = e.target.closest('[data-copy]');
+  if(copy){
+    try{ await navigator.clipboard.writeText(copy.dataset.copy); copy.textContent = t('wz.copied'); setTimeout(() => copy.textContent = t('wz.copy'), 1500); }
+    catch(err){ toast(t('wz.copyFailed'), true); }
+    return;
+  }
+  const step = e.target.closest('[data-wstep]'); if(step){ wiz.step = +step.dataset.wstep; return renderWizard(); }
+  const tab = e.target.closest('[data-wtab]'); if(tab){ wiz.tab = tab.dataset.wtab; return renderWizard(); }
+  const folder = e.target.closest('[data-wfolder]'); if(folder) return browseTo(folder.dataset.wfolder);
+  const action = e.target.closest('[data-wact]'); if(action) return wizAction(action.dataset.wact);
+});
+$('#wizard').addEventListener('input', e => {
+  if(e.target.id === 'wizfolder') wiz.folder = e.target.value;
+  else if(e.target.id === 'wizname') wiz.name = e.target.value;
+  else if(e.target.id === 'wizcmd') wiz.command = e.target.value;
+});
+$('#wizard').addEventListener('change', async e => {
+  if(e.target.matches('[data-wos]')){ wiz.os = e.target.value; wiz.osChosen = true; renderWizard(); }
+  else if(e.target.id === 'wizfolder'){ await inspectFolder(); renderWizard(); }
+});
+$('#wizback').onclick = () => { wiz.step = Math.max(1, wiz.step - 1); renderWizard(); };
+$('#wiznext').onclick = () => { if(wiz.step === 5) return $('#wizard').close(); wiz.step++; renderWizard(); };
+$('#wizclose').onclick = () => $('#wizard').close();
+$('#wizcheck').onclick = async () => {
+  await loadSetup(); await poll(true);
+  const done = stepDone(wiz.step);
+  if(done) wiz.step = firstPending();
+  renderWizard();
+  toast(done ? t('wz.stepOk') : t('wz.stillMissing'), !done);
+};
+$('#setupbtn').onclick = () => openWizard();
 
 async function loadLogs(reset){
   if(!sel) return;

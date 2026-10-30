@@ -10,6 +10,7 @@ Avvio: `python3 server.py [--port N] [--config PERCORSO] [--version]` → http:/
 Guida passo passo (Node.js, pm2, monitor, avvio automatico, per Linux / macOS / Windows): [docs/INSTALL.it.md](docs/INSTALL.it.md).
 
 ## Cosa fa
+- **Configurazione guidata per chi parte da zero**: se non trova pm2 o nessun demone, una scheda in evidenza e una procedura passo passo ti prendono per mano: controlla Node.js, installa pm2 (può farlo lui), ti fa scegliere la cartella del progetto e avvia la tua prima app. Suggerisce il comando di avvio, salva l'elenco e spiega come mantenere le app dopo un riavvio. Sempre disponibile dal pulsante "configurazione guidata".
 - **Scopre i demoni pm2** da solo: `PM2_HOME` dell'ambiente, le cartelle `~/.pm2*`, i demoni in esecuzione (il loro titolo in `ps` contiene il `PM2_HOME`; non su Windows) e le cartelle aggiunte a mano dal pulsante "demoni". Ogni demone ha un id stabile (`.pm2` → `default`, `.pm2-work` → `work`) e un'etichetta modificabile; si può nascondere.
 - **Recupera la config di pm2**: da `pm2 jlist` a demone vivo, da `dump.pm2` a demone spento. Per ogni processo salva come rilanciarlo (script, cwd, args, interprete, modalità).
 - **Domini**: raggruppano processi anche di demoni diversi (es. `backend`). Un processo sta in un solo dominio.
@@ -50,6 +51,7 @@ MIT, vedi [LICENSE](LICENSE).
 - `pm2monitor/discovery.py` — scoperta demoni, lettura dump, specifica di lancio
 - `pm2monitor/store.py` — config persistente
 - `pm2monitor/service.py` — stato, azioni, job per dominio
+- `pm2monitor/setup.py` — configurazione guidata (diagnosi, installazione di pm2, prima app)
 - `index.html` — interfaccia (italiano / inglese), con la sezione "aiuto"
 - `tests/` — `python3 -m unittest discover -s tests -t .`
 

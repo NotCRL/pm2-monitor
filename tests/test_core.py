@@ -107,15 +107,16 @@ class TranslationsTest(unittest.TestCase):
         """Keys of the translation table for one language, read from index.html."""
         html = (self.root / "index.html").read_text(encoding="utf-8")
         block = html.split(f"\n  {lang}: {{", 1)[1].split("\n  }", 1)[0]
-        return {quoted or bare for quoted, bare in
-                re.findall(r"(?:^|[,{\s])(?:'([^']+)'|([A-Za-z]\w*))\s*:\s*['\"]", block)}
+        # Each match swallows the whole string value, so words inside the texts are never read as keys.
+        entry = re.compile(r"""(?:'([^'\\]+)'|([A-Za-z_]\w*))\s*:\s*(?:'(?:[^'\\]|\\.)*'|"(?:[^"\\]|\\.)*")""")
+        return {quoted or bare for quoted, bare in entry.findall(block)}
 
     def test_same_keys_in_both_languages(self):
         self.assertEqual(self.table("en"), self.table("it"))
 
     def test_keys_used_by_the_page_exist(self):
         html = (self.root / "index.html").read_text(encoding="utf-8")
-        used = set(re.findall(r"\bt\('([\w.]+)'", html)) | set(re.findall(r'data-i18n(?:-title|-placeholder)?="(\w+)"', html))
+        used = set(re.findall(r"\bt\('([\w.]+)'", html)) | set(re.findall(r'data-i18n(?:-title|-placeholder)?="([\w.]+)"', html))
         used = {key for key in used if not key.endswith(".")}  # dynamic keys such as 'status.' + value
         self.assertEqual(used - self.table("en"), set())
 

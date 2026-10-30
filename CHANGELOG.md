@@ -5,6 +5,16 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.1.0] - 2026-10-30
+
+### Added
+- Guided setup for beginners: a wizard checks Node.js and pm2, can install pm2 for you (falling back to your own folder when the system one is protected), lets you pick your project folder with a built-in folder browser, suggests the start command, starts your first app and saves the list. It also explains how to keep apps after a reboot and how to create domains.
+- When no pm2 or no daemon is found, the wizard opens by itself once per browser session, the "guided setup" button pulses, and a highlighted card replaces the empty list.
+- Tools (Node.js, npm, pm2) are searched again on demand, so a fresh installation is found without restarting the monitor.
+
+### Fixed
+- Error details that carry a field named `status` (such as a first app that stops right away) now reach the interface correctly.
+
 ## [1.0.0] - 2026-10-29
 
 ### Added

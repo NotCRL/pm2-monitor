@@ -4,12 +4,13 @@ import tempfile
 import threading
 import unittest
 import urllib.error
+import urllib.parse
 import urllib.request
 from http.server import ThreadingHTTPServer
 from unittest import mock
 
 import server
-from pm2monitor.service import Monitor
+from pm2monitor.service import ActionError, Monitor
 from pm2monitor.store import ConfigStore
 
 
@@ -39,7 +40,10 @@ class ServerTest(unittest.TestCase):
             with urllib.request.urlopen(req, timeout=10) as response:
                 return response.status, response.read()
         except urllib.error.HTTPError as e:
-            return e.code, e.read()
+            try:
+                return e.code, e.read()
+            finally:
+                e.close()
 
     def test_page_is_served(self):
         status, body = self.request("/")
@@ -69,6 +73,34 @@ class ServerTest(unittest.TestCase):
         status, body = self.request("/api/action", {"key": "nope/x", "action": "stop"})
         error = json.loads(body)
         self.assertEqual((status, error["ok"], error["error"], error["params"]), (400, False, "unknown_daemon", {"id": "nope"}))
+
+    def test_setup_report_has_the_tools_and_the_os(self):
+        report = json.loads(self.request("/api/setup")[1])
+        self.assertEqual({"os", "home", "node", "npm", "pm2", "pm2Home"}, set(report))
+        self.assertIn(report["os"], ("windows", "macos", "linux"))
+
+    def test_browse_and_inspect_a_folder(self):
+        project = tempfile.mkdtemp(dir=self.tmp.name)
+        with open(project + "/package.json", "w") as f:
+            json.dump({"name": "demo", "scripts": {"start": "x"}}, f)
+        listing = json.loads(self.request("/api/browse?path=" + urllib.parse.quote(self.tmp.name))[1])
+        self.assertIn(project, [f["path"] for f in listing["folders"]])
+        suggestion = json.loads(self.request("/api/inspect?path=" + urllib.parse.quote(project))[1])
+        self.assertEqual((suggestion["name"], suggestion["command"]), ("demo", "npm start"))
+
+    def test_setup_errors_are_codes(self):
+        status, body = self.request("/api/inspect?path=/definitely/not/here")
+        self.assertEqual((status, json.loads(body)["error"]), (400, "folder_not_found"))
+        status, body = self.request("/api/setup/add-process", {"name": "no good", "folder": "/tmp", "command": "x"})
+        self.assertEqual((status, json.loads(body)["error"]), (400, "bad_process_name"))
+
+    def test_error_params_may_be_named_like_the_http_status(self):
+        """process_failed carries a 'status' param: it must reach the UI, not clash with the HTTP status."""
+        failure = ActionError("process_failed", status="errored", log="boom")
+        with mock.patch.object(server.monitor, "perform", side_effect=failure):
+            status, body = self.request("/api/action", {"key": "x/y", "action": "start"})
+        error = json.loads(body)
+        self.assertEqual((status, error["error"], error["params"]), (400, "process_failed", {"status": "errored", "log": "boom"}))
 
     def test_domain_can_be_created_and_listed(self):
         status, _ = self.request("/api/config", {"op": "createDomain", "name": "backend"})

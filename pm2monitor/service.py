@@ -78,12 +78,17 @@ class Monitor:
             raise ActionError("unknown_daemon", id=daemon_id)
         return Path(entry["home"])
 
-    def run_pm2(self, daemon_id, args, timeout=60):
+    def refresh_pm2(self):
+        """Looks for pm2 again: it may have been installed after the monitor started."""
+        self.pm2_path = find_pm2(self.store.data["pm2Path"])
+        return self.pm2_path
+
+    def run_pm2(self, daemon_id, args, timeout=60, cwd=None):
         if not self.pm2_path:
             raise ActionError("pm2_not_found")
         home = self.home_of(daemon_id)
         return subprocess.run([self.pm2_path, *args], env=pm2_environment(self.pm2_path, home),
-                              capture_output=True, text=True, timeout=timeout, **subprocess_flags())
+                              capture_output=True, text=True, timeout=timeout, cwd=cwd, **subprocess_flags())
 
     def read_live(self, daemon_id):
         """Live processes from the daemon. Never called on a stopped daemon: 'pm2 jlist' would start an empty one."""

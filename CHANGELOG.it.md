@@ -5,6 +5,16 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.1.0] - 2026-10-30
+
+### Aggiunto
+- Configurazione guidata per chi parte da zero: una procedura controlla Node.js e pm2, può installare pm2 al posto tuo (ripiegando sulla tua cartella personale se quella di sistema è protetta), ti fa scegliere la cartella del progetto con un selettore integrato, suggerisce il comando di avvio, avvia la tua prima app e salva l'elenco. Spiega anche come mantenere le app dopo un riavvio e come creare i domini.
+- Se non trova pm2 o nessun demone, la procedura si apre da sola una volta per sessione del browser, il pulsante "configurazione guidata" pulsa e una scheda in evidenza sostituisce l'elenco vuoto.
+- Gli strumenti (Node.js, npm, pm2) vengono cercati di nuovo su richiesta, così una nuova installazione viene trovata senza riavviare il monitor.
+
+### Corretto
+- I dettagli di errore che contengono un campo `status` (per esempio una prima app che si ferma subito) ora arrivano correttamente all'interfaccia.
+
 ## [1.0.0] - 2026-10-29
 
 ### Aggiunto

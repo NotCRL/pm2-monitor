@@ -14,6 +14,7 @@ Start it with `python3 server.py [--port N] [--config PATH] [--version]` and ope
 Step-by-step guide (Node.js, pm2, monitor, autostart, for Linux / macOS / Windows): [docs/INSTALL.md](docs/INSTALL.md).
 
 ## What it does
+- **Guided setup for beginners**: if no pm2 or no daemon is found, a highlighted card and a step-by-step wizard take you by the hand: check Node.js, install pm2 (it can do it for you), pick your project folder, and start your first app. It suggests the start command, saves the list, and explains how to keep your apps after a reboot. Always available from the "guided setup" button.
 - **Discovers pm2 daemons** by itself: the `PM2_HOME` of the environment, the `~/.pm2*` folders, running daemons (their process title contains the `PM2_HOME`; not on Windows) and folders added by hand from the "daemons" button. Each daemon gets a stable id (`.pm2` → `default`, `.pm2-work` → `work`) and an editable label; it can be hidden.
 - **Recovers pm2's configuration**: from `pm2 jlist` while the daemon is up, from `dump.pm2` while it is down. For every process it saves how to relaunch it (script, cwd, args, interpreter, mode).
 - **Domains** group processes, even from different daemons (e.g. `backend`). A process belongs to one domain.
@@ -54,6 +55,7 @@ MIT, see [LICENSE](LICENSE).
 - `pm2monitor/discovery.py` — daemon discovery, dump reading, launch spec
 - `pm2monitor/store.py` — persistent config
 - `pm2monitor/service.py` — state, actions, per-domain jobs
+- `pm2monitor/setup.py` — guided setup (diagnosis, pm2 install, first app)
 - `index.html` — interface (English / Italian) with the "help" section
 - `tests/` — `python3 -m unittest discover -s tests -t .`
 

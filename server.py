@@ -11,7 +11,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from pm2monitor import __version__
+from pm2monitor import __version__, setup
 from pm2monitor.service import ActionError, Monitor, strip_ansi, tail
 from pm2monitor.store import ConfigStore
 
@@ -35,9 +35,9 @@ class Handler(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(body)
 
-    def send_error_json(self, code, error, status, **params):
+    def send_error_json(self, code, error, http_status, params=None):
         """Errors are codes plus params: the UI translates them into the user's language."""
-        self.send_json({"ok": False, "error": code, "params": params, "output": error}, status)
+        self.send_json({"ok": False, "error": code, "params": params or {}, "output": error}, http_status)
 
     def request_allowed(self):
         """The server controls pm2: reject non-local Host (DNS rebinding) and POSTs sent from other sites."""
@@ -81,15 +81,29 @@ class Handler(BaseHTTPRequestHandler):
                 line_count = min(int(query.get("n", 200)), 2000)
                 out_path, err_path = monitor.find_logs(query.get("key", ""))
             except ActionError as e:
-                return self.send_error_json(e.code, str(e), 400, **e.params)
+                return self.send_error_json(e.code, str(e), 400, e.params)
             except (ValueError, subprocess.SubprocessError, OSError) as e:
-                return self.send_error_json("error_detail", str(e), 400, detail=str(e))
+                return self.send_error_json("error_detail", str(e), 400, {"detail": str(e)})
             if not out_path and not err_path:
                 return self.send_error_json("process_not_found", "process not found", 404)
             out, out_error = tail(out_path, line_count)
             err, err_error = tail(err_path, line_count)
             self.send_json({"out": out, "err": err, "out_error": out_error, "err_error": err_error,
                             "out_path": out_path, "err_path": err_path})
+        elif url.path == "/api/setup":
+            self.send_json(setup.doctor(monitor))
+        elif url.path in ("/api/browse", "/api/inspect"):
+            try:
+                action = setup.list_folders if url.path == "/api/browse" else setup.suggest_command
+                self.send_json(action(query.get("path", "")))
+            except ActionError as e:
+                self.send_error_json(e.code, str(e), 400, e.params)
+        elif url.path == "/api/setup-job":
+            job = setup.get_install_job(query.get("id", ""))
+            if job:
+                self.send_json(job)
+            else:
+                self.send_error_json("unknown_job", "unknown job", 404)
         elif url.path == "/api/job":
             job = monitor.get_job(query.get("id", ""))
             if job:
@@ -105,7 +119,7 @@ class Handler(BaseHTTPRequestHandler):
         try:
             request = self.read_json_body()
         except ValueError as e:
-            return self.send_error_json("bad_request", str(e), 400, detail=str(e))
+            return self.send_error_json("bad_request", str(e), 400, {"detail": str(e)})
         path = urlparse(self.path).path
         try:
             if path == "/api/action":
@@ -117,13 +131,18 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/config":
                 monitor.apply_config(request)
                 self.send_json({"ok": True})
+            elif path == "/api/setup/install-pm2":
+                self.send_json({"ok": True, "job": setup.start_install_pm2(monitor)})
+            elif path == "/api/setup/add-process":
+                result = setup.add_process(monitor, request.get("name"), request.get("folder"), request.get("command"))
+                self.send_json({"ok": True, **result})
             else:
                 self.send_error(404)
         except ActionError as e:
-            self.send_error_json(e.code, str(e), 400, **e.params)
+            self.send_error_json(e.code, str(e), 400, e.params)
         except (subprocess.SubprocessError, OSError) as e:
             detail = strip_ansi(str(e))
-            self.send_error_json("error_detail", detail, 500, detail=detail)
+            self.send_error_json("error_detail", detail, 500, {"detail": detail})
 
 
 def main():

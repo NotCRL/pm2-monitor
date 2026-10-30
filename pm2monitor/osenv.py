@@ -44,48 +44,90 @@ def _version_key(path):
     return tuple(int(n) for n in match.groups()) if match else (0, 0, 0)
 
 
-def _pm2_glob_patterns():
+_WINDOWS_EXECUTABLE = {"pm2": "pm2.cmd", "npm": "npm.cmd", "node": "node.exe"}
+_tool_cache = {}
+
+
+def os_name():
+    """'windows', 'macos' or 'linux': the UI shows the commands that fit the user's system."""
     if IS_WINDOWS:
-        patterns = []
-        for var in ("APPDATA", "NVM_SYMLINK", "ProgramFiles"):
+        return "windows"
+    return "macos" if sys.platform == "darwin" else "linux"
+
+
+def _tool_glob_patterns(tool):
+    """Where node, npm and pm2 usually live when they are not on the PATH (e.g. just installed)."""
+    if IS_WINDOWS:
+        exe = _WINDOWS_EXECUTABLE[tool]
+        folders = []
+        for var, sub in (("APPDATA", "npm"), ("NVM_SYMLINK", ""), ("ProgramFiles", "nodejs"),
+                         ("ProgramFiles(x86)", "nodejs"), ("LOCALAPPDATA", "Programs/nodejs")):
             base = os.environ.get(var)
             if base:
-                suffix = "npm" if var == "APPDATA" else ("" if var == "NVM_SYMLINK" else "nodejs")
-                patterns.append(str(Path(base, suffix, "pm2.cmd")))
+                folders.append(Path(base, sub))
         nvm_home = os.environ.get("NVM_HOME")
         if nvm_home:
-            patterns.append(str(Path(nvm_home, "v*", "pm2.cmd")))
-        patterns.append(str(HOME / ".volta" / "bin" / "pm2.exe"))
+            folders.append(Path(nvm_home, "v*"))
+        patterns = [str(folder / exe) for folder in folders]
+        patterns.append(str(HOME / ".volta" / "bin" / exe.replace(".cmd", ".exe")))
         return patterns
     return [
-        str(HOME / ".nvm/versions/node/*/bin/pm2"),
-        str(HOME / ".local/share/fnm/node-versions/*/installation/bin/pm2"),
-        str(HOME / "Library/Application Support/fnm/node-versions/*/installation/bin/pm2"),
-        str(HOME / ".volta/bin/pm2"),
-        str(HOME / ".asdf/shims/pm2"),
-        str(HOME / ".npm-global/bin/pm2"),
-        "/opt/homebrew/bin/pm2",
-        "/usr/local/bin/pm2",
-        "/usr/bin/pm2",
+        str(HOME / ".nvm/versions/node/*/bin" / tool),
+        str(HOME / ".local/share/fnm/node-versions/*/installation/bin" / tool),
+        str(HOME / "Library/Application Support/fnm/node-versions/*/installation/bin" / tool),
+        str(HOME / ".volta/bin" / tool),
+        str(HOME / ".asdf/shims" / tool),
+        str(HOME / ".npm-global/bin" / tool),
+        "/opt/homebrew/bin/" + tool,
+        "/usr/local/bin/" + tool,
+        "/usr/bin/" + tool,
     ]
 
 
-def find_pm2(configured=None):
-    """pm2 path: the one set in the config, then PATH, then the node version managers."""
+def find_tool(tool, configured=None, refresh=False):
+    """Path of node / npm / pm2: the one set in the config, then PATH, then the usual install folders."""
     if configured and Path(configured).exists():
         return configured
-    on_path = shutil.which("pm2")
-    if on_path:
-        return on_path
-    matches = [m for pattern in _pm2_glob_patterns() for m in glob.glob(pattern)]
-    return max(matches, key=_version_key) if matches else None
+    if not refresh and tool in _tool_cache:
+        return _tool_cache[tool]
+    found = shutil.which(tool)
+    if not found:
+        matches = [m for pattern in _tool_glob_patterns(tool) for m in glob.glob(pattern)]
+        found = max(matches, key=_version_key) if matches else None
+    if found:
+        _tool_cache[tool] = found  # only found paths are cached: a missing tool may be installed any minute
+    return found
+
+
+def refresh_tool_cache():
+    _tool_cache.clear()
+
+
+def find_pm2(configured=None):
+    return find_tool("pm2", configured, refresh=True)
+
+
+def find_node():
+    return find_tool("node")
+
+
+def find_npm():
+    return find_tool("npm")
+
+
+def tool_environment(*tool_paths, pm2_home=None):
+    """Environment for running node-based tools: their folders go first on PATH, because pm2 and npm
+    are node scripts and the monitor's own PATH may predate the installation of node."""
+    env = dict(os.environ)
+    if pm2_home is not None:
+        env["PM2_HOME"] = str(pm2_home)
+    folders = [str(Path(p).parent) for p in tool_paths if p]
+    env["PATH"] = os.pathsep.join(folders + [env.get("PATH", "")])
+    return env
 
 
 def pm2_environment(pm2_path, pm2_home):
-    """pm2 is a node script: its directory must be on PATH so it can find node."""
-    env = dict(os.environ, PM2_HOME=str(pm2_home))
-    env["PATH"] = str(Path(pm2_path).parent) + os.pathsep + env.get("PATH", "")
-    return env
+    return tool_environment(pm2_path, find_node(), pm2_home=pm2_home)
 
 
 def pid_alive(pid):
