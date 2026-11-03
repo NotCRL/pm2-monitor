@@ -5,6 +5,29 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] - 2026-10-30
+
+### Added
+- **Notifications per domain.** A background watcher tells you when an app crashes, stops, is removed, restarts by itself or uses too much memory, when a daemon stops or comes back, and when a start / stop of a whole domain finishes. Each domain (and the processes without domain) chooses which severities (errors, warnings, good news) and which kinds of event it wants, an optional memory limit, and how to be told: the bell menu (alerts are listed there, never as popups over the page; the bell shakes and shows a counter), browser notifications, a sound, and operating-system notifications that also work while the page is closed. A bell in the header opens the history and the settings; changes made through the monitor itself are not reported as surprises, and a crash loop produces one notice a minute.
+- The language of the interface is remembered by the server, so desktop notifications speak the same language.
+- Logs can be shown on the right or below the list (button in the logs header, remembered).
+- Dialogs opened from inside another one (help, notifications) now stack on top of it with a "Back to …" link, instead of closing it: the guided setup keeps its step and the domain settings keep what you typed.
+- **Turn pm2 monitor off** from the page (power button in the header) or with `python3 server.py --stop`. Your apps keep running under pm2.
+- **Double-click launchers for every system:** `Start pm2-monitor.bat` (Windows), `Start pm2-monitor.command` (macOS) and `start-pm2-monitor.sh` (Linux) all run `launch.py`, which starts the monitor detached (no console window, log in the configuration folder), recognises when it is already running or when the port is taken, and opens the browser. `launch.py --stop` turns it off; `launch.py --install-shortcut` adds it to the Linux applications menu.
+- **Two logs side by side** (⧉ in a log panel, at most two), and **resizable logs**: drag the bar between the list and the logs and the bar between the two logs; sizes are remembered, double-click resets.
+- **A tidier header:** grouped actions, status pills for each daemon, a "Settings" menu (gear) with size and language, labels that collapse into icons on narrow windows.
+- **Links to the running apps:** a "links" column shows the address each app answers on (`localhost:3000`, ...), clickable, also for the program an app starts (the server behind `npm start`). Only ports that answer like a web page are listed: pm2 monitor sends one harmless `HEAD /` request (user agent `pm2-monitor-link-check`) to each listening port, once per process, so databases and internal ports do not become dead links. The check can be turned off in Settings, which then lists every listening port. Linux reads `/proc`; macOS uses `lsof` and Windows `netstat` (only Linux has been tried).
+- **Collapse and expand** the groups of the list (remembered; "Collapse all" / "Expand all"); a collapsed group still shows how many of its processes are online.
+- **Browse for a pm2 folder** instead of typing its path, in the daemons window and in the guided setup: the folder picker can show hidden folders, tags the ones that are pm2 data folders, offers them as quick places, and only accepts a real pm2 folder.
+- **Text size inside the logs** (A− / A+ in the log toolbar), separate from the zoom of the whole page.
+- **Log filters:** search (not case-sensitive, matches highlighted), ERROR / WARN / INFO / DEBUG level buttons with colours (stack traces stay with their error), 0 / ±2 / ±5 lines of context around each result, a choice of 200 / 400 / 1000 / 2000 lines, folding of repeated lines with a counter (timestamps ignored), and Copy / Save of exactly the visible lines.
+- Buttons in the logs panel to jump to the first line and to the last one (which also resumes following new lines).
+
+### Changed
+- **Notifications open as a dropdown menu under the bell** instead of a modal window, so the page stays usable; the settings of a domain are also inside that domain's own settings window.
+- **The guided setup was redesigned for complete beginners:** a clear stepper with checkmarks and "Step N of 3", a plain-words explanation for every step, one big button per step, automatic detection (no need to click "check": it notices a new Node.js or pm2 by itself), a folder browser with quick places, live validation, a "I do not know the command" help, a celebration screen when the first app runs, and optional extras (domains, notifications). "Next" stays disabled until a required step is really done.
+- The monitor shares one reading of pm2 between the page and the watcher, so the extra watching does not add load.
+
 ## [1.2.0] - 2026-10-30
 
 ### Added

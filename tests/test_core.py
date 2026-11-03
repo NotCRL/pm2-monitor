@@ -137,6 +137,18 @@ class TranslationsTest(unittest.TestCase):
         self.assertTrue(labels)
         self.assertEqual({l for l in labels if f"step.{l}" not in self.table("en")}, set())
 
+    def test_dynamic_translation_keys_exist(self):
+        """Keys built at run time (nt.type.<event>, nt.lvl.<level>, wz.stepN, ...) cannot be found by scanning t('...') calls."""
+        from pm2monitor.notifier import EVENT_TYPES, SEVERITIES
+        keys = self.table("en")
+        expected = {f"nt.type.{k}" for k in EVENT_TYPES} | {f"nt.sev.{s}" for s in SEVERITIES}
+        expected |= {f"nt.lvl.{s}" for s in SEVERITIES} | {f"nt.lvl.{s}Hint" for s in SEVERITIES}
+        expected |= {f"wz.step{n}" for n in range(1, 6)} | {f"wz.os.{o}" for o in ("windows", "macos", "linux")}
+        expected |= {f"wz.term.{o}" for o in ("windows", "macos", "linux")} | {f"wz.node.{o}Note" for o in ("windows", "macos", "linux")}
+        expected |= {f"wz.kind.{k}" for k in ("npm", "node", "python")} | {f"nt.browserState.{s}" for s in ("granted", "denied", "default", "unsupported")}
+        expected |= {f"status.{s}" for s in ("online", "stopped", "errored", "launching", "stopping", "offline", "absent")}
+        self.assertEqual(expected - keys, set())
+
     def test_every_size_scales_with_the_zoom_buttons(self):
         """Sizes must be rem so the zoom buttons move everything; only 1-2px hairlines and the root size stay in px."""
         html = (self.root / "index.html").read_text(encoding="utf-8")

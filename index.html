@@ -11,26 +11,48 @@ html{font-size:calc(13px * var(--scale,1))}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--fg);font:1rem/1.4 system-ui,sans-serif;
 display:flex;flex-direction:column;height:100vh}
-header{display:flex;flex-wrap:wrap;align-items:center;gap:1.231rem;padding:0.769rem 1.231rem;border-bottom:1px solid var(--line)}
-header h1{font-size:1.154rem;margin:0;font-weight:600}
-#summary{display:flex;gap:1.077rem;color:var(--dim)}
-#summary b{color:var(--fg)}
-#updated{margin-left:auto;color:var(--dim);font-size:0.923rem}
+header{display:flex;flex-wrap:wrap;align-items:center;gap:0.6rem 1rem;padding:0.6rem 1.2rem;background:var(--panel);border-bottom:1px solid var(--line)}
+.brand{display:flex;align-items:center;gap:0.55rem}
+header h1{font-size:1.1rem;margin:0;font-weight:650;letter-spacing:0.01em}
+.ver{color:var(--dim);font-size:0.8rem}
+.grow{flex:1}
+#summary{display:flex;flex-wrap:wrap;gap:0.4rem}
+.pill{display:inline-flex;align-items:center;gap:0.4rem;padding:0.15rem 0.65rem;border:1px solid var(--line);border-radius:1rem;background:var(--bg);color:var(--dim);font-size:0.85rem}
+.pill::before{content:"";width:0.5rem;height:0.5rem;border-radius:50%;background:var(--dim)}
+.pill.ok::before{background:var(--ok)}.pill.warn::before{background:var(--warn)}.pill.bad::before{background:var(--bad)}
+.pill b{color:var(--fg);font-weight:600}
+.hgroup{display:flex;align-items:center;gap:0.25rem}
+.hgroup.actions{padding-right:0.9rem;border-right:1px solid var(--line)}
+.hbtn{display:inline-flex;align-items:center;gap:0.4rem;background:transparent;border-color:transparent;padding:0.3rem 0.65rem;font-size:0.92rem}
+.hbtn:hover{background:var(--bg);border-color:var(--line)}
+.hbtn .ico{display:none;font-size:1.05rem;line-height:1}
+.hbtn.danger:hover{border-color:var(--bad);color:var(--bad)}
+#bell,#quit{font-size:1.05rem}
+#updated{display:inline-flex;align-items:center;gap:0.45rem;color:var(--dim);font-size:0.85rem}
+#updated::before{content:"";width:0.5rem;height:0.5rem;border-radius:50%;background:var(--ok)}
 #updated.stale{color:var(--bad);font-weight:600}
+#updated.stale::before{background:var(--bad)}
+@media (max-width:62rem){.hbtn .lbl{display:none}.hbtn .ico{display:inline}.hgroup.actions{padding-right:0.5rem}}
+.menu{position:fixed;z-index:60;background:var(--bg);border:1px solid var(--line);border-radius:0.6rem;box-shadow:0 0.8rem 2rem #000a;overflow:auto}
+.menu[hidden]{display:none}
+#notifmenu{width:min(32rem,calc(100vw - 1rem));padding:0.9rem 1.1rem}
+#viewmenu{width:min(22rem,calc(100vw - 1rem));padding:0.7rem 1rem}
+.menu .row{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin:0.4rem 0}
+.subhead{margin:1rem 0 0.3rem;font-size:0.95rem;color:var(--dim)}
 #banner{display:none;padding:0.462rem 1.231rem;background:#3a2a14;color:var(--warn);border-bottom:1px solid var(--line)}
 main{flex:1;display:flex;min-height:0}
 #list{flex:1;overflow:auto;padding:0.615rem 1.231rem 1.231rem}
-#logs{width:44%;border-left:1px solid var(--line);display:none;flex-direction:column;min-width:0}
+#logs{flex:none;border-left:1px solid var(--line);display:none;flex-direction:row;min-width:0;min-height:0;overflow-x:auto}
 #logs.open{display:flex}
 h2{font-size:0.923rem;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin:1.385rem 0 0.462rem;
 display:flex;gap:0.769rem;align-items:center}
 h2 .sp{flex:1}
 h2 .name{color:var(--fg)}
 h2 .btns button{text-transform:none;letter-spacing:0}
-table{width:100%;min-width:68rem;border-collapse:collapse;table-layout:fixed}
-th:nth-child(1){width:19%}th:nth-child(2){width:8%}th:nth-child(3){width:12%}th:nth-child(4){width:6%}
-th:nth-child(5){width:9%}th:nth-child(6){width:9%}th:nth-child(7){width:8%}th:nth-child(8){width:7%}
-th:nth-child(9){width:11%}
+table{width:100%;min-width:80rem;border-collapse:collapse;table-layout:fixed}
+th:nth-child(1){width:15%}th:nth-child(2){width:7%}th:nth-child(3){width:10%}th:nth-child(4){width:15%}
+th:nth-child(5){width:5%}th:nth-child(6){width:8%}th:nth-child(7){width:7%}th:nth-child(8){width:6%}
+th:nth-child(9){width:5%}th:nth-child(10){width:10%}
 td{overflow:hidden;text-overflow:ellipsis}
 th{text-align:left;font-weight:500;color:var(--dim);font-size:0.846rem;padding:0.308rem 0.615rem;border-bottom:1px solid var(--line)}
 td{padding:0.308rem 0.615rem;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -54,9 +76,9 @@ button.on{border-color:var(--acc);color:var(--acc)}
 select,input{background:var(--panel);color:var(--fg);border:1px solid var(--line);border-radius:0.308rem;
 padding:1px 0.308rem;font:inherit;font-size:0.923rem;max-width:100%}
 input[type=number]{width:4.615rem}
-#loghead{display:flex;align-items:center;gap:0.615rem;padding:0.615rem 0.923rem;border-bottom:1px solid var(--line)}
-#loghead .t{font-weight:600;overflow:hidden;text-overflow:ellipsis}
-#loghead .sp{flex:1}
+.lp-head{display:flex;flex-wrap:wrap;align-items:center;gap:0.615rem;padding:0.615rem 0.923rem;border-bottom:1px solid var(--line)}
+.lp-head .t{font-weight:600;overflow:hidden;text-overflow:ellipsis}
+.lp-head .sp{flex:1}
 pre{margin:0;flex:1;overflow:auto;padding:0.769rem 0.923rem;font:0.923rem/1.45 ui-monospace,monospace;
 white-space:pre-wrap;word-break:break-all;background:#101215}
 #jobbar{display:none;padding:0.615rem 1.231rem;border-top:1px solid var(--line);background:var(--panel)}
@@ -95,24 +117,106 @@ dialog .foot{display:flex;justify-content:flex-end;gap:0.615rem;margin-top:1.077
 .chip.ok{color:var(--ok);border-color:#2c6b4a}
 .chip.cur{border-color:var(--acc);color:var(--fg)}
 .chip small{color:var(--dim)}
-dialog.wiz{width:min(60rem,94vw);max-height:90vh;overflow:auto}
-.wiz h3{font-size:1.231rem}
-.wiz h4{margin:1.077rem 0 0.308rem;font-size:1rem}
-.wiz p{margin:0.462rem 0}
-.wiz .ok{color:var(--ok)}
-.wiz .bad{color:var(--bad)}
-.wiz .opt{border:1px solid var(--line);border-radius:0.615rem;padding:0.769rem 1.077rem;margin:0.769rem 0;background:var(--panel)}
-.wiz label{display:block;margin:0.769rem 0 0.231rem;color:var(--dim);font-size:0.923rem}
-.wiz input[type=text],.wiz input:not([type]){width:100%;padding:0.385rem 0.615rem;font-size:1rem}
-.wiz .line{display:flex;gap:0.615rem;align-items:center}
+dialog.wiz{width:min(50rem,95vw);max-height:92vh;overflow:auto;font-size:1.08rem;padding:1.2rem 1.5rem}
+.wizhead{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.wizhead h3{margin:0;font-size:1.3rem}
+.steps{display:flex;margin:1.1rem 0 0.2rem}
+.step{flex:1;background:none;border:0;border-radius:0;display:flex;flex-direction:column;align-items:center;gap:0.3rem;position:relative;color:var(--dim);padding:0 0.2rem;cursor:pointer;font-size:0.85rem}
+.step::before{content:"";position:absolute;top:1.05rem;left:-50%;width:100%;height:2px;background:var(--line)}
+.step:first-child::before{display:none}
+.step .num{position:relative;z-index:1;width:2.2rem;height:2.2rem;border-radius:50%;border:2px solid var(--line);background:var(--bg);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:1rem}
+.step.opt .num{border-style:dashed}
+.step.cur .num{border-color:var(--acc);color:var(--acc);box-shadow:0 0 0 0.25rem #5b9cf533}
+.step.done .num{background:var(--ok);border-color:var(--ok);color:#06210f}
+.step.done::before,.step.cur::before{background:var(--acc)}
+.step.cur .lbl{color:var(--fg);font-weight:600}
+.progress{text-align:center;color:var(--dim);margin:0.5rem 0 1rem}
+.stepcard h3{margin:0.2rem 0;font-size:1.35rem}
+.plain{background:#16233a;border-left:0.25rem solid var(--acc);padding:0.7rem 1rem;border-radius:0.4rem;margin:0.7rem 0 1rem;font-size:1.05rem}
+.okbox,.warnbox,.badbox{padding:0.8rem 1rem;border-radius:0.5rem;margin:0.8rem 0;font-weight:600}
+.okbox{background:#10301f;border:1px solid #2c6b4a;color:#8be0b0}
+.warnbox{background:#3a2a14;border:1px solid #6b5020;color:var(--warn)}
+.badbox{background:#3a1816;border:1px solid #7a2c28;color:#ff9b94}
+.bigbtn{font-size:1.15rem;padding:0.7rem 1.6rem}
+.waiting{display:flex;align-items:center;gap:0.7rem;color:var(--dim);margin:0.9rem 0}
+.spinner{flex:none;width:1.1rem;height:1.1rem;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.spinner{animation:none}}
+.sub{border:1px solid var(--line);border-radius:0.6rem;padding:0.8rem 1rem;margin:0.7rem 0;background:var(--panel)}
+.sub h4{margin:0 0 0.4rem;font-size:1.05rem;display:flex;align-items:center;gap:0.6rem}
+.sub .n{flex:none;width:1.7rem;height:1.7rem;border-radius:50%;background:var(--acc);color:#0b1220;display:inline-flex;align-items:center;justify-content:center;font-weight:700}
+.sub.locked{opacity:0.5}
+.places{display:flex;flex-wrap:wrap;gap:0.4rem;margin:0.5rem 0}
+.hint{color:var(--dim);font-size:0.92rem;margin:0.3rem 0}
+.wiz details{margin:0.7rem 0}
+.wiz summary{cursor:pointer;color:var(--acc)}
+.linkbtn{background:none;border:0;color:var(--acc);text-decoration:underline;padding:0;cursor:pointer;font-size:inherit}
+.celebrate{text-align:center;padding:1rem 0.5rem}
+.celebrate h3{font-size:1.6rem}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(15rem,1fr));gap:0.8rem;margin:0.8rem 0}
+.card{border:1px solid var(--line);border-radius:0.6rem;padding:0.9rem 1rem;background:var(--panel)}
+.card h4{margin:0 0 0.4rem;font-size:1.05rem}
+.wiz label{display:block;margin:0.8rem 0 0.25rem;color:var(--dim);font-size:0.95rem}
+.wiz input[type=text],.wiz input:not([type]){width:100%;padding:0.45rem 0.65rem;font-size:1rem}
+.wiz input.invalid{border-color:var(--bad)}
+.wiz .line{display:flex;gap:0.6rem;align-items:center}
 .wiz .line input{flex:1}
+.wiz .foot{display:flex;gap:0.6rem;align-items:center;margin-top:1.2rem}
 .wiz .sp{flex:1}
-.wiz .foot{display:flex;gap:0.615rem;align-items:center;margin-top:1.231rem}
+.stuck{text-align:center;margin:1rem 0 0;font-size:0.9rem;color:var(--dim)}
+#bell{position:relative}
+#bell.ring{animation:ring 0.7s ease-in-out 4}
+@keyframes ring{0%,100%{transform:rotate(0)}20%{transform:rotate(14deg)}40%{transform:rotate(-12deg)}60%{transform:rotate(8deg)}80%{transform:rotate(-6deg)}}
+@media (prefers-reduced-motion:reduce){#bell.ring{animation:none;box-shadow:0 0 0 0.2rem var(--acc)}}
+#bell .badge{position:absolute;top:-0.45rem;right:-0.45rem;min-width:1.15rem;height:1.15rem;padding:0 0.25rem;border-radius:0.6rem;background:var(--acc);color:#0b1220;font-size:0.72rem;font-weight:700;line-height:1.15rem;text-align:center}
+#bell.has-error .badge{background:var(--bad);color:#fff}
+#bell .badge:empty{display:none}
+.sev-error{border-left-color:var(--bad)}.sev-warning{border-left-color:var(--warn)}.sev-info{border-left-color:var(--acc)}
+.ico-error{color:var(--bad)}.ico-warning{color:var(--warn)}.ico-info{color:var(--acc)}
+.notif h3{margin:0;font-size:1.2rem}
+.notif .sp{flex:1}
+.notif .bar{display:flex;gap:0.5rem;flex-wrap:wrap;align-items:center;margin:0.6rem 0}
+.evrow{display:flex;gap:0.7rem;padding:0.55rem 0.2rem;border-bottom:1px solid var(--line);border-left:0.25rem solid transparent;padding-left:0.6rem}
+.evrow.unread{background:#1b2230}
+.evrow .evtext{font-size:1rem}
+.evrow .evmeta{color:var(--dim);font-size:0.85rem}
+.scopecard{border:1px solid var(--line);border-radius:0.6rem;margin:0.6rem 0;background:var(--panel)}
+.scopehead{display:flex;align-items:center;gap:0.7rem;padding:0.6rem 0.9rem}
+.scopehead .name{font-weight:600}
+.scopehead .sum{color:var(--dim);font-size:0.88rem;flex:1}
+.editor{border-top:1px solid var(--line);padding:0.7rem 0.9rem 0.9rem}
+.editor h5{margin:0.9rem 0 0.3rem;font-size:0.95rem;color:var(--dim);font-weight:600}
+.editor label.opt{display:flex;gap:0.5rem;align-items:flex-start;margin:0.3rem 0;color:var(--fg);font-size:1rem}
+.editor label.opt small{display:block;color:var(--dim)}
+.editor .types{columns:2;gap:1.2rem}
+@media (max-width:40rem){.editor .types{columns:1}}
+.saved{color:var(--ok);font-size:0.85rem}
+.lp-tools{display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;padding:0.4rem 0.9rem;border-bottom:1px solid var(--line)}
+.lp-tools input[type=search]{flex:1;min-width:9rem}
+.lp-tools .lvls{display:inline-flex;gap:0.2rem}
+.lp-tools .lvls button{font-size:0.8rem;padding:0.1rem 0.45rem}
+.lp-tools .lvls button.on{border-color:var(--acc);color:var(--acc)}
+.lp-tools label{display:inline-flex;gap:0.3rem;align-items:center;color:var(--dim);font-size:0.9rem}
+.lp-tools .count{color:var(--dim);font-size:0.85rem}
+.lp-text .lv-error{color:#ff8a83}
+.lp-text .lv-warn{color:var(--warn)}
+.lp-text .lv-info{color:#a9c8ff}
+.lp-text .lv-debug{color:var(--dim)}
+.lp-text .ctx{opacity:0.55}
+.lp-text .gap,.lp-text .rep{color:var(--dim)}
+.lp-text mark{background:#6b5a14;color:inherit;border-radius:0.15rem}
+.backrow{margin:0 0 0.6rem}
+.backrow .linkbtn{font-size:1rem}
+main.below{flex-direction:column}
+main.below #logs{min-height:8rem;border-left:0;border-top:1px solid var(--line)}
+main.below #list{min-height:6rem}
 .cmd{display:flex;gap:0.615rem;align-items:center;background:#101215;border:1px solid var(--line);border-radius:0.462rem;padding:0.462rem 0.615rem;margin:0.462rem 0}
 .cmd code{flex:1;font:1rem ui-monospace,monospace;word-break:break-all;color:#cfe3ff}
 .wiz pre.out{max-height:15.385rem;margin:0.615rem 0;border:1px solid var(--line);border-radius:0.462rem}
 .browse{border:1px solid var(--line);border-radius:0.615rem;margin:0.615rem 0;background:#101215}
-.browse .bar{padding:0.462rem 0.769rem;border-bottom:1px solid var(--line);word-break:break-all}
+.browse .bar{display:flex;flex-wrap:wrap;gap:0.4rem;align-items:center;padding:0.462rem 0.769rem;border-bottom:1px solid var(--line)}
+.browse .bar input[data-pk-input]{flex:1;min-width:10rem}
+.pm2tag{margin-left:0.4rem;padding:0 0.4rem;border-radius:0.6rem;background:#173a2a;color:#8be0b0;font-size:0.75rem}
 .browse .entries{max-height:14.615rem;overflow:auto;display:flex;flex-direction:column;align-items:stretch}
 .browse .entries button{text-align:left;border:0;border-radius:0;border-bottom:1px solid var(--line);background:transparent;padding:0.385rem 0.769rem}
 .browse .entries button:hover{background:var(--panel)}
@@ -122,43 +226,67 @@ dialog.wiz{width:min(60rem,94vw);max-height:90vh;overflow:auto}
 .zoom{display:inline-flex;gap:0.231rem}
 .zoom button{min-width:2.4rem}
 .zoom button:disabled{opacity:.35}
+#splitter{flex:none;display:none;width:0.4rem;background:var(--line);cursor:col-resize;touch-action:none}
+#splitter.on{display:block}
+main.below #splitter{width:auto;height:0.4rem;cursor:row-resize}
+#splitter:hover,#splitter:focus-visible,#splitter.drag,.psplit:hover,.psplit.drag{background:var(--acc);outline:none}
+.logpanel{flex:1 1 0;min-width:17rem;min-height:0;display:flex;flex-direction:column}
+.psplit{flex:none;width:0.4rem;background:var(--line);cursor:col-resize;touch-action:none}
+.logpanel.active .lp-head{box-shadow:inset 0 -2px 0 var(--acc)}
+body.dragging{user-select:none}
+td.links{white-space:normal}
+a.lnk{color:var(--acc);text-decoration:none;margin-right:0.5rem;white-space:nowrap}
+a.lnk:hover{text-decoration:underline}
+.hbtn.keepico .ico{display:inline}
+h2.grouphead{cursor:pointer;user-select:none}
+h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;font-size:1rem}
+.listbar{display:flex;gap:0.4rem;margin:0.6rem 0 0}
+.lp-text{font-size:calc(0.923rem * var(--logfont, 1))}
+.lp-font{display:inline-flex;gap:0.2rem}
+#stopped{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1.5rem}
+#stopped[hidden]{display:none}
+.stoppedbox{max-width:34rem;text-align:center;line-height:1.6}
+.stoppedbox h2{font-size:1.5rem}
+#quit:hover{border-color:var(--bad);color:var(--bad)}
 </style>
 </head>
 <body>
 <header>
-  <h1>pm2 monitor</h1>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12h4l2.5-7 5 14 2.5-7H22" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <h1>pm2 monitor</h1><span class="ver" id="ver"></span>
+  </div>
   <div id="summary"></div>
-  <button id="setupbtn" data-i18n="setupGuide"></button>
-  <button id="scan" data-i18n="scan" data-i18n-title="scanTitle"></button>
-  <button id="daemons" data-i18n="daemons"></button>
-  <button id="newdomain" data-i18n="newDomain"></button>
-  <button id="help" data-i18n="help"></button>
-  <span class="zoom"><button id="zoomout" data-i18n-title="zoomOut">A−</button><button id="zoomreset" data-i18n-title="zoomReset">100%</button><button id="zoomin" data-i18n-title="zoomIn">A+</button></span>
-  <select id="lang" title="Language / Lingua"><option value="en">EN</option><option value="it">IT</option></select>
+  <span class="grow"></span>
+  <div class="hgroup actions">
+    <button id="newdomain" class="hbtn" data-i18n-title="newDomain"><span class="ico">＋</span><span class="lbl" data-i18n="newDomain"></span></button>
+    <button id="scan" class="hbtn" data-i18n-title="scanTitle"><span class="ico">⟳</span><span class="lbl" data-i18n="scan"></span></button>
+    <button id="daemons" class="hbtn" data-i18n-title="daemons"><span class="ico">☰</span><span class="lbl" data-i18n="daemons"></span></button>
+    <button id="setupbtn" class="hbtn" data-i18n-title="setupGuide"><span class="ico">✦</span><span class="lbl" data-i18n="setupGuide"></span></button>
+  </div>
   <div id="updated"></div>
+  <div class="hgroup tools">
+    <button id="bell" class="hbtn" aria-haspopup="true" aria-expanded="false" data-i18n-title="nt.title">🔔<span class="badge" id="belln"></span></button>
+    <button id="help" class="hbtn" data-i18n-title="help"><span class="ico">?</span><span class="lbl" data-i18n="help"></span></button>
+    <button id="viewbtn" class="hbtn keepico" aria-haspopup="true" aria-expanded="false" data-i18n-title="view"><span class="ico">⚙</span><span class="lbl" data-i18n="view"></span></button>
+    <button id="quit" class="hbtn danger" data-i18n-title="quit">⏻</button>
+  </div>
 </header>
 <div id="banner"></div>
 <main>
   <div id="list"></div>
-  <div id="logs">
-    <div id="loghead">
-      <span class="t" id="logtitle"></span><span class="sp"></span>
-      <button data-k="out" class="on">out</button>
-      <button data-k="err">err</button>
-      <button id="follow" class="on" data-i18n="follow" data-i18n-title="followTitle"></button>
-      <button id="closelog">✕</button>
-    </div>
-    <pre id="logtext"></pre>
-  </div>
+  <div id="splitter" role="separator" tabindex="0" data-i18n-title="lg.splitTitle"></div>
+  <div id="logs"></div>
 </main>
 <div id="jobbar"></div>
+<div id="stopped" hidden><div class="stoppedbox"><h2 data-i18n="quitDone"></h2><p data-i18n="quitDoneHint"></p></div></div>
 <div id="toast"></div>
 
 <dialog id="daemondialog">
   <h3 data-i18n="daemonsTitle"></h3>
   <div id="daemonlist"></div>
-  <div class="line"><input id="newhome" class="grow" data-i18n-placeholder="addHomePlaceholder">
-    <button id="addhome" data-i18n="add"></button></div>
+  <div class="line"><button id="browsehome" class="primary" data-i18n="browse"></button><span class="hint" data-i18n="browseHomeHint"></span></div>
+  <div id="daemonpicker"></div>
   <div class="home" id="envinfo"></div>
   <div class="foot"><button id="closedaemons" data-i18n="close"></button></div>
 </dialog>
@@ -169,22 +297,41 @@ dialog.wiz{width:min(60rem,94vw);max-height:90vh;overflow:auto}
   <div class="line"><label data-i18n="domainTimeout"></label>
     <input id="domaintimeout" type="number" min="1" style="width:5.385rem"></div>
   <div class="home" data-i18n="domainHint"></div>
+  <h4 class="subhead" data-i18n="nt.title"></h4>
+  <div id="domainnotifbox"></div>
   <div class="foot"><button id="deletedomain" data-i18n="deleteDomain"></button><button id="savedomain" data-i18n="save"></button><button id="closedomain" data-i18n="cancel"></button></div>
 </dialog>
 
 <dialog id="wizard" class="wiz">
-  <h3 data-i18n="wz.title"></h3>
-  <div id="wizchips" class="chips"></div>
-  <div id="wizbody"></div>
+  <div class="wizhead"><h3 data-i18n="wz.title"></h3><button id="wizclose" data-i18n-title="close">✕</button></div>
+  <div id="wizsteps" class="steps"></div>
+  <p id="wizprogress" class="progress"></p>
+  <div id="wizbody" class="stepcard"></div>
   <div class="foot">
-    <button id="wizclose" data-i18n="close"></button><span class="sp"></span>
-    <button id="wizback" data-i18n="wz.back"></button>
-    <button id="wizcheck" class="primary" data-i18n="wz.check"></button>
-    <button id="wiznext"></button>
+    <button id="wizback" data-i18n="wz.back"></button><span class="sp"></span>
+    <button id="wizcheck" data-i18n="wz.check"></button>
+    <button id="wiznext" class="primary"></button>
   </div>
+  <p class="stuck"><button class="linkbtn" id="wizhelp" data-i18n="wz.stuck"></button></p>
 </dialog>
 
+<div id="notifmenu" class="menu notif" hidden>
+  <div class="wizhead"><h3 data-i18n="nt.title"></h3><button id="notifclose" data-i18n-title="close">✕</button></div>
+  <div class="tabs"><button data-ntab="history" data-i18n="nt.tabHistory"></button><button data-ntab="settings" data-i18n="nt.tabSettings"></button></div>
+  <div id="notifbody"></div>
+</div>
+
+<div id="viewmenu" class="menu" hidden>
+  <div class="row"><span data-i18n="viewSize"></span>
+    <span class="zoom"><button id="zoomout" data-i18n-title="zoomOut">A−</button><button id="zoomreset" data-i18n-title="zoomReset">100%</button><button id="zoomin" data-i18n-title="zoomIn">A+</button></span></div>
+  <div class="row"><span data-i18n="viewLanguage"></span>
+    <select id="lang" title="Language / Lingua"><option value="en">English</option><option value="it">Italiano</option></select></div>
+  <label class="row"><span data-i18n="probeLinks"></span><input type="checkbox" id="probelinks"></label>
+  <p class="hint" data-i18n="probeLinksHint"></p>
+</div>
+
 <dialog id="helpdialog" class="help">
+  <p class="backrow"><button class="linkbtn" id="helpback" hidden></button></p>
   <h3 tabindex="-1" autofocus><span data-i18n="helpTitle"></span> <span class="dim h-version"></span></h3>
 
   <div class="helpbody" lang="en">
@@ -204,6 +351,18 @@ dialog.wiz{width:min(60rem,94vw);max-height:90vh;overflow:auto}
       <li>The "ord" column is the start order: lower numbers start first. "start all" waits for each process to be online (and stay so for 2 s) before starting the next; if one does not start within the maximum wait (⚙, default 30 s) the sequence stops and says so.</li>
       <li>"stop all" shuts down in reverse order. "restart" = stop everything, then start in order.</li>
       <li>Processes that were saved but are no longer in the daemon (or whose daemon is stopped) can still be started: the monitor remembers how to launch them. "✕" next to a "not started" process forgets it.</li>
+    </ul>
+
+    <h4>Notifications and logs</h4>
+    <ul>
+      <li>The <b>bell</b> in the header shows what happened (an app crashed, stopped, restarted by itself, a daemon went down...) and lets you choose, <b>for each domain</b>, what you want to be told about (errors, warnings, good news), how (the bell menu, browser notification, sound, desktop notification) and an optional memory limit.</li>
+      <li>Notifications are produced while the monitor is running. Changes you make through the monitor itself (a stop, a restart) are not reported.</li>
+      <li><b>Two logs side by side:</b> click <b>⧉</b> in a log panel to open a second one next to it (at most two). The next process you click is shown in the active panel, the one underlined in blue. Drag the bar between the list and the logs, and the bar between the two logs, to resize them; double-click a bar to reset it.</li>
+      <li><b>Links:</b> the <b>links</b> column shows where a running app answers (for example <code>localhost:3000</code>); click it to open the page. To list only real web pages, pm2 monitor sends one harmless web request to each port an app listens on; the switch is in <b>⚙ Settings</b>.</li>
+      <li><b>Groups:</b> click a group's title to collapse or expand it ("Collapse all" / "Expand all" above the list); the choice is remembered. The <b>⚙ Settings</b> menu holds the page size and the language. In a log, <b>A− / A+</b> change the size of the log text.</li>
+      <li><b>Turning it off:</b> the power button (⏻) in the header turns pm2 monitor off. Your apps keep running under pm2. To start it again, double-click <b>Start pm2-monitor</b> (<code>.bat</code> on Windows, <code>.command</code> on macOS, <code>start-pm2-monitor.sh</code> on Linux).</li>
+      <li>In the logs panel, <b>⤒</b> jumps to the first line and <b>⤓</b> to the last one (and follows new lines again); the <b>◧ / ⬓</b> button moves the logs to the right of the list or below it. The panel loads the last 400 lines by default (200, 400, 1000 or 2000 from the menu).</li>
+      <li><b>Filtering the log:</b> type in the search box to keep only the lines that contain a word (not case-sensitive); the <b>ERROR / WARN / INFO / DEBUG</b> buttons keep only lines of those levels (a stack trace stays with its error); <b>±2 lines</b> adds the lines around each result; <b>Hide repeated lines</b> folds identical lines into one with a counter (×N), ignoring timestamps; <b>Copy</b> and <b>Save</b> take exactly what you see.</li>
     </ul>
 
     <h4>Where the configuration lives</h4>
@@ -249,6 +408,18 @@ dialog.wiz{width:min(60rem,94vw);max-height:90vh;overflow:auto}
       <li>I processi salvati ma assenti dal demone (o con demone spento) si avviano lo stesso: il monitor ricorda come lanciarli. "✕" accanto a un processo "non avviato" lo dimentica.</li>
     </ul>
 
+    <h4>Notifiche e log</h4>
+    <ul>
+      <li>La <b>campanella</b> nella testata mostra cosa è successo (un'app è andata in errore, si è fermata, si è riavviata da sola, un demone è caduto...) e ti lascia scegliere, <b>per ogni dominio</b>, di cosa vuoi essere avvisato (errori, avvisi, buone notizie), come (menu della campanella, notifica del browser, suono, notifica del desktop) e un limite di memoria facoltativo.</li>
+      <li>Le notifiche vengono prodotte mentre il monitor è in esecuzione. I cambiamenti che fai dal monitor stesso (uno stop, un riavvio) non vengono segnalati.</li>
+      <li><b>Due log affiancati:</b> clicca <b>⧉</b> in un pannello dei log per aprirne un secondo accanto (al massimo due). Il prossimo processo che clicchi si apre nel pannello attivo, quello sottolineato di blu. Trascina la barra tra l'elenco e i log, e quella tra i due log, per ridimensionarli; doppio clic su una barra per ripristinarla.</li>
+      <li><b>Link:</b> la colonna <b>link</b> mostra dove risponde un'app in esecuzione (per esempio <code>localhost:3000</code>); cliccala per aprire la pagina. Per elencare solo le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un'app è in ascolto; l'interruttore è in <b>⚙ Impostazioni</b>.</li>
+      <li><b>Gruppi:</b> clicca il titolo di un gruppo per comprimerlo o espanderlo ("Comprimi tutto" / "Espandi tutto" sopra l'elenco); la scelta viene ricordata. Il menu <b>⚙ Impostazioni</b> contiene la dimensione della pagina e la lingua. In un log, <b>A− / A+</b> cambiano la dimensione del testo del log.</li>
+      <li><b>Spegnere:</b> il pulsante di accensione (⏻) nella testata spegne pm2 monitor. Le tue app continuano a funzionare sotto pm2. Per riavviarlo, fai doppio clic su <b>Start pm2-monitor</b> (<code>.bat</code> su Windows, <code>.command</code> su macOS, <code>start-pm2-monitor.sh</code> su Linux).</li>
+      <li>Nel pannello dei log, <b>⤒</b> va alla prima riga e <b>⤓</b> all'ultima (e torna a seguire le nuove righe); il pulsante <b>◧ / ⬓</b> sposta i log a destra dell'elenco o sotto. Il pannello carica di base le ultime 400 righe (200, 400, 1000 o 2000 dal menu).</li>
+      <li><b>Filtrare il log:</b> scrivi nella casella di ricerca per tenere solo le righe che contengono una parola (senza distinguere maiuscole e minuscole); i pulsanti <b>ERROR / WARN / INFO / DEBUG</b> tengono solo le righe di quei livelli (uno stack trace resta con il suo errore); <b>±2 righe</b> aggiunge le righe attorno a ogni risultato; <b>Nascondi righe ripetute</b> unisce le righe identiche in una con il contatore (×N), ignorando gli orari; <b>Copia</b> e <b>Salva</b> prendono esattamente ciò che vedi.</li>
+    </ul>
+
     <h4>Dove sta la configurazione</h4>
     <p><code class="h-config"></code></p>
     <p>Contiene demoni noti, domini, ordine e come rilanciare i processi. È un JSON leggibile e modificabile a mano (a server fermo). Per usarne un'altra:</p>
@@ -282,8 +453,8 @@ const I18N = {
   en: {
     unitDay: 'd', scan: 'scan', scanTitle: 'Look for new pm2 daemons on this computer', daemons: 'daemons', newDomain: '+ domain', help: 'help',
     follow: 'follow', followTitle: 'Scrolls to the bottom on every refresh',
-    close: 'close', add: 'add', save: 'save', cancel: 'cancel', name: 'name', domain: 'Domain',
-    daemonsTitle: 'pm2 daemons', addHomePlaceholder: 'add a PM2_HOME folder by hand',
+    close: 'close', save: 'save', cancel: 'cancel', name: 'name', domain: 'Domain',
+    daemonsTitle: 'pm2 daemons', 
     domainTimeout: 'maximum wait per process at start (s)',
     domainHint: 'Start follows the ascending "ord" value and waits for each process to be online before the next; stop goes in reverse.',
     deleteDomain: 'delete domain', helpTitle: 'Help · pm2 monitor',
@@ -326,82 +497,126 @@ const I18N = {
     'err.config_corrupt': 'config was unreadable and was saved as {backup}; a new one was created',
     'err.config_corrupt_locked': 'config is unreadable and could not be moved; changes will not be saved',
     zoomOut: 'Make everything smaller', zoomIn: 'Make everything larger', zoomReset: 'Back to normal size',
-    setupGuide: 'guided setup',
-    'wz.title': 'Guided setup', 'wz.optional': 'optional', 'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Your apps',
-    'wz.step4': 'After a reboot', 'wz.step5': 'Domains',
-    'wz.back': '← back', 'wz.next': 'next →', 'wz.finish': 'Finish', 'wz.check': 'Check again', 'wz.copy': 'Copy', 'wz.copied': 'Copied!',
-    'wz.copyFailed': 'Could not copy: select the command and copy it by hand.',
-    'wz.stillMissing': 'Not yet: this step is not complete.', 'wz.stepOk': 'This step is complete.',
-    'wz.cardNoPm2': "pm2 is not installed yet. Let's set it up together",
-    'wz.cardNoDaemons': "I cannot see any pm2 yet. Let's fix that together",
-    'wz.cardNoProcs': 'pm2 is ready, but it has nothing to run yet',
-    'wz.cardText': "No problem: I will guide you step by step. It takes about 3 minutes and you do not need to know anything about pm2.",
+    setupGuide: 'guided setup', 'lg.search': 'Search in the log…', 'lg.lvError': 'Only errors (ERROR, FATAL, exceptions…)', 'lg.lvWarn': 'Only warnings (WARN)',
+    'lg.lvInfo': 'Only info lines (INFO)', 'lg.lvDebug': 'Only debug lines (DEBUG, TRACE)', 'lg.lines': 'How many lines to load', 'lg.linesOpt': '{n} lines',
+    'lg.context': 'Lines of context around each result', 'lg.ctxNone': 'no context', 'lg.ctxOpt': '±{n} lines', 'lg.collapse': 'Hide repeated lines',
+    'lg.count': '{shown} of {total} lines', 'lg.clear': 'Clear filters', 'lg.copy': 'Copy', 'lg.copyTitle': 'Copy the visible lines', 'lg.copied': 'Copied',
+    'lg.save': 'Save', 'lg.saveTitle': 'Save the visible lines as a file', 'lg.nomatch': 'No line matches these filters.',
+    view: 'Settings', browse: 'Browse…', browseHomeHint: 'Look for the folder where pm2 keeps its data (usually a hidden folder called .pm2).',
+    'pk.path': 'Folder path', 'pk.go': 'Go', 'pk.hidden': 'Show hidden folders', 'pk.isPm2': '✓ This is a pm2 folder',
+    'pk.notPm2': 'This does not look like a pm2 folder yet: open the one marked "pm2" (it contains pm2.pid or dump.pm2).', 'pk.usePm2': 'Add this pm2 folder',
+    probeLinks: 'Detect web links', probeLinksHint: 'To show a link only for real web pages, pm2 monitor sends one harmless web request to each port an app listens on. Turn it off to list every port without testing.', colLinks: 'links', linksMore: '+{n} more', collapseAll: 'Collapse all', expandAll: 'Expand all', collapseTitle: 'Collapse this group', expandTitle: 'Expand this group', collapsedSummary: '{on} of {n} online',
+    'lg.fontDown': 'Smaller text in the logs', 'lg.fontUp': 'Larger text in the logs', viewSize: 'Size', viewLanguage: 'Language', quit: 'Turn off pm2 monitor', quitConfirm: 'Turn off pm2 monitor?\n\nYour apps keep running under pm2: only the monitor stops. The page, the notifications and the history will not update until you start it again.', quitDone: 'pm2 monitor is off', quitDoneHint: 'Your apps are still running under pm2. To start the monitor again, double-click "Start pm2-monitor" (or run: python3 launch.py). You can close this window.',
+    backTo: '← Back to {place}', 'lg.splitTitle': 'Drag to resize, double-click to reset', 'lg.addPanel': 'Open a second log next to this one', 'lg.closePanel': 'Close this log', 'lg.pickHint': 'Click a process in the list to see its log here.', logTop: 'Go to the first line', logBottom: 'Go to the last line and keep following', logLayoutRight: 'Show the logs on the right', logLayoutBelow: 'Show the logs below the list',
+    'wz.title': 'Guided setup', 'wz.progress': 'Step {n} of {total}', 'wz.extras': 'Optional extras: you can skip these',
+    'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Your app', 'wz.step4': 'After reboot', 'wz.step5': 'Extras',
+    'wz.back': '← Back', 'wz.next': 'Next →', 'wz.skip': 'Skip →', 'wz.finish': 'Finish', 'wz.check': 'Check now',
+    'wz.copy': 'Copy', 'wz.copied': 'Copied!', 'wz.copyFailed': 'Could not copy: select the command and copy it by hand.',
+    'wz.waiting': 'Waiting… I check by myself every few seconds, you do not need to click anything.',
+    'wz.stuck': 'Stuck? Open the help', 'wz.stepOk': 'This step is complete.', 'wz.stillMissing': 'Not yet: this step is not complete.',
+    'wz.cardNoPm2': 'Welcome! First, pm2 has to be installed',
+    'wz.cardNoDaemons': 'I cannot see any app manager yet',
+    'wz.cardNoProcs': 'pm2 is ready, but it has no app to run yet',
+    'wz.cardText': 'No problem: I will take you by the hand, one small step at a time. It takes about 3 minutes and you do not need to know anything about pm2.',
     'wz.cardButton': 'Start guided setup →',
-    'wz.showFor': 'Showing commands for:', 'wz.os.windows': 'Windows', 'wz.os.macos': 'macOS', 'wz.os.linux': 'Linux',
+    'wz.showFor': 'Commands for:', 'wz.os.windows': 'Windows', 'wz.os.macos': 'macOS', 'wz.os.linux': 'Linux',
     'wz.term.windows': 'Open PowerShell: press the Windows key, type "PowerShell" and press Enter. Then paste the command (right-click) and press Enter.',
     'wz.term.macos': 'Open Terminal: press Cmd+Space, type "Terminal" and press Enter. Then paste the command and press Enter.',
     'wz.term.linux': 'Open a terminal (usually Ctrl+Alt+T). Then paste the command and press Enter.',
-    'wz.s1.title': 'Step 1 · Install Node.js',
-    'wz.s1.why': 'pm2 is built on Node.js, so Node.js has to be installed first. It is free and you only do this once.',
-    'wz.s1.found': '✓ Node.js {version} is installed ({path})',
-    'wz.s1.easy': 'The easiest way (any system)',
-    'wz.s1.easyText': 'Open the Node.js website, download the version marked "LTS", run the installer and keep clicking Next until it finishes.',
-    'wz.s1.open': 'Open nodejs.org', 'wz.s1.cmd': 'Or with a single command',
-    'wz.s1.after': 'When it finishes, click "Check again". If it still says missing, close and reopen your terminal, restart this monitor and try again.',
-    'wz.node.windowsNote': 'Windows 10 and 11 include winget. If the command is not recognized, use the easiest way above.',
-    'wz.node.macosNote': 'This needs Homebrew (brew.sh). If you do not have it, use the easiest way above.',
+    'wz.s1.title': 'Install Node.js',
+    'wz.s1.plain': 'pm2 needs a free program called Node.js to work. You install it once and then you can forget about it.',
+    'wz.s1.found': '✓ Node.js {version} is installed. Nothing to do here!',
+    'wz.s1.download': 'Download Node.js',
+    'wz.s1.downloadHint': 'On the website click the big button marked "LTS", open the downloaded file and keep clicking "Next" until it says it has finished. Then come back here: I will notice by myself.',
+    'wz.s1.manual': 'I prefer to type a command instead',
+    'wz.node.windowsNote': 'Windows 10 and 11 include winget. If the command is not recognized, use the download button above.',
+    'wz.node.macosNote': 'This needs Homebrew (brew.sh). If you do not have it, use the download button above.',
     'wz.node.linuxNote': 'Debian / Ubuntu shown. On Fedora use "sudo dnf install nodejs npm", on Arch "sudo pacman -S nodejs npm".',
-    'wz.s2.title': 'Step 2 · Install pm2',
-    'wz.s2.why': 'pm2 is the program that keeps your apps running in the background. This monitor shows and controls what pm2 runs.',
-    'wz.s2.found': '✓ pm2 {version} is installed ({path})', 'wz.s2.needNode': 'Finish step 1 first: pm2 needs Node.js.',
-    'wz.s2.auto': 'Install pm2 for me',
-    'wz.s2.autoText': 'I will run this command for you. It downloads pm2 from the npm registry, needs an internet connection and can take a minute:',
-    'wz.s2.confirm': 'Run "npm install -g pm2" now?', 'wz.s2.running': 'Installing… please wait.',
-    'wz.s2.manual': 'Or do it yourself',
+    'wz.s2.title': 'Install pm2',
+    'wz.s2.plain': 'pm2 is the helper that keeps your apps running in the background, even if you close the window. This monitor lets you see and control it.',
+    'wz.s2.found': '✓ pm2 {version} is installed. Nothing to do here!', 'wz.s2.needNode': 'First finish step 1: pm2 needs Node.js.',
+    'wz.s2.install': 'Install pm2 for me',
+    'wz.s2.installNote': 'One click. It needs an internet connection and takes about a minute. The only thing I run is: npm install -g pm2',
+    'wz.s2.confirm': 'Run "npm install -g pm2" now?', 'wz.s2.running': 'Installing pm2… this takes about a minute. Please do not close this window.',
+    'wz.s2.manual': 'I prefer to do it myself',
     'wz.s2.fallback': 'The system folder is protected, so I installed pm2 in your own folder instead. The monitor will use it. If you also want to type "pm2" in a terminal, add ~/.npm-global/bin to your PATH.',
-    'wz.s2.failed': 'The installation did not work. Details:', 'wz.s2.failedHelp': 'You can try the manual command above, or follow docs/INSTALL.md (section 3).',
-    'wz.s2.done': '✓ pm2 installed.',
-    'wz.s3.title': 'Step 3 · Your apps',
-    'wz.s3.found': '✓ I can see {n} process(es) in {d} pm2 daemon(s). You are all set here.',
-    'wz.s3.needPm2': 'Finish step 2 first.',
-    'wz.s3.intro': 'pm2 starts its background service the first time you give it something to run. Choose what describes you:',
-    'wz.s3.optNew': 'I am new: start my first app', 'wz.s3.optOld': 'I already use pm2 but I see nothing here',
-    'wz.s3.folder': 'Folder of your app (the one that contains your project)', 'wz.s3.browse': 'Browse…',
-    'wz.s3.useFolder': 'Use this folder', 'wz.s3.up': '⬆ parent folder', 'wz.s3.noFolders': 'No sub-folders here.',
-    'wz.s3.suggest': 'This looks like {kind}. I suggest the name and command below; change them if they are not right.',
+    'wz.s2.failed': 'The installation did not work. Here is what happened:', 'wz.s2.failedHelp': 'You can try the manual way below, or read docs/INSTALL.md (section 3).',
+    'wz.s3.title': 'Start your first app',
+    'wz.s3.plain': 'Tell me where your app lives and how it starts. I will keep it running with pm2 and show it in the list.',
+    'wz.s3.found': '✓ I can see {n} process(es) in {d} pm2 daemon(s). You are all set here!',
+    'wz.s3.needPm2': 'First finish step 2.',
+    'wz.s3.sub1': 'Choose the folder of your app', 'wz.s3.sub1hint': 'It is the folder that holds your project files (for example package.json or app.py).',
+    'wz.s3.browse': 'Choose folder…', 'wz.s3.places': 'Quick places:', 'wz.s3.home': 'Home',
+    'wz.s3.useFolder': 'Use this folder', 'wz.s3.up': '⬆ Go up one folder', 'wz.s3.noFolders': 'No sub-folders here.',
+    'wz.s3.sub2': 'Check how it starts', 'wz.s3.sub2hint': 'I filled these in for you when I could. Change them only if you know they are wrong.',
+    'wz.s3.suggest': 'This looks like {kind}, so I suggest the name and command below.',
     'wz.kind.npm': 'a Node.js project (npm)', 'wz.kind.node': 'a Node.js app', 'wz.kind.python': 'a Python app',
-    'wz.s3.noSuggest': 'I could not guess how to start this folder. Type the command you normally use in a terminal, for example "npm start" or "python3 app.py".',
-    'wz.s3.name': 'Name (how it will appear in the list)', 'wz.s3.command': 'Command that starts it',
-    'wz.s3.start': 'Start it with pm2', 'wz.s3.starting': 'Starting… this takes a few seconds.',
-    'wz.s3.started': '✓ "{name}" is running under pm2 and the list is saved. You can see it in the main window now.',
-    'wz.s3.failedTitle': 'The app stopped right away (status: {status}). I removed it so you can try again. Last log lines:',
+    'wz.s3.noSuggest': 'I could not guess how to start this folder. Type the command you normally use in a terminal.',
+    'wz.s3.name': 'Name (how it will appear in the list)', 'wz.s3.nameBad': 'Use letters, numbers, dash, underscore or dot, and start with a letter or number.',
+    'wz.s3.command': 'Command that starts it', 'wz.s3.commandHint': 'The same thing you would type in a terminal to start the app.',
+    'wz.s3.commandHelp': 'I do not know the command',
+    'wz.s3.commandHelpText': 'Open your project folder. If you see a file called package.json, type: npm start. If you see app.py or main.py, type: python3 app.py (or main.py). Otherwise ask whoever gave you the project, or look for a README file.',
+    'wz.s3.sub3': 'Start it', 'wz.s3.start': 'Start my app', 'wz.s3.starting': 'Starting… this takes a few seconds.',
+    'wz.s3.fillAll': 'Fill in the folder, the name and the command to continue.',
+    'wz.s3.successTitle': 'Your app is running!',
+    'wz.s3.successText': '"{name}" is now running under pm2 and the list is saved. You can see it in the list behind this window.',
+    'wz.s3.showList': 'Show it in the list', 'wz.s3.another': 'Add another app',
+    'wz.s3.failedTitle': 'The app stopped right away (status: {status}). I removed it so you can try again. Last lines of its log:',
     'wz.s3.failedHelp': 'Check the command and the folder, then try again.',
+    'wz.s3.oldLink': 'I already use pm2 but I see nothing here', 'wz.s3.newLink': '← Back to starting a new app',
     'wz.s3.oldText': 'pm2 keeps its data in a hidden folder (by default ".pm2" inside your user folder). If you use another one, find it like this:',
     'wz.s3.old1': 'Open a terminal where you normally use pm2.', 'wz.s3.old2': 'Type this and press Enter:',
-    'wz.s3.old3': 'If it prints a folder, paste it below. If it prints nothing, pm2 uses the default folder: click "Check again" and, if nothing appears, paste {home}.',
-    'wz.s3.homePlaceholder': 'Paste the pm2 folder here', 'wz.s3.addHome': 'Add this folder',
-    'wz.s4.title': 'Step 4 · Keep your apps after a reboot (optional)',
-    'wz.s4.allDone': '🎉 Everything needed is working. These last two steps are optional.',
-    'wz.s4.text': 'By default pm2 does not restart your apps when the computer restarts. You can fix that once:',
-    'wz.s4.unix1': 'Run this, then run the command it prints (it usually starts with "sudo"):', 'wz.s4.unix2': 'Then run:',
+    'wz.s3.old3': 'If it prints a folder, find it below with Browse. If it prints nothing, pm2 uses the default folder: click "Check now" and, if nothing appears, browse to {home}.',
+    
+    'wz.s4.title': 'Keep your apps after a reboot',
+    'wz.s4.plain': 'Normally pm2 forgets to start your apps when you restart the computer. You can fix that once. This step is optional: you can skip it and do it later.',
+    'wz.s4.allDone': 'Everything you need is working. The last two steps are optional extras.',
+    'wz.s4.unix1': 'Type this, then type the command it prints (it usually starts with "sudo"):', 'wz.s4.unix2': 'Then type:',
     'wz.s4.win': 'On Windows pm2 cannot do this by itself. The installation guide explains two options (a scheduled task or a service): docs/INSTALL.md, section 6.',
     'wz.s4.monitor': 'To open this monitor automatically too, see section 9 of the same guide.',
-    'wz.s5.title': 'Step 5 · Organize with domains (optional)',
-    'wz.s5.text': 'A domain is a group of apps that belong together, for example "my shop": database, backend and website. You can then start the whole group in the right order with one click.',
-    'wz.s5.create': 'Create my first domain', 'wz.s5.then': 'Then use the "domain" drop-down on each row to put apps in it, and the "ord" column to choose which starts first.',
-    'wz.s5.have': '✓ You already have {n} domain(s).',
+    'wz.s5.title': 'Optional extras',
+    'wz.s5.plain': 'Two features that make life easier. You can set them up now or whenever you like.',
+    'wz.s5.domainsTitle': 'Group your apps', 'wz.s5.domainsText': 'A domain is a group of apps that belong together, for example "my shop": database, backend and website. You can start the whole group, in the right order, with one click.',
+    'wz.s5.domainsButton': 'Create my first domain', 'wz.s5.domainsHave': '✓ You already have {n} domain(s).',
+    'wz.s5.notifyTitle': 'Get warned when something breaks', 'wz.s5.notifyText': 'Choose what the monitor tells you about (errors, warnings, good news), and how: in the bell menu, a browser notification, a sound or a desktop notification.',
+    'wz.s5.notifyButton': 'Set up notifications',
+    'nt.title': 'Notifications', 'nt.tabHistory': 'History', 'nt.tabSettings': 'Settings',
+    'nt.empty': 'Nothing to report yet. When an app crashes or stops, you will see it here.',
+    'nt.markRead': 'Mark all as read', 'nt.clear': 'Clear history', 'nt.confirmClear': 'Delete the whole history?',
+    'nt.filterAll': 'All', 'nt.sev.error': 'Errors', 'nt.sev.warning': 'Warnings', 'nt.sev.info': 'Good news',
+    'nt.intro': 'Choose, for each domain, what you want to be told about and how. Notifications only reach you while pm2 monitor is running.',
+    'nt.thisPc': 'On this computer', 'nt.browser': 'Notifications of this browser',
+    'nt.browserState.granted': 'allowed', 'nt.browserState.denied': 'blocked: allow them in the browser settings', 'nt.browserState.default': 'not allowed yet',
+    'nt.browserState.unsupported': 'not supported by this browser', 'nt.allow': 'Allow', 'nt.test': 'Send a test', 'nt.sound': 'Sound', 'nt.desktop': 'Desktop notifications',
+    'nt.desktopHint': 'They also work when this page is closed (as long as pm2 monitor is running).', 'nt.testBody': 'This is a test notification.',
+    'nt.testSent': 'Test sent: did you see it?',
+    'nt.scopeOn': 'On', 'nt.scopeOff': 'Off', 'nt.change': 'Change', 'nt.hide': 'Hide', 'nt.saved': '✓ Saved',
+    'nt.e.enabled': 'Notify me about this group', 'nt.e.levels': 'What to be told about',
+    'nt.lvl.error': 'Errors', 'nt.lvl.errorHint': 'an app crashed, a daemon stopped, a start sequence failed',
+    'nt.lvl.warning': 'Warnings', 'nt.lvl.warningHint': 'an app stopped, was removed, restarted by itself or uses too much memory',
+    'nt.lvl.info': 'Good news', 'nt.lvl.infoHint': 'an app is back online, a group start finished',
+    'nt.e.how': 'How to tell me', 'nt.ch.page': 'In this window: the bell menu (always)',
+    'nt.ch.browserShort': 'browser', 'nt.ch.browser': 'Browser notification, when this window is in the background', 'nt.ch.sound': 'Play a sound', 'nt.ch.desktop': 'Desktop notification, even if the page is closed',
+    'nt.e.memory': 'Warn me if an app uses more than this (MB)', 'nt.e.memoryHint': '0 means: do not watch the memory.',
+    'nt.e.details': 'Choose exactly which events',
+    'nt.type.process_crashed': 'An app crashed', 'nt.type.daemon_stopped': 'A daemon stopped', 'nt.type.job_failed': 'A group start / stop failed',
+    'nt.type.process_stopped': 'An app stopped', 'nt.type.process_removed': 'An app was removed', 'nt.type.process_restarted': 'An app restarted by itself',
+    'nt.type.memory_high': 'An app uses too much memory', 'nt.type.process_recovered': 'An app is back online', 'nt.type.daemon_started': 'A daemon is running again',
+    'nt.type.job_done': 'A group start / stop finished',
     'err.folder_not_found': 'folder not found: {path}', 'err.folder_unreadable': 'cannot read the folder: {path}',
     'err.bad_process_name': 'the name must start with a letter or number and use only letters, numbers, dash, underscore or dot',
     'err.bad_command': 'the command has unbalanced quotes', 'err.empty_command': 'type the command that starts your app',
     'err.npm_not_found': 'npm not found: finish step 1 (Node.js) first', 'err.process_exists': 'a process called "{name}" already exists',
     'err.process_failed': 'the app stopped right away ({status})', 'err.install_in_progress': 'an installation is already running',
-    'err.install_failed': 'installation failed', 'err.pm2_missing_after_install': 'pm2 was installed but I cannot find it'
+    'err.install_failed': 'installation failed', 'err.pm2_missing_after_install': 'pm2 was installed but I cannot find it',
+    'err.desktop_unavailable': 'this computer has no tool for desktop notifications (on Linux install libnotify, which provides notify-send)',
+    'err.desktop_failed': 'the desktop notification failed: {detail}'
   },
   it: {
     unitDay: 'g', scan: 'scansiona', scanTitle: 'Cerca nuovi demoni pm2 sul computer', daemons: 'demoni', newDomain: '+ dominio', help: 'aiuto',
     follow: 'segui', followTitle: 'Scorre in fondo ad ogni aggiornamento',
-    close: 'chiudi', add: 'aggiungi', save: 'salva', cancel: 'annulla', name: 'nome', domain: 'Dominio',
-    daemonsTitle: 'Demoni pm2', addHomePlaceholder: 'aggiungi a mano una cartella PM2_HOME',
+    close: 'chiudi', save: 'salva', cancel: 'annulla', name: 'nome', domain: 'Dominio',
+    daemonsTitle: 'Demoni pm2', 
     domainTimeout: "attesa massima per processo all'avvio (s)",
     domainHint: 'L\'avvio segue l\'ordine crescente del campo "ord" e aspetta che ogni processo sia online prima del successivo; lo stop va al contrario.',
     deleteDomain: 'elimina dominio', helpTitle: 'Aiuto · pm2 monitor',
@@ -444,76 +659,120 @@ const I18N = {
     'err.config_corrupt': 'config illeggibile, salvata come {backup}; ne parte una nuova',
     'err.config_corrupt_locked': 'config illeggibile e non spostabile; le modifiche non verranno salvate',
     zoomOut: 'Rimpicciolisci tutto', zoomIn: 'Ingrandisci tutto', zoomReset: 'Torna alla dimensione normale',
-    setupGuide: 'configurazione guidata',
-    'wz.title': 'Configurazione guidata', 'wz.optional': 'facoltativo', 'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Le tue app',
-    'wz.step4': 'Dopo il riavvio', 'wz.step5': 'Domini',
-    'wz.back': '← indietro', 'wz.next': 'avanti →', 'wz.finish': 'Fine', 'wz.check': 'Controlla di nuovo', 'wz.copy': 'Copia', 'wz.copied': 'Copiato!',
-    'wz.copyFailed': 'Non sono riuscito a copiare: seleziona il comando e copialo a mano.',
-    'wz.stillMissing': 'Non ancora: questo passaggio non è completo.', 'wz.stepOk': 'Questo passaggio è completo.',
-    'wz.cardNoPm2': 'pm2 non è ancora installato. Sistemiamolo insieme',
-    'wz.cardNoDaemons': 'Non vedo ancora nessun pm2. Sistemiamolo insieme',
-    'wz.cardNoProcs': 'pm2 è pronto, ma non ha ancora nulla da eseguire',
-    'wz.cardText': 'Nessun problema: ti accompagno passo passo. Servono circa 3 minuti e non devi sapere nulla di pm2.',
+    setupGuide: 'configurazione guidata', 'lg.search': 'Cerca nel log…', 'lg.lvError': 'Solo errori (ERROR, FATAL, eccezioni…)', 'lg.lvWarn': 'Solo avvisi (WARN)',
+    'lg.lvInfo': 'Solo righe informative (INFO)', 'lg.lvDebug': 'Solo righe di debug (DEBUG, TRACE)', 'lg.lines': 'Quante righe caricare', 'lg.linesOpt': '{n} righe',
+    'lg.context': 'Righe di contesto attorno a ogni risultato', 'lg.ctxNone': 'senza contesto', 'lg.ctxOpt': '±{n} righe', 'lg.collapse': 'Nascondi righe ripetute',
+    'lg.count': '{shown} di {total} righe', 'lg.clear': 'Azzera i filtri', 'lg.copy': 'Copia', 'lg.copyTitle': 'Copia le righe visibili', 'lg.copied': 'Copiato',
+    'lg.save': 'Salva', 'lg.saveTitle': 'Salva le righe visibili come file', 'lg.nomatch': 'Nessuna riga corrisponde a questi filtri.',
+    view: 'Impostazioni', browse: 'Sfoglia…', browseHomeHint: 'Cerca la cartella in cui pm2 conserva i suoi dati (di solito una cartella nascosta chiamata .pm2).',
+    'pk.path': 'Percorso della cartella', 'pk.go': 'Vai', 'pk.hidden': 'Mostra le cartelle nascoste', 'pk.isPm2': '✓ Questa è una cartella di pm2',
+    'pk.notPm2': 'Questa non sembra ancora una cartella di pm2: apri quella con l\'etichetta "pm2" (contiene pm2.pid o dump.pm2).', 'pk.usePm2': 'Aggiungi questa cartella di pm2',
+    probeLinks: 'Rileva i link web', probeLinksHint: 'Per mostrare un link solo per le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un\'app è in ascolto. Disattivalo per elencare ogni porta senza provarla.', colLinks: 'link', linksMore: '+{n} altri', collapseAll: 'Comprimi tutto', expandAll: 'Espandi tutto', collapseTitle: 'Comprimi questo gruppo', expandTitle: 'Espandi questo gruppo', collapsedSummary: '{on} su {n} online',
+    'lg.fontDown': 'Testo più piccolo nei log', 'lg.fontUp': 'Testo più grande nei log', viewSize: 'Dimensione', viewLanguage: 'Lingua', quit: 'Spegni pm2 monitor', quitConfirm: 'Spegnere pm2 monitor?\n\nLe tue app continuano a funzionare sotto pm2: si ferma solo il monitor. La pagina, le notifiche e lo storico non si aggiorneranno finché non lo riavvii.', quitDone: 'pm2 monitor è spento', quitDoneHint: 'Le tue app sono ancora in esecuzione sotto pm2. Per riavviare il monitor, fai doppio clic su "Start pm2-monitor" (oppure esegui: python3 launch.py). Puoi chiudere questa finestra.',
+    backTo: '← Torna a: {place}', 'lg.splitTitle': 'Trascina per ridimensionare, doppio clic per ripristinare', 'lg.addPanel': 'Apri un secondo log accanto a questo', 'lg.closePanel': 'Chiudi questo log', 'lg.pickHint': 'Clicca un processo nell\'elenco per vederne qui il log.', logTop: 'Vai alla prima riga', logBottom: 'Vai all\'ultima riga e continua a seguire', logLayoutRight: 'Mostra i log a destra', logLayoutBelow: 'Mostra i log sotto l\'elenco',
+    'wz.title': 'Configurazione guidata', 'wz.progress': 'Passo {n} di {total}', 'wz.extras': 'Extra facoltativi: puoi saltarli',
+    'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'La tua app', 'wz.step4': 'Dopo il riavvio', 'wz.step5': 'Extra',
+    'wz.back': '← Indietro', 'wz.next': 'Avanti →', 'wz.skip': 'Salta →', 'wz.finish': 'Fine', 'wz.check': 'Controlla ora',
+    'wz.copy': 'Copia', 'wz.copied': 'Copiato!', 'wz.copyFailed': 'Non sono riuscito a copiare: seleziona il comando e copialo a mano.',
+    'wz.waiting': 'In attesa… controllo da solo ogni pochi secondi, non devi cliccare nulla.',
+    'wz.stuck': 'Sei bloccato? Apri l\'aiuto', 'wz.stepOk': 'Questo passaggio è completo.', 'wz.stillMissing': 'Non ancora: questo passaggio non è completo.',
+    'wz.cardNoPm2': 'Benvenuto! Prima va installato pm2',
+    'wz.cardNoDaemons': 'Non vedo ancora nessun gestore di app',
+    'wz.cardNoProcs': 'pm2 è pronto, ma non ha ancora nessuna app da eseguire',
+    'wz.cardText': 'Nessun problema: ti prendo per mano, un piccolo passo alla volta. Servono circa 3 minuti e non devi sapere nulla di pm2.',
     'wz.cardButton': 'Avvia la configurazione guidata →',
     'wz.showFor': 'Comandi per:', 'wz.os.windows': 'Windows', 'wz.os.macos': 'macOS', 'wz.os.linux': 'Linux',
     'wz.term.windows': 'Apri PowerShell: premi il tasto Windows, scrivi "PowerShell" e premi Invio. Poi incolla il comando (tasto destro) e premi Invio.',
     'wz.term.macos': 'Apri Terminale: premi Cmd+Spazio, scrivi "Terminale" e premi Invio. Poi incolla il comando e premi Invio.',
     'wz.term.linux': 'Apri un terminale (di solito Ctrl+Alt+T). Poi incolla il comando e premi Invio.',
-    'wz.s1.title': 'Passo 1 · Installare Node.js',
-    'wz.s1.why': 'pm2 è costruito su Node.js, quindi Node.js va installato per primo. È gratuito e si fa una volta sola.',
-    'wz.s1.found': '✓ Node.js {version} è installato ({path})',
-    'wz.s1.easy': 'Il modo più semplice (qualsiasi sistema)',
-    'wz.s1.easyText': 'Apri il sito di Node.js, scarica la versione indicata come "LTS", avvia il programma di installazione e continua a cliccare Avanti fino alla fine.',
-    'wz.s1.open': 'Apri nodejs.org', 'wz.s1.cmd': 'Oppure con un solo comando',
-    'wz.s1.after': 'Quando ha finito, clicca "Controlla di nuovo". Se dice ancora che manca, chiudi e riapri il terminale, riavvia questo monitor e riprova.',
-    'wz.node.windowsNote': 'Windows 10 e 11 includono winget. Se il comando non viene riconosciuto, usa il modo più semplice qui sopra.',
-    'wz.node.macosNote': 'Serve Homebrew (brew.sh). Se non ce l\'hai, usa il modo più semplice qui sopra.',
+    'wz.s1.title': 'Installa Node.js',
+    'wz.s1.plain': 'pm2 ha bisogno di un programma gratuito che si chiama Node.js. Lo installi una volta sola e poi te ne puoi dimenticare.',
+    'wz.s1.found': '✓ Node.js {version} è installato. Qui non c\'è nulla da fare!',
+    'wz.s1.download': 'Scarica Node.js',
+    'wz.s1.downloadHint': 'Sul sito clicca il grande pulsante "LTS", apri il file scaricato e continua a cliccare "Avanti" finché dice che ha finito. Poi torna qui: me ne accorgo da solo.',
+    'wz.s1.manual': 'Preferisco scrivere un comando',
+    'wz.node.windowsNote': 'Windows 10 e 11 includono winget. Se il comando non viene riconosciuto, usa il pulsante di download qui sopra.',
+    'wz.node.macosNote': 'Serve Homebrew (brew.sh). Se non ce l\'hai, usa il pulsante di download qui sopra.',
     'wz.node.linuxNote': 'Qui Debian / Ubuntu. Su Fedora usa "sudo dnf install nodejs npm", su Arch "sudo pacman -S nodejs npm".',
-    'wz.s2.title': 'Passo 2 · Installare pm2',
-    'wz.s2.why': 'pm2 è il programma che tiene le tue app in esecuzione in background. Questo monitor mostra e controlla ciò che pm2 esegue.',
-    'wz.s2.found': '✓ pm2 {version} è installato ({path})', 'wz.s2.needNode': 'Completa prima il passo 1: pm2 ha bisogno di Node.js.',
-    'wz.s2.auto': 'Installa pm2 per me',
-    'wz.s2.autoText': 'Eseguo io questo comando. Scarica pm2 dal registro npm, richiede una connessione a internet e può durare un minuto:',
-    'wz.s2.confirm': 'Eseguire ora "npm install -g pm2"?', 'wz.s2.running': 'Installazione in corso… attendi.',
-    'wz.s2.manual': 'Oppure fallo tu',
+    'wz.s2.title': 'Installa pm2',
+    'wz.s2.plain': 'pm2 è l\'aiutante che tiene le tue app in esecuzione in background, anche se chiudi la finestra. Questo monitor ti permette di vederlo e controllarlo.',
+    'wz.s2.found': '✓ pm2 {version} è installato. Qui non c\'è nulla da fare!', 'wz.s2.needNode': 'Completa prima il passo 1: pm2 ha bisogno di Node.js.',
+    'wz.s2.install': 'Installa pm2 per me',
+    'wz.s2.installNote': 'Un solo clic. Serve una connessione a internet e dura circa un minuto. L\'unica cosa che eseguo è: npm install -g pm2',
+    'wz.s2.confirm': 'Eseguire ora "npm install -g pm2"?', 'wz.s2.running': 'Installo pm2… ci vuole circa un minuto. Non chiudere questa finestra.',
+    'wz.s2.manual': 'Preferisco farlo io',
     'wz.s2.fallback': 'La cartella di sistema è protetta, quindi ho installato pm2 nella tua cartella personale. Il monitor lo userà. Se vuoi scrivere "pm2" anche in un terminale, aggiungi ~/.npm-global/bin al PATH.',
-    'wz.s2.failed': 'L\'installazione non è riuscita. Dettagli:', 'wz.s2.failedHelp': 'Puoi provare il comando manuale qui sopra, oppure seguire docs/INSTALL.it.md (sezione 3).',
-    'wz.s2.done': '✓ pm2 installato.',
-    'wz.s3.title': 'Passo 3 · Le tue app',
-    'wz.s3.found': '✓ Vedo {n} processo/i in {d} demone/i pm2. Qui è tutto a posto.',
+    'wz.s2.failed': 'L\'installazione non è riuscita. Ecco cosa è successo:', 'wz.s2.failedHelp': 'Puoi provare il modo manuale qui sotto, oppure leggere docs/INSTALL.it.md (sezione 3).',
+    'wz.s3.title': 'Avvia la tua prima app',
+    'wz.s3.plain': 'Dimmi dove sta la tua app e come si avvia. La tengo in esecuzione con pm2 e la mostro nell\'elenco.',
+    'wz.s3.found': '✓ Vedo {n} processo/i in {d} demone/i pm2. Qui è tutto a posto!',
     'wz.s3.needPm2': 'Completa prima il passo 2.',
-    'wz.s3.intro': 'pm2 avvia il suo servizio in background la prima volta che gli dai qualcosa da eseguire. Scegli cosa ti descrive:',
-    'wz.s3.optNew': 'Sono alle prime armi: avvia la mia prima app', 'wz.s3.optOld': 'Uso già pm2 ma qui non vedo nulla',
-    'wz.s3.folder': 'Cartella della tua app (quella che contiene il progetto)', 'wz.s3.browse': 'Sfoglia…',
-    'wz.s3.useFolder': 'Usa questa cartella', 'wz.s3.up': '⬆ cartella superiore', 'wz.s3.noFolders': 'Nessuna sottocartella qui.',
-    'wz.s3.suggest': 'Sembra {kind}. Ti suggerisco nome e comando qui sotto; cambiali se non vanno bene.',
+    'wz.s3.sub1': 'Scegli la cartella della tua app', 'wz.s3.sub1hint': 'È la cartella che contiene i file del tuo progetto (per esempio package.json o app.py).',
+    'wz.s3.browse': 'Scegli cartella…', 'wz.s3.places': 'Posti rapidi:', 'wz.s3.home': 'Home',
+    'wz.s3.useFolder': 'Usa questa cartella', 'wz.s3.up': '⬆ Su di una cartella', 'wz.s3.noFolders': 'Nessuna sottocartella qui.',
+    'wz.s3.sub2': 'Controlla come si avvia', 'wz.s3.sub2hint': 'Li ho compilati io quando ho potuto. Cambiali solo se sai che sono sbagliati.',
+    'wz.s3.suggest': 'Sembra {kind}, quindi ti suggerisco il nome e il comando qui sotto.',
     'wz.kind.npm': 'un progetto Node.js (npm)', 'wz.kind.node': 'un\'app Node.js', 'wz.kind.python': 'un\'app Python',
-    'wz.s3.noSuggest': 'Non sono riuscito a capire come avviare questa cartella. Scrivi il comando che usi di solito in un terminale, per esempio "npm start" o "python3 app.py".',
-    'wz.s3.name': 'Nome (come apparirà nell\'elenco)', 'wz.s3.command': 'Comando che la avvia',
-    'wz.s3.start': 'Avviala con pm2', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
-    'wz.s3.started': '✓ "{name}" è in esecuzione sotto pm2 e l\'elenco è salvato. Ora la vedi nella finestra principale.',
-    'wz.s3.failedTitle': 'L\'app si è fermata subito (stato: {status}). L\'ho rimossa così puoi riprovare. Ultime righe del log:',
+    'wz.s3.noSuggest': 'Non sono riuscito a capire come avviare questa cartella. Scrivi il comando che usi di solito in un terminale.',
+    'wz.s3.name': 'Nome (come apparirà nell\'elenco)', 'wz.s3.nameBad': 'Usa lettere, numeri, trattino, underscore o punto, e inizia con una lettera o un numero.',
+    'wz.s3.command': 'Comando che la avvia', 'wz.s3.commandHint': 'La stessa cosa che scriveresti in un terminale per avviare l\'app.',
+    'wz.s3.commandHelp': 'Non so qual è il comando',
+    'wz.s3.commandHelpText': 'Apri la cartella del progetto. Se vedi un file chiamato package.json, scrivi: npm start. Se vedi app.py o main.py, scrivi: python3 app.py (o main.py). Altrimenti chiedi a chi ti ha dato il progetto, oppure cerca un file README.',
+    'wz.s3.sub3': 'Avviala', 'wz.s3.start': 'Avvia la mia app', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
+    'wz.s3.fillAll': 'Compila cartella, nome e comando per continuare.',
+    'wz.s3.successTitle': 'La tua app è in esecuzione!',
+    'wz.s3.successText': '"{name}" è ora in esecuzione sotto pm2 e l\'elenco è salvato. La vedi nell\'elenco dietro questa finestra.',
+    'wz.s3.showList': 'Mostrala nell\'elenco', 'wz.s3.another': 'Aggiungi un\'altra app',
+    'wz.s3.failedTitle': 'L\'app si è fermata subito (stato: {status}). L\'ho rimossa così puoi riprovare. Ultime righe del suo log:',
     'wz.s3.failedHelp': 'Controlla il comando e la cartella, poi riprova.',
+    'wz.s3.oldLink': 'Uso già pm2 ma qui non vedo nulla', 'wz.s3.newLink': '← Torna ad avviare una nuova app',
     'wz.s3.oldText': 'pm2 conserva i suoi dati in una cartella nascosta (di solito ".pm2" dentro la tua cartella utente). Se ne usi un\'altra, trovala così:',
     'wz.s3.old1': 'Apri un terminale dove di solito usi pm2.', 'wz.s3.old2': 'Scrivi questo e premi Invio:',
-    'wz.s3.old3': 'Se stampa una cartella, incollala qui sotto. Se non stampa nulla, pm2 usa la cartella predefinita: clicca "Controlla di nuovo" e, se non compare nulla, incolla {home}.',
-    'wz.s3.homePlaceholder': 'Incolla qui la cartella di pm2', 'wz.s3.addHome': 'Aggiungi questa cartella',
-    'wz.s4.title': 'Passo 4 · Mantenere le app dopo un riavvio (facoltativo)',
-    'wz.s4.allDone': '🎉 Tutto il necessario funziona. Questi ultimi due passi sono facoltativi.',
-    'wz.s4.text': 'Di base pm2 non riavvia le tue app quando il computer si riavvia. Lo sistemi una volta sola:',
-    'wz.s4.unix1': 'Esegui questo, poi esegui il comando che stampa (di solito inizia con "sudo"):', 'wz.s4.unix2': 'Poi esegui:',
+    'wz.s3.old3': 'Se stampa una cartella, trovala qui sotto con Sfoglia. Se non stampa nulla, pm2 usa la cartella predefinita: clicca "Controlla ora" e, se non compare nulla, vai a {home}.',
+    
+    'wz.s4.title': 'Mantieni le app dopo un riavvio',
+    'wz.s4.plain': 'Di solito pm2 non avvia le tue app quando riavvii il computer. Lo sistemi una volta sola. Questo passo è facoltativo: puoi saltarlo e farlo dopo.',
+    'wz.s4.allDone': 'Tutto il necessario funziona. Gli ultimi due passi sono extra facoltativi.',
+    'wz.s4.unix1': 'Scrivi questo, poi scrivi il comando che stampa (di solito inizia con "sudo"):', 'wz.s4.unix2': 'Poi scrivi:',
     'wz.s4.win': 'Su Windows pm2 non può farlo da solo. La guida all\'installazione spiega due opzioni (un\'attività pianificata o un servizio): docs/INSTALL.it.md, sezione 6.',
     'wz.s4.monitor': 'Per aprire automaticamente anche questo monitor, vedi la sezione 9 della stessa guida.',
-    'wz.s5.title': 'Passo 5 · Organizzare con i domini (facoltativo)',
-    'wz.s5.text': 'Un dominio è un gruppo di app che stanno insieme, per esempio "il mio negozio": database, backend e sito. Poi puoi avviare tutto il gruppo, nell\'ordine giusto, con un clic.',
-    'wz.s5.create': 'Crea il mio primo dominio', 'wz.s5.then': 'Poi usa il menu "dominio" di ogni riga per inserire le app, e la colonna "ord" per scegliere quale parte per prima.',
-    'wz.s5.have': '✓ Hai già {n} dominio/i.',
+    'wz.s5.title': 'Extra facoltativi',
+    'wz.s5.plain': 'Due funzioni che rendono la vita più facile. Puoi configurarle ora o quando vuoi.',
+    'wz.s5.domainsTitle': 'Raggruppa le tue app', 'wz.s5.domainsText': 'Un dominio è un gruppo di app che stanno insieme, per esempio "il mio negozio": database, backend e sito. Poi puoi avviare tutto il gruppo, nell\'ordine giusto, con un clic.',
+    'wz.s5.domainsButton': 'Crea il mio primo dominio', 'wz.s5.domainsHave': '✓ Hai già {n} dominio/i.',
+    'wz.s5.notifyTitle': 'Fatti avvisare quando qualcosa si rompe', 'wz.s5.notifyText': 'Scegli di cosa ti avvisa il monitor (errori, avvisi, buone notizie) e come: nel menu della campanella, una notifica del browser, un suono o una notifica del desktop.',
+    'wz.s5.notifyButton': 'Configura le notifiche',
+    'nt.title': 'Notifiche', 'nt.tabHistory': 'Storico', 'nt.tabSettings': 'Impostazioni',
+    'nt.empty': 'Niente da segnalare per ora. Quando un\'app va in errore o si ferma, lo vedrai qui.',
+    'nt.markRead': 'Segna tutto come letto', 'nt.clear': 'Svuota lo storico', 'nt.confirmClear': 'Cancellare tutto lo storico?',
+    'nt.filterAll': 'Tutte', 'nt.sev.error': 'Errori', 'nt.sev.warning': 'Avvisi', 'nt.sev.info': 'Buone notizie',
+    'nt.intro': 'Scegli, per ogni dominio, di cosa vuoi essere avvisato e come. Le notifiche ti arrivano solo mentre pm2 monitor è in esecuzione.',
+    'nt.thisPc': 'Su questo computer', 'nt.browser': 'Notifiche di questo browser',
+    'nt.browserState.granted': 'consentite', 'nt.browserState.denied': 'bloccate: consentile dalle impostazioni del browser', 'nt.browserState.default': 'non ancora consentite',
+    'nt.browserState.unsupported': 'non supportate da questo browser', 'nt.allow': 'Consenti', 'nt.test': 'Invia una prova', 'nt.sound': 'Suono', 'nt.desktop': 'Notifiche del desktop',
+    'nt.desktopHint': 'Funzionano anche a pagina chiusa (finché pm2 monitor è in esecuzione).', 'nt.testBody': 'Questa è una notifica di prova.',
+    'nt.testSent': 'Prova inviata: l\'hai vista?',
+    'nt.scopeOn': 'Attive', 'nt.scopeOff': 'Spente', 'nt.change': 'Modifica', 'nt.hide': 'Nascondi', 'nt.saved': '✓ Salvato',
+    'nt.e.enabled': 'Avvisami per questo gruppo', 'nt.e.levels': 'Di cosa essere avvisato',
+    'nt.lvl.error': 'Errori', 'nt.lvl.errorHint': 'un\'app è andata in errore, un demone si è fermato, un avvio di gruppo è fallito',
+    'nt.lvl.warning': 'Avvisi', 'nt.lvl.warningHint': 'un\'app si è fermata, è stata rimossa, si è riavviata da sola o usa troppa memoria',
+    'nt.lvl.info': 'Buone notizie', 'nt.lvl.infoHint': 'un\'app è di nuovo online, un avvio di gruppo è finito',
+    'nt.e.how': 'Come avvisarmi', 'nt.ch.page': 'In questa finestra: il menu della campanella (sempre)',
+    'nt.ch.browserShort': 'browser', 'nt.ch.browser': 'Notifica del browser, quando questa finestra è in secondo piano', 'nt.ch.sound': 'Riproduci un suono', 'nt.ch.desktop': 'Notifica del desktop, anche a pagina chiusa',
+    'nt.e.memory': 'Avvisami se un\'app usa più di (MB)', 'nt.e.memoryHint': '0 significa: non controllare la memoria.',
+    'nt.e.details': 'Scegli esattamente quali eventi',
+    'nt.type.process_crashed': 'Un\'app è andata in errore', 'nt.type.daemon_stopped': 'Un demone si è fermato', 'nt.type.job_failed': 'Un avvio / arresto di gruppo è fallito',
+    'nt.type.process_stopped': 'Un\'app si è fermata', 'nt.type.process_removed': 'Un\'app è stata rimossa', 'nt.type.process_restarted': 'Un\'app si è riavviata da sola',
+    'nt.type.memory_high': 'Un\'app usa troppa memoria', 'nt.type.process_recovered': 'Un\'app è di nuovo online', 'nt.type.daemon_started': 'Un demone è di nuovo in esecuzione',
+    'nt.type.job_done': 'Un avvio / arresto di gruppo è finito',
     'err.folder_not_found': 'cartella non trovata: {path}', 'err.folder_unreadable': 'impossibile leggere la cartella: {path}',
     'err.bad_process_name': 'il nome deve iniziare con una lettera o un numero e usare solo lettere, numeri, trattino, underscore o punto',
     'err.bad_command': 'il comando ha virgolette non chiuse', 'err.empty_command': 'scrivi il comando che avvia la tua app',
     'err.npm_not_found': 'npm non trovato: completa prima il passo 1 (Node.js)', 'err.process_exists': 'esiste già un processo chiamato "{name}"',
     'err.process_failed': 'l\'app si è fermata subito ({status})', 'err.install_in_progress': 'un\'installazione è già in corso',
-    'err.install_failed': 'installazione non riuscita', 'err.pm2_missing_after_install': 'pm2 è stato installato ma non riesco a trovarlo'
+    'err.install_failed': 'installazione non riuscita', 'err.pm2_missing_after_install': 'pm2 è stato installato ma non riesco a trovarlo',
+    'err.desktop_unavailable': 'questo computer non ha uno strumento per le notifiche del desktop (su Linux installa libnotify, che fornisce notify-send)',
+    'err.desktop_failed': 'la notifica del desktop non è riuscita: {detail}'
   }
 };
 
@@ -535,7 +794,7 @@ const stepScale = direction => applyScale(SCALES[Math.min(SCALES.length - 1, Mat
 let lang = (navigator.language || 'en').toLowerCase().startsWith('it') ? 'it' : 'en';
 try{ const saved = localStorage.getItem('lang'); if(saved === 'en' || saved === 'it') lang = saved; }catch(e){}
 
-let state = null, sel = null, logKind = 'out', follow = true, lastOk = 0, busy = new Set();
+let state = null, lastOk = 0, busy = new Set();
 let editedDomain = null, jobTimer = null;
 
 const $ = s => document.querySelector(s);
@@ -546,6 +805,14 @@ const errText = (code, params, fallback) => {
   const key = 'err.' + code;
   return (I18N[lang][key] ?? I18N.en[key]) ? t(key, params || {}) : (fallback || code || '');
 };
+// Where a running app answers (localhost:3000 ...): found by the server from the ports it listens on.
+function linkCell(p){
+  const links = p.links || [];
+  if(!links.length) return '<span class="dim">–</span>';
+  const anchor = l => `<a class="lnk" href="${esc(l.url)}" target="_blank" rel="noopener noreferrer" title="${esc(l.url)}">${esc(l.label)}</a>`;
+  return links.slice(0, 3).map(anchor).join('') + (links.length > 3
+    ? `<span class="dim" title="${esc(links.map(l => l.url).join('\n'))}">${esc(t('linksMore', {n: links.length - 3}))}</span>` : '');
+}
 const mem = b => !b ? '–' : b >= 1<<30 ? (b/(1<<30)).toFixed(2)+' GB' : (b/(1<<20)).toFixed(0)+' MB';
 function dur(s){ if(s==null) return '–'; s=Math.floor(s);
   const d=Math.floor(s/86400), h=Math.floor(s%86400/3600), m=Math.floor(s%3600/60);
@@ -554,18 +821,24 @@ function dur(s){ if(s==null) return '–'; s=Math.floor(s);
 function toast(msg, bad){ const el=$('#toast'); el.textContent=msg; el.className=bad?'bad':'';
   el.style.display='block'; clearTimeout(toast.h); toast.h=setTimeout(()=>el.style.display='none', bad?8000:3000); }
 
+function translateIn(root){
+  root.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
+  root.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
+  root.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+}
 function applyStaticTexts(){
   document.documentElement.lang = lang; document.documentElement.dataset.lang = lang;
-  document.querySelectorAll('[data-i18n]').forEach(el => el.textContent = t(el.dataset.i18n));
-  document.querySelectorAll('[data-i18n-title]').forEach(el => el.title = t(el.dataset.i18nTitle));
-  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => el.placeholder = t(el.dataset.i18nPlaceholder));
+  translateIn(document);
   $('#lang').value = lang;
+  applyLogLayout();
+  panels.forEach(panel => { panel.fillSelects(); panel.renderTitle(); panel.render(); });
   if(state) renderHelp();
 }
 function setLang(next){
   lang = next; try{ localStorage.setItem('lang', next); }catch(e){}
   applyStaticTexts(); updClock();
-  if(state){ render(true); if($('#daemondialog').open) renderDaemonDialog(); if($('#wizard').open) renderWizard(); }
+  if(state && next !== state.language) api('/api/config', {op: 'setLanguage', language: next}).catch(() => {});
+  if(state){ render(true); if($('#daemondialog').open) renderDaemonDialog(); if($('#wizard').open) renderWizard(); if(!$('#notifmenu').hidden) renderNotif(); }
 }
 
 async function api(path, body){
@@ -578,18 +851,27 @@ async function config(body){
   await poll(true);
 }
 
+let halted = false;   // the monitor was turned off from this page: nothing to poll any more
 async function poll(force){
+  if(halted) return;
   try{
-    const r = await fetch('/api/state'); state = await r.json(); lastOk = Date.now(); render(force);
+    const r = await fetch('/api/state'); state = await r.json(); lastOk = Date.now(); $('#probelinks').checked = state.probeLinks !== false; $('#ver').textContent = state.version ? 'v' + state.version : ''; render(force); pollEvents(); syncLanguage();
   }catch(e){ /* the "not updated" banner reports it */ }
   updClock();
 }
 function updClock(){
+  if(halted) return;
   const u=$('#updated'), age=(Date.now()-lastOk)/1000;
   if(!lastOk){ u.textContent=t('unreachable'); u.className='stale'; return; }
   u.className = age > 10 ? 'stale' : '';
   u.textContent = age > 10 ? t('stale', {s: Math.floor(age)}) : t('updated', {time: new Date(lastOk).toLocaleTimeString()});
 }
+
+const NONE_KEY = '\u0001none';   // key of the "no domain" group in the collapsed set
+let collapsed = new Set();
+try{ collapsed = new Set(JSON.parse(localStorage.getItem('collapsed') || '[]')); }catch(e){}
+const saveCollapsed = () => { try{ localStorage.setItem('collapsed', JSON.stringify([...collapsed])); }catch(e){} };
+const groupKeys = () => [...groupByDomain().keys()].map(k => typeof k === 'string' ? k : NONE_KEY);
 
 function groupByDomain(){
   const groups = new Map(state.domains.map(d => [d.name, []]));
@@ -623,27 +905,34 @@ function render(force){
     const own = state.procs.filter(p => p.daemon === d.id);
     const on = own.filter(p => p.status === 'online').length;
     sum += d.alive
-      ? `<span>${esc(t('daemonOnline', {label: d.label, on, total: own.length}))}${own.length-on?` · <b style="color:var(--bad)">${esc(t('down', {n: own.length-on}))}</b>`:''}</span>`
-      : `<span>${esc(d.label)}: <b style="color:var(--bad)">${esc(errText(d.error, d.errorParams) || t('status.offline'))}</b></span>`;
+      ? `<span class="pill ${own.length - on ? 'warn' : 'ok'}">${esc(t('daemonOnline', {label: d.label, on, total: own.length}))}${own.length - on ? ` · <b>${esc(t('down', {n: own.length - on}))}</b>` : ''}</span>`
+      : `<span class="pill bad">${esc(d.label)}: <b>${esc(errText(d.error, d.errorParams) || t('status.offline'))}</b></span>`;
   }
+  const groupCount = groupByDomain().size;
+  if(groupCount > 1) html += `<div class="listbar"><button data-collapse-all>${esc(t('collapseAll'))}</button><button data-expand-all>${esc(t('expandAll'))}</button></div>`;
   for(const [name, procs] of groupByDomain()){
     const isDomain = typeof name === 'string', title = isDomain ? name : t('noDomain');
     const anyBusy = isDomain && state.jobs.some(j => j.domain === name);
-    html += `<h2><span class="name">${esc(title)}</span><span>${esc(t('procCount', {n: procs.length}))}</span><span class="sp"></span>`;
+    const key = isDomain ? name : NONE_KEY, closed = collapsed.has(key), onlineCount = procs.filter(p => p.status === 'online').length;
+    html += `<h2 class="grouphead ${closed ? 'closed' : ''}" data-collapse="${esc(key)}" title="${esc(t(closed ? 'expandTitle' : 'collapseTitle'))}">
+      <button class="chev" tabindex="-1" aria-expanded="${!closed}">${closed ? '▸' : '▾'}</button><span class="name">${esc(title)}</span>
+      <span>${esc(t('procCount', {n: procs.length}))}</span>${closed ? `<span class="pill ${onlineCount === procs.length && procs.length ? 'ok' : onlineCount ? 'warn' : ''}">${esc(t('collapsedSummary', {on: onlineCount, n: procs.length}))}</span>` : ''}<span class="sp"></span>`;
     if(isDomain) html += `<span class="btns" data-domain="${esc(name)}">
       <button data-da="start" ${anyBusy?'disabled':''}>${esc(t('startAll'))}</button>
       <button data-da="restart" ${anyBusy?'disabled':''}>${esc(t('restartAll'))}</button>
       <button data-da="stop" ${anyBusy?'disabled':''}>${esc(t('stopAll'))}</button>
       <button data-da="settings" title="${esc(t('settings'))}">⚙</button></span>`;
-    html += `</h2>
-    <table><tr><th>${esc(t('colName'))}</th><th>${esc(t('colDaemon'))}</th><th>${esc(t('colStatus'))}</th><th class="num">${esc(t('colCpu'))}</th><th class="num">${esc(t('colMemory'))}</th>
+    html += '</h2>';
+    if(closed) continue;
+    html += `<table><tr><th>${esc(t('colName'))}</th><th>${esc(t('colDaemon'))}</th><th>${esc(t('colStatus'))}</th><th>${esc(t('colLinks'))}</th><th class="num">${esc(t('colCpu'))}</th><th class="num">${esc(t('colMemory'))}</th>
     <th class="num">${esc(t('colUptime'))}</th><th class="num">${esc(t('colRestarts'))}</th><th class="num">${esc(t('colOrd'))}</th><th>${esc(t('colDomain'))}</th><th></th></tr>`;
     for(const p of procs){
       const b = busy.has(p.key);
-      html += `<tr class="row ${esc(p.status)} ${sel&&sel.key===p.key?'sel':''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
+      html += `<tr class="row ${esc(p.status)} ${panels.some(panel => panel.sel && panel.sel.key === p.key) ? 'sel' : ''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
         <td><span class="dot"></span>${esc(p.name)}</td>
         <td class="dim">${esc(labelOf[p.daemon])}</td>
         <td class="st">${esc(I18N[lang]['status.'+p.status] ? t('status.'+p.status) : p.status)}</td>
+        <td class="links">${linkCell(p)}</td>
         <td class="num">${p.status==='online'?p.cpu+'%':'–'}</td>
         <td class="num">${p.status==='online'?mem(p.memory):'–'}</td>
         <td class="num">${dur(p.uptime)}</td>
@@ -672,7 +961,11 @@ $('#list').addEventListener('click', async e => {
   if(e.target.closest('[data-setup]')) return openWizard();
   const domainBtn = e.target.closest('[data-da]');
   if(domainBtn) return domainAction(domainBtn.closest('[data-domain]').dataset.domain, domainBtn.dataset.da);
-  const tr = e.target.closest('tr.row'); if(!tr || e.target.closest('select,input')) return;
+  if(e.target.closest('[data-collapse-all]')){ groupKeys().forEach(k => collapsed.add(k)); saveCollapsed(); return render(true); }
+  if(e.target.closest('[data-expand-all]')){ collapsed.clear(); saveCollapsed(); return render(true); }
+  const head = e.target.closest('h2[data-collapse]');
+  if(head){ const k = head.dataset.collapse; collapsed.has(k) ? collapsed.delete(k) : collapsed.add(k); saveCollapsed(); return render(true); }
+  const tr = e.target.closest('tr.row'); if(!tr || e.target.closest('select,input,a')) return;
   const key = tr.dataset.key, p = state.procs.find(x => x.key === key), a = e.target.dataset.a;
   if(a === 'forget') return config({op:'forgetProcess', key});
   if(a){
@@ -684,8 +977,7 @@ $('#list').addEventListener('click', async e => {
     }catch(err){ toast(`${a} ${p.name}: ${t('serverDown')}`, true); }
     busy.delete(key); poll(true); return;
   }
-  sel = {key, name: p.name}; $('#logs').classList.add('open');
-  $('#logtitle').textContent = `${p.name} · ${p.daemon}`; render(true); loadLogs(true);
+  openLog({key, name: p.name, daemon: p.daemon});
 });
 
 $('#list').addEventListener('change', async e => {
@@ -738,6 +1030,7 @@ function openDomainDialog(domain){
   editedDomain = domain;
   const d = state.domains.find(x => x.name === domain);
   $('#domaintitle').textContent = domain; $('#domainname').value = domain; $('#domaintimeout').value = d.startTimeout;
+  renderDomainNotify();
   $('#domaindialog').showModal();
 }
 $('#savedomain').onclick = async () => {
@@ -766,17 +1059,16 @@ function renderDaemonDialog(){
       <label><input type="checkbox" data-f="hidden" ${d.hidden?'checked':''}> ${esc(t('hide'))}</label></div>
     <div class="home">${esc(d.home)}</div></div>`).join('') || `<p class="dim">${esc(t('noDaemons'))}</p>`;
   $('#envinfo').textContent = t('envInfo', {pm2: state.pm2 || t('notFound'), config: state.configPath});
+  $('#daemonpicker').innerHTML = pickerHtml('daemons');
 }
-$('#daemons').onclick = () => { renderDaemonDialog(); $('#daemondialog').showModal(); };
+$('#daemons').onclick = () => { pickers.daemons = null; renderDaemonDialog(); $('#daemondialog').showModal(); };
+$('#browsehome').onclick = () => pickerLoad('daemons', '');
 $('#closedaemons').onclick = () => $('#daemondialog').close();
 $('#daemonlist').addEventListener('change', async e => {
   const id = e.target.closest('.daemon').dataset.id;
   const body = e.target.dataset.f === 'hidden' ? {hidden: e.target.checked} : {label: e.target.value};
   await config({op:'updateDaemon', id, ...body}); renderDaemonDialog();
 });
-$('#addhome').onclick = async () => {
-  await config({op:'addHome', home: $('#newhome').value}); $('#newhome').value = ''; renderDaemonDialog();
-};
 
 function renderHelp(){
   document.querySelectorAll('.h-version').forEach(el => el.textContent = state.version ? 'v' + state.version : '');
@@ -786,7 +1078,43 @@ function renderHelp(){
     ? `${esc(t('issuesLink'))} <a href="${esc(state.issuesUrl)}" target="_blank" rel="noopener">${esc(state.issuesUrl)}</a>.`
     : t('noIssues'));
 }
-$('#help').onclick = () => { if(state) renderHelp(); $('#helpdialog').showModal(); };
+// A dialog opened from inside another one is stacked on top of it and says how to get back: the one below is
+// never closed, so nothing the user was doing (the wizard step, a half-typed form) is lost.
+const DIALOG_LABELS = {wizard: () => t('wz.title'), domaindialog: () => `${t('domain')} ${editedDomain}`,
+                       daemondialog: () => t('daemonsTitle'), helpdialog: () => t('helpTitle')};
+function showOver(dialog, backButton){
+  const below = [...document.querySelectorAll('dialog[open]')].filter(d => d !== dialog).pop();
+  backButton.hidden = !below;
+  if(below) backButton.textContent = t('backTo', {place: (DIALOG_LABELS[below.id] || (() => ''))()});
+  if(!dialog.open) dialog.showModal();
+}
+/* ---------- dropdown menus (notifications, view): anchored under their button, light dismiss ---------- */
+const openMenus = new Map();   // menu element -> its anchor button
+function placeMenu(menu, anchor){
+  const r = anchor.getBoundingClientRect();
+  menu.style.top = (r.bottom + 6) + 'px';
+  menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
+  menu.style.maxHeight = Math.max(160, window.innerHeight - r.bottom - 24) + 'px';
+}
+function closeMenu(menu){
+  if(!openMenus.has(menu)) return;
+  openMenus.get(menu).setAttribute('aria-expanded', 'false'); openMenus.delete(menu); menu.hidden = true;
+}
+function openMenu(menu, anchor){
+  openMenus.forEach((_, other) => { if(other !== menu) closeMenu(other); });
+  menu.hidden = false; openMenus.set(menu, anchor); anchor.setAttribute('aria-expanded', 'true'); placeMenu(menu, anchor);
+}
+const toggleMenu = (menu, anchor) => openMenus.has(menu) ? closeMenu(menu) : openMenu(menu, anchor);
+document.addEventListener('pointerdown', e => openMenus.forEach((anchor, menu) => {
+  if(!menu.contains(e.target) && !anchor.contains(e.target)) closeMenu(menu); }), true);
+document.addEventListener('keydown', e => { if(e.key === 'Escape') openMenus.forEach((_, menu) => closeMenu(menu)); });
+window.addEventListener('resize', () => openMenus.forEach((anchor, menu) => placeMenu(menu, anchor)));
+$('#viewbtn').onclick = () => toggleMenu($('#viewmenu'), $('#viewbtn'));
+$('#probelinks').onchange = e => config({op: 'setProbeLinks', enabled: e.target.checked});
+
+function openHelp(){ openMenus.forEach((_, menu) => closeMenu(menu)); if(state) renderHelp(); showOver($('#helpdialog'), $('#helpback')); }
+$('#help').onclick = openHelp;
+$('#helpback').onclick = () => $('#helpdialog').close();
 $('#closehelp').onclick = () => $('#helpdialog').close();
 
 /* ---------- guided setup ---------- */
@@ -796,8 +1124,9 @@ const OS_COMMANDS = {
   echoHome: {windows: 'echo $env:PM2_HOME', macos: 'echo $PM2_HOME', linux: 'echo $PM2_HOME'}
 };
 let setup = null, wizardOffered = false;
-const wiz = {step: 1, os: 'linux', osChosen: false, tab: 'new', folder: '', name: '', command: '', kind: null, inspected: false,
-             browse: null, busy: false, result: null, installState: null, output: '', fallback: false, timer: null};
+const wiz = {step: 1, os: 'linux', osChosen: false, oldMode: false, adding: false, manualOpen: false, cmdHelpOpen: false,
+             folder: '', name: '', command: '', kind: null, inspected: false, busy: false, result: null,
+             installState: null, output: '', fallback: false, timer: null, auto: null, advancing: false};
 
 async function loadSetup(){
   try{ setup = await (await fetch('/api/setup')).json(); }catch(e){ /* the wizard shows what it can */ }
@@ -820,7 +1149,7 @@ function setupCardHtml(level){
   const title = !state.pm2 ? 'wz.cardNoPm2' : level === 'hard' ? 'wz.cardNoDaemons' : 'wz.cardNoProcs';
   const chips = [1, 2, 3].map(n => `<span class="chip ${stepDone(n) ? 'ok' : ''}">${stepDone(n) ? '✓' : n} ${esc(t(`wz.step${n}`))}</span>`).join('');
   return `<div class="setupcard"><h3>${esc(t(title))}</h3><p>${esc(t('wz.cardText'))}</p>
-    <div class="chips">${chips}</div><button class="primary" data-setup="open">${esc(t('wz.cardButton'))}</button></div>`;
+    <div class="chips">${chips}</div><button class="primary bigbtn" data-setup="open">${esc(t('wz.cardButton'))}</button></div>`;
 }
 function maybeAutoOpenWizard(){
   let shown = false;
@@ -836,112 +1165,140 @@ async function openWizard(step){
   wiz.step = step || firstPending();
   renderWizard();
   if(!$('#wizard').open) $('#wizard').showModal();
+  clearInterval(wiz.auto); wiz.auto = setInterval(autoCheck, 3000);
 }
 
 const cmdBox = cmd => `<div class="cmd"><code>${esc(cmd)}</code><button data-copy="${esc(cmd)}">${esc(t('wz.copy'))}</button></div>`;
-const osSelect = () => `<p class="dim">${esc(t('wz.showFor'))} <select data-wos>${['windows', 'macos', 'linux'].map(o =>
+const osSelect = () => `<p class="hint">${esc(t('wz.showFor'))} <select data-wos>${['windows', 'macos', 'linux'].map(o =>
   `<option value="${o}" ${o === wiz.os ? 'selected' : ''}>${esc(t(`wz.os.${o}`))}</option>`).join('')}</select></p>`;
+const plain = text => `<p class="plain">${esc(text)}</p>`;
+const waiting = text => `<div class="waiting"><span class="spinner"></span><span>${esc(text)}</span></div>`;
+const manualDetails = (inner) => `<details data-wdet="manual" ${wiz.manualOpen ? 'open' : ''}><summary>${esc(t(wiz.step === 1 ? 'wz.s1.manual' : 'wz.s2.manual'))}</summary>${inner}</details>`;
 
 function wizStep1(){
-  const title = `<h3>${esc(t('wz.s1.title'))}</h3>`, node = setup && setup.node;
-  if(node && node.path) return title + `<p class="ok">${esc(t('wz.s1.found', {version: node.version || '', path: node.path}))}</p>`;
-  return title + `<p>${esc(t('wz.s1.why'))}</p>
-    <div class="opt"><h4>${esc(t('wz.s1.easy'))}</h4><p>${esc(t('wz.s1.easyText'))}</p>
-      <a class="btnlink primary" href="https://nodejs.org" target="_blank" rel="noopener">${esc(t('wz.s1.open'))}</a></div>
-    <div class="opt"><h4>${esc(t('wz.s1.cmd'))}</h4>${osSelect()}<p class="dim">${esc(t(`wz.term.${wiz.os}`))}</p>
-      ${cmdBox(OS_COMMANDS.node[wiz.os])}<p class="dim">${esc(t(`wz.node.${wiz.os}Note`))}</p></div>
-    <p>${esc(t('wz.s1.after'))}</p>`;
+  const node = setup && setup.node, title = `<h3>${esc(t('wz.s1.title'))}</h3>`;
+  if(node && node.path) return title + `<div class="okbox">${esc(t('wz.s1.found', {version: node.version || '', path: node.path}))}</div>`;
+  return title + plain(t('wz.s1.plain'))
+    + `<p><a class="btnlink primary bigbtn" href="https://nodejs.org" target="_blank" rel="noopener">${esc(t('wz.s1.download'))}</a></p>
+       <p class="hint">${esc(t('wz.s1.downloadHint'))}</p>` + waiting(t('wz.waiting'))
+    + manualDetails(`${osSelect()}<p class="hint">${esc(t(`wz.term.${wiz.os}`))}</p>${cmdBox(OS_COMMANDS.node[wiz.os])}<p class="hint">${esc(t(`wz.node.${wiz.os}Note`))}</p>`);
 }
 
 function wizStep2(){
-  const title = `<h3>${esc(t('wz.s2.title'))}</h3>`, pm2 = setup && setup.pm2;
-  if(state.pm2) return title + `<p class="ok">${esc(t('wz.s2.found', {version: pm2 && pm2.version || '', path: state.pm2}))}</p>`
-    + (wiz.fallback ? `<p>${esc(t('wz.s2.fallback'))}</p>` : '');
+  const pm2 = setup && setup.pm2, title = `<h3>${esc(t('wz.s2.title'))}</h3>`;
+  if(state.pm2) return title + `<div class="okbox">${esc(t('wz.s2.found', {version: pm2 && pm2.version || '', path: state.pm2}))}</div>`
+    + (wiz.fallback ? `<p class="hint">${esc(t('wz.s2.fallback'))}</p>` : '');
   const npmOk = setup && setup.npm && setup.npm.path, running = wiz.installState === 'running';
-  let h = title + `<p>${esc(t('wz.s2.why'))}</p>`;
-  if(!npmOk) h += `<p class="bad">${esc(t('wz.s2.needNode'))}</p>`;
-  else h += `<div class="opt"><h4>${esc(t('wz.s2.auto'))}</h4><p>${esc(t('wz.s2.autoText'))}</p>${cmdBox(OS_COMMANDS.pm2)}
-    <button class="primary" data-wact="install" ${wiz.busy ? 'disabled' : ''}>${esc(running ? t('wz.s2.running') : t('wz.s2.auto'))}</button></div>`;
+  let h = title + plain(t('wz.s2.plain'));
+  if(!npmOk) h += `<div class="warnbox">${esc(t('wz.s2.needNode'))}</div>`;
+  else if(running) h += waiting(t('wz.s2.running'));
+  else h += `<p><button class="primary bigbtn" data-wact="install">${esc(t('wz.s2.install'))}</button></p><p class="hint">${esc(t('wz.s2.installNote'))}</p>`;
   if(wiz.installState === 'failed')
-    h += `<p class="bad">${esc(t('wz.s2.failed'))}</p><pre class="out">${esc(wiz.output)}</pre><p>${esc(t('wz.s2.failedHelp'))}</p>`;
-  h += `<div class="opt"><h4>${esc(t('wz.s2.manual'))}</h4>${osSelect()}<p class="dim">${esc(t(`wz.term.${wiz.os}`))}</p>${cmdBox(OS_COMMANDS.pm2)}</div>`;
-  return h;
+    h += `<div class="badbox">${esc(t('wz.s2.failed'))}</div><pre class="out">${esc(wiz.output)}</pre><p class="hint">${esc(t('wz.s2.failedHelp'))}</p>`;
+  return h + manualDetails(`${osSelect()}<p class="hint">${esc(t(`wz.term.${wiz.os}`))}</p>${cmdBox(OS_COMMANDS.pm2)}`);
 }
 
-function browseHtml(){
-  const b = wiz.browse;
-  const entries = b.folders.map(f => `<button data-wfolder="${esc(f.path)}">📁 ${esc(f.name)}</button>`).join('');
-  return `<div class="browse"><div class="bar"><b>${esc(b.path)}</b></div><div class="entries">
-    ${b.parent ? `<button data-wfolder="${esc(b.parent)}">${esc(t('wz.s3.up'))}</button>` : ''}
-    ${entries || `<p class="dim" style="padding:0.462rem 0.769rem">${esc(t('wz.s3.noFolders'))}</p>`}</div>
-    <div class="foot"><span class="sp"></span><button class="primary" data-wact="usefolder">${esc(t('wz.s3.useFolder'))}</button></div></div>`;
+function wizValid(){
+  return {folder: !!wiz.folder.trim(), name: /^[A-Za-z0-9][A-Za-z0-9_.\-]{0,59}$/.test(wiz.name.trim()), command: !!wiz.command.trim()};
 }
 function wizNewApp(){
-  let h = `<label>${esc(t('wz.s3.folder'))}</label>
+  const v = wizValid(), ready = v.folder, canStart = v.folder && v.name && v.command && !wiz.busy;
+  let h = `<div class="sub"><h4><span class="n">1</span>${esc(t('wz.s3.sub1'))}</h4><p class="hint">${esc(t('wz.s3.sub1hint'))}</p>
     <div class="line"><input id="wizfolder" value="${esc(wiz.folder)}" placeholder="${esc(setup ? setup.home : '')}" autocomplete="off">
-    <button data-wact="browse">${esc(t('wz.s3.browse'))}</button></div>`;
-  if(wiz.browse) h += browseHtml();
-  if(wiz.inspected) h += wiz.command
-    ? `<p class="ok">${esc(t('wz.s3.suggest', {kind: t(`wz.kind.${wiz.kind}`)}))}</p>`
-    : `<p class="warn">${esc(t('wz.s3.noSuggest'))}</p>`;
-  h += `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" value="${esc(wiz.name)}" autocomplete="off">
-    <label>${esc(t('wz.s3.command'))}</label><input id="wizcmd" value="${esc(wiz.command)}" placeholder="npm start" autocomplete="off">
-    <p><button class="primary" data-wact="addproc" ${wiz.busy ? 'disabled' : ''}>${esc(wiz.busy ? t('wz.s3.starting') : t('wz.s3.start'))}</button></p>`;
+    <button class="primary" data-wact="browse">${esc(t('wz.s3.browse'))}</button></div>${pickerHtml('project')}</div>`;
+  h += `<div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">2</span>${esc(t('wz.s3.sub2'))}</h4>`;
+  if(ready){
+    h += `<p class="hint">${esc(t('wz.s3.sub2hint'))}</p>`;
+    if(wiz.inspected) h += wiz.command ? `<p class="okbox">${esc(t('wz.s3.suggest', {kind: t(`wz.kind.${wiz.kind}`)}))}</p>` : `<p class="warnbox">${esc(t('wz.s3.noSuggest'))}</p>`;
+    h += `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" class="${wiz.name && !v.name ? 'invalid' : ''}" value="${esc(wiz.name)}" autocomplete="off">
+      <p class="hint bad" id="wiznamebad" ${wiz.name && !v.name ? '' : 'hidden'}>${esc(t('wz.s3.nameBad'))}</p>
+      <label>${esc(t('wz.s3.command'))}</label><input id="wizcmd" value="${esc(wiz.command)}" placeholder="npm start" autocomplete="off">
+      <p class="hint">${esc(t('wz.s3.commandHint'))}</p>
+      <details data-wdet="cmdhelp" ${wiz.cmdHelpOpen ? 'open' : ''}><summary>${esc(t('wz.s3.commandHelp'))}</summary><p class="hint">${esc(t('wz.s3.commandHelpText'))}</p></details>`;
+  }
+  h += `</div><div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">3</span>${esc(t('wz.s3.sub3'))}</h4>
+    <button class="primary bigbtn" data-wact="addproc" ${canStart ? '' : 'disabled'}>${esc(wiz.busy ? t('wz.s3.starting') : t('wz.s3.start'))}</button>
+    <p class="hint" id="wizfillall" ${canStart || wiz.busy ? 'hidden' : ''}>${esc(t('wz.s3.fillAll'))}</p>${wiz.busy ? waiting(t('wz.s3.starting')) : ''}`;
   if(wiz.result && !wiz.result.ok)
-    h += `<p class="bad">${esc(t('wz.s3.failedTitle', {status: wiz.result.status}))}</p><pre class="out">${esc(wiz.result.log || '–')}</pre><p>${esc(t('wz.s3.failedHelp'))}</p>`;
-  return h;
+    h += `<div class="badbox">${esc(t('wz.s3.failedTitle', {status: wiz.result.status}))}</div><pre class="out">${esc(wiz.result.log || '–')}</pre><p class="hint">${esc(t('wz.s3.failedHelp'))}</p>`;
+  return h + `</div><p><button class="linkbtn" data-wact="oldmode">${esc(t('wz.s3.oldLink'))}</button></p>`;
 }
 function wizOldPm2(){
   return `<p>${esc(t('wz.s3.oldText'))}</p><ol><li>${esc(t('wz.s3.old1'))}</li>
     <li>${esc(t('wz.s3.old2'))}${cmdBox(OS_COMMANDS.echoHome[wiz.os])}</li>
     <li>${esc(t('wz.s3.old3', {home: setup ? setup.pm2Home : '~/.pm2'}))}</li></ol>${osSelect()}
-    <div class="line"><input id="wizhome" placeholder="${esc(t('wz.s3.homePlaceholder'))}" autocomplete="off">
-    <button data-wact="addhome">${esc(t('wz.s3.addHome'))}</button></div>`;
+    <p><button class="primary" data-wact="browsehome">${esc(t('browse'))}</button></p>${pickerHtml('home')}
+    <p><button class="linkbtn" data-wact="newmode">${esc(t('wz.s3.newLink'))}</button></p>`;
 }
 function wizStep3(){
   const title = `<h3>${esc(t('wz.s3.title'))}</h3>`;
-  const started = wiz.result && wiz.result.ok ? `<p class="ok">${esc(t('wz.s3.started', {name: wiz.result.name}))}</p>` : '';
-  if(state.procs.length > 0)
-    return title + started + `<p class="ok">${esc(t('wz.s3.found', {n: state.procs.length, d: state.daemons.filter(d => !d.hidden).length}))}</p>`;
-  if(!state.pm2) return title + `<p class="bad">${esc(t('wz.s3.needPm2'))}</p>`;
-  const tab = (id, key) => `<button data-wtab="${id}" class="${wiz.tab === id ? 'on' : ''}">${esc(t(key))}</button>`;
-  return title + `<p>${esc(t('wz.s3.intro'))}</p><div class="tabs">${tab('new', 'wz.s3.optNew')}${tab('old', 'wz.s3.optOld')}</div>`
-    + (wiz.tab === 'new' ? wizNewApp() : wizOldPm2());
+  if(wiz.result && wiz.result.ok) return `<div class="celebrate"><h3>🎉 ${esc(t('wz.s3.successTitle'))}</h3>
+    <p>${esc(t('wz.s3.successText', {name: wiz.result.name}))}</p>
+    <p><button class="primary bigbtn" data-wact="showlist">${esc(t('wz.s3.showList'))}</button> <button data-wact="another">${esc(t('wz.s3.another'))}</button></p></div>`;
+  if(state.procs.length > 0 && !wiz.adding)
+    return title + `<div class="okbox">${esc(t('wz.s3.found', {n: state.procs.length, d: state.daemons.filter(d => !d.hidden).length}))}</div>
+      <p><button data-wact="another">${esc(t('wz.s3.another'))}</button></p>`;
+  if(!state.pm2) return title + `<div class="warnbox">${esc(t('wz.s3.needPm2'))}</div>`;
+  return title + plain(t('wz.s3.plain')) + (wiz.oldMode ? wizOldPm2() : wizNewApp());
 }
 function wizStep4(){
-  let h = `<h3>${esc(t('wz.s4.title'))}</h3>`;
-  if(firstPending() === 4) h += `<p class="ok">${esc(t('wz.s4.allDone'))}</p>`;
-  h += `<p>${esc(t('wz.s4.text'))}</p>`;
+  let h = `<h3>${esc(t('wz.s4.title'))}</h3>` + plain(t('wz.s4.plain'));
+  if(firstPending() === 4) h += `<div class="okbox">${esc(t('wz.s4.allDone'))}</div>`;
   h += wiz.os === 'windows' ? `<p>${esc(t('wz.s4.win'))}</p>`
     : `<p>${esc(t('wz.s4.unix1'))}</p>${cmdBox('pm2 startup')}<p>${esc(t('wz.s4.unix2'))}</p>${cmdBox('pm2 save')}`;
-  return h + `<p class="dim">${esc(t('wz.s4.monitor'))}</p>` + osSelect();
+  return h + `<p class="hint">${esc(t('wz.s4.monitor'))}</p>` + osSelect();
 }
 function wizStep5(){
-  return `<h3>${esc(t('wz.s5.title'))}</h3><p>${esc(t('wz.s5.text'))}</p>`
-    + (state.domains.length ? `<p class="ok">${esc(t('wz.s5.have', {n: state.domains.length}))}</p>` : '')
-    + `<p><button class="primary" data-wact="createdomain">${esc(t('wz.s5.create'))}</button></p><p class="dim">${esc(t('wz.s5.then'))}</p>`;
+  return `<h3>${esc(t('wz.s5.title'))}</h3>` + plain(t('wz.s5.plain')) + `<div class="cards">
+    <div class="card"><h4>${esc(t('wz.s5.domainsTitle'))}</h4><p>${esc(t('wz.s5.domainsText'))}</p>
+      ${state.domains.length ? `<p class="ok">${esc(t('wz.s5.domainsHave', {n: state.domains.length}))}</p>` : ''}
+      <button class="primary" data-wact="createdomain">${esc(t('wz.s5.domainsButton'))}</button></div>
+    <div class="card"><h4>${esc(t('wz.s5.notifyTitle'))}</h4><p>${esc(t('wz.s5.notifyText'))}</p>
+      <button class="primary" data-wact="notify">${esc(t('wz.s5.notifyButton'))}</button></div></div>`;
 }
 
 function renderWizard(){
-  $('#wizchips').innerHTML = [1, 2, 3, 4, 5].map(n => {
-    const done = stepDone(n);
-    return `<button class="chip ${wiz.step === n ? 'cur' : ''} ${done ? 'ok' : ''}" data-wstep="${n}">${done ? '✓' : n} ${esc(t(`wz.step${n}`))}${n >= 4 ? ` <small>(${esc(t('wz.optional'))})</small>` : ''}</button>`;
+  const pending = firstPending();
+  $('#wizsteps').innerHTML = [1, 2, 3, 4, 5].map(n => {
+    const done = stepDone(n), reachable = n <= pending || pending === 4;
+    return `<button class="step ${n >= 4 ? 'opt' : ''} ${wiz.step === n ? 'cur' : ''} ${done ? 'done' : ''}" data-wstep="${n}" ${reachable ? '' : 'disabled'}>
+      <span class="num">${done ? '✓' : n}</span><span class="lbl">${esc(t(`wz.step${n}`))}</span></button>`;
   }).join('');
+  $('#wizprogress').textContent = wiz.step <= 3 ? t('wz.progress', {n: wiz.step, total: 3}) : t('wz.extras');
   $('#wizbody').innerHTML = [null, wizStep1, wizStep2, wizStep3, wizStep4, wizStep5][wiz.step]();
-  $('#wizback').disabled = wiz.step === 1;
-  $('#wizcheck').style.display = wiz.step <= 3 ? '' : 'none';
-  $('#wiznext').textContent = wiz.step === 5 ? t('wz.finish') : t('wz.next');
-  $('#wiznext').className = wiz.step >= 4 || stepDone(wiz.step) ? 'primary' : '';
+  const required = wiz.step <= 3, done = stepDone(wiz.step);
+  $('#wizback').style.visibility = wiz.step === 1 ? 'hidden' : 'visible';
+  $('#wizcheck').style.display = required && !done ? '' : 'none';
+  $('#wiznext').textContent = wiz.step === 5 ? t('wz.finish') : wiz.step === 4 ? t('wz.skip') : t('wz.next');
+  $('#wiznext').disabled = required && !done;
   const log = $('#wizbody pre.out'); if(log) log.scrollTop = log.scrollHeight;
 }
-
-async function browseTo(path){
-  try{
-    const j = await (await fetch('/api/browse?path=' + encodeURIComponent(path))).json();
-    if(j.ok === false) toast(errText(j.error, j.params, j.output), true); else wiz.browse = j;
-  }catch(e){ toast(t('serverDown'), true); }
-  renderWizard();
+// Typing must not rebuild the form (it would lose the cursor): only the dependent bits are updated.
+function refreshWizardForm(){
+  const v = wizValid(), ok = v.folder && v.name && v.command && !wiz.busy;
+  const start = $('[data-wact="addproc"]'); if(start) start.disabled = !ok;
+  const fill = $('#wizfillall'); if(fill) fill.hidden = ok || wiz.busy;
+  const bad = $('#wiznamebad'); if(bad) bad.hidden = !(wiz.name && !v.name);
+  const name = $('#wizname'); if(name) name.classList.toggle('invalid', !!(wiz.name && !v.name));
 }
+
+const progressSignature = () => JSON.stringify([stepDone(1), stepDone(2), stepDone(3), setup && setup.node.path, state && state.pm2, state && state.procs.length]);
+async function checkProgress(manual){
+  const before = progressSignature();
+  await loadSetup(); await poll(true);
+  const changed = progressSignature() !== before;
+  if(changed || manual) renderWizard();
+  if(manual) toast(stepDone(wiz.step) ? t('wz.stepOk') : t('wz.stillMissing'), !stepDone(wiz.step));
+  if((changed || manual) && stepDone(wiz.step) && wiz.step <= 3 && !wiz.result && !wiz.advancing){
+    wiz.advancing = true;
+    setTimeout(() => {   // a moment to read the green box, then move on by itself
+      wiz.advancing = false;
+      if($('#wizard').open && wiz.step <= 3 && stepDone(wiz.step) && !wiz.result){ wiz.step = firstPending(); renderWizard(); }
+    }, manual ? 300 : 1500);
+  }
+}
+const autoCheck = () => { if($('#wizard').open && !wiz.busy && wiz.installState !== 'running' && wiz.step <= 3) checkProgress(false); };
+
 async function inspectFolder(){
   wiz.inspected = false; wiz.result = null;
   if(!wiz.folder.trim()) return;
@@ -955,7 +1312,7 @@ async function addFirstProcess(){
   wiz.busy = true; wiz.result = null; renderWizard();
   try{
     const j = await api('/api/setup/add-process', {name: wiz.name, folder: wiz.folder, command: wiz.command});
-    if(j.ok) wiz.result = {ok: true, name: wiz.name};
+    if(j.ok) wiz.result = {ok: true, name: wiz.name.trim()};
     else if(j.error === 'process_failed') wiz.result = {ok: false, status: j.params.status, log: j.params.log};
     else toast(errText(j.error, j.params, j.output), true);
   }catch(e){ toast(t('serverDown'), true); }
@@ -973,21 +1330,24 @@ async function runInstall(){
     Object.assign(wiz, {output: job.output || '', fallback: !!job.fallback, installState: job.state});
     if(job.state !== 'running'){
       clearInterval(wiz.timer); wiz.busy = false; await loadSetup(); await poll(true);
-      if(job.state === 'done' && wiz.step === 2) wiz.step = firstPending();
+      if(job.state === 'done' && wiz.step === 2) setTimeout(() => { if($('#wizard').open && wiz.step === 2){ wiz.step = firstPending(); renderWizard(); } }, 1500);
     }
     renderWizard();
   }, 1000);
 }
 async function wizAction(action){
   if(action === 'install') return runInstall();
-  if(action === 'browse') return browseTo(wiz.folder || (setup && setup.home) || '');
-  if(action === 'usefolder'){ wiz.folder = wiz.browse.path; wiz.browse = null; await inspectFolder(); return renderWizard(); }
+  if(action === 'browse') return pickerLoad('project', wiz.folder || (setup && setup.home) || '');
+  if(action === 'browsehome') return pickerLoad('home', '');
   if(action === 'addproc') return addFirstProcess();
-  if(action === 'addhome'){ await config({op: 'addHome', home: $('#wizhome').value}); await loadSetup(); return renderWizard(); }
+  if(action === 'oldmode' || action === 'newmode'){ wiz.oldMode = action === 'oldmode'; return renderWizard(); }
+  if(action === 'another'){ Object.assign(wiz, {result: null, adding: true, oldMode: false, folder: '', name: '', command: '', inspected: false}); pickers.project = null; return renderWizard(); }
+  if(action === 'showlist') return $('#wizard').close();
   if(action === 'createdomain'){
     const name = (prompt(t('newDomainPrompt')) || '').trim();
     if(name){ await config({op: 'createDomain', name}); renderWizard(); }
   }
+  if(action === 'notify') openNotifications('settings', state.domains.length ? state.domains[0].name : '');
 }
 
 $('#wizard').addEventListener('click', async e => {
@@ -997,56 +1357,552 @@ $('#wizard').addEventListener('click', async e => {
     catch(err){ toast(t('wz.copyFailed'), true); }
     return;
   }
-  const step = e.target.closest('[data-wstep]'); if(step){ wiz.step = +step.dataset.wstep; return renderWizard(); }
-  const tab = e.target.closest('[data-wtab]'); if(tab){ wiz.tab = tab.dataset.wtab; return renderWizard(); }
-  const folder = e.target.closest('[data-wfolder]'); if(folder) return browseTo(folder.dataset.wfolder);
-  const action = e.target.closest('[data-wact]'); if(action) return wizAction(action.dataset.wact);
+  const step = e.target.closest('[data-wstep]'); if(step && !step.disabled){ wiz.step = +step.dataset.wstep; return renderWizard(); }
+  const action = e.target.closest('[data-wact]'); if(action && !action.disabled) return wizAction(action.dataset.wact);
 });
 $('#wizard').addEventListener('input', e => {
   if(e.target.id === 'wizfolder') wiz.folder = e.target.value;
   else if(e.target.id === 'wizname') wiz.name = e.target.value;
   else if(e.target.id === 'wizcmd') wiz.command = e.target.value;
+  else return;
+  refreshWizardForm();
 });
 $('#wizard').addEventListener('change', async e => {
   if(e.target.matches('[data-wos]')){ wiz.os = e.target.value; wiz.osChosen = true; renderWizard(); }
   else if(e.target.id === 'wizfolder'){ await inspectFolder(); renderWizard(); }
 });
+$('#wizard').addEventListener('toggle', e => {   // <details> does not bubble: listen while capturing
+  if(e.target.dataset && e.target.dataset.wdet === 'manual') wiz.manualOpen = e.target.open;
+  if(e.target.dataset && e.target.dataset.wdet === 'cmdhelp') wiz.cmdHelpOpen = e.target.open;
+}, true);
 $('#wizback').onclick = () => { wiz.step = Math.max(1, wiz.step - 1); renderWizard(); };
 $('#wiznext').onclick = () => { if(wiz.step === 5) return $('#wizard').close(); wiz.step++; renderWizard(); };
 $('#wizclose').onclick = () => $('#wizard').close();
-$('#wizcheck').onclick = async () => {
-  await loadSetup(); await poll(true);
-  const done = stepDone(wiz.step);
-  if(done) wiz.step = firstPending();
-  renderWizard();
-  toast(done ? t('wz.stepOk') : t('wz.stillMissing'), !done);
-};
+$('#wizcheck').onclick = () => checkProgress(true);
+$('#wizhelp').onclick = openHelp;
+$('#wizard').addEventListener('close', () => clearInterval(wiz.auto));
+window.addEventListener('focus', autoCheck);
 $('#setupbtn').onclick = () => openWizard();
 
-async function loadLogs(reset){
-  if(!sel) return;
-  const pre=$('#logtext');
-  try{
-    const r = await fetch(`/api/logs?key=${encodeURIComponent(sel.key)}&n=400`);
-    const j = await r.json();
-    pre.textContent = j.ok === false ? `[${errText(j.error, j.params, j.output)}]`
-      : j[logKind+'_error'] ? t('logUnreadable', {detail: j[logKind+'_error']})
-      : (j[logKind] || t('logEmpty'));
-    pre.title = j[logKind+'_path'] || '';
-  }catch(e){ pre.textContent=`[${t('serverDown')}]`; }
-  if(follow || reset) pre.scrollTop = pre.scrollHeight;
-}
-document.querySelectorAll('#loghead [data-k]').forEach(b => b.onclick = () => {
-  logKind=b.dataset.k; document.querySelectorAll('#loghead [data-k]').forEach(x=>x.classList.toggle('on',x===b)); loadLogs(true); });
-$('#follow').onclick = e => { follow=!follow; e.target.classList.toggle('on',follow); };
-$('#closelog').onclick = () => { sel=null; $('#logs').classList.remove('open'); render(true); };
+/* ---------- notifications ---------- */
+const SEV_ICON = {error: '✕', warning: '⚠', info: 'ℹ'};
+const SEVERITIES = ['error', 'warning', 'info'];
+const nt = {tab: 'history', filter: 'all', open: null, seenBefore: null, savedAt: 0};
+let events = [], lastEventId = 0, eventsReady = false, lastSeen = null, langSynced = false;
+try{ const saved = localStorage.getItem('eventsSeen'); lastSeen = saved === null ? null : parseInt(saved, 10); }catch(e){}
 
+function markSeen(){
+  lastSeen = events.length ? events[events.length - 1].id : lastEventId;
+  try{ localStorage.setItem('eventsSeen', String(lastSeen)); }catch(e){}
+  updateBell();
+}
+const unreadEvents = () => events.filter(e => lastSeen !== null && e.id > lastSeen);
+function updateBell(){
+  const unread = unreadEvents();
+  $('#belln').textContent = unread.length ? String(Math.min(unread.length, 99)) : '';
+  $('#bell').classList.toggle('has-error', unread.some(e => e.severity === 'error'));
+}
+function beep(severity){
+  try{
+    const ctx = beep.ctx || (beep.ctx = new (window.AudioContext || window.webkitAudioContext)());
+    if(ctx.state === 'suspended') ctx.resume();
+    const tones = severity === 'error' ? [880, 660] : severity === 'warning' ? [660] : [520];
+    tones.forEach((frequency, i) => {
+      const start = ctx.currentTime + i * 0.22, osc = ctx.createOscillator(), gain = ctx.createGain();
+      osc.frequency.value = frequency; osc.connect(gain); gain.connect(ctx.destination);
+      gain.gain.setValueAtTime(0.0001, start);
+      gain.gain.exponentialRampToValueAtTime(0.2, start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.2);
+      osc.start(start); osc.stop(start + 0.21);
+    });
+  }catch(e){ /* no sound: the alert is still in the bell menu */ }
+}
+// A new alert is not shown as a popup over the page: it lands in the bell menu, and the bell lets you know.
+function ringBell(){
+  const bell = $('#bell');
+  bell.classList.remove('ring'); void bell.offsetWidth; bell.classList.add('ring');
+  setTimeout(() => bell.classList.remove('ring'), 3000);
+}
+function announce(e){
+  ringBell();
+  if(e.channels.sound) beep(e.severity);
+  if(e.channels.browser && 'Notification' in window && Notification.permission === 'granted' && (document.hidden || !document.hasFocus())){
+    try{
+      const n = new Notification(e.scope || t('noDomain'), {body: e.text[lang] || e.text.en, tag: 'pm2mon-' + e.id});
+      n.onclick = () => { window.focus(); openNotifications('history'); n.close(); };
+    }catch(err){ /* some browsers refuse outside a user gesture */ }
+  }
+}
+async function pollEvents(){
+  try{
+    const j = await (await fetch('/api/events?after=' + (eventsReady ? lastEventId : 0))).json();
+    if(!eventsReady){
+      events = j.events; eventsReady = true;
+      if(lastSeen === null){ lastSeen = j.last; try{ localStorage.setItem('eventsSeen', String(lastSeen)); }catch(e){} }
+    }else{
+      if(j.last < lastEventId) events = [];     // history was cleared
+      for(const e of j.events){ events.push(e); announce(e); }
+    }
+    lastEventId = j.last; events = events.slice(-200);
+    updateBell();
+    if(!$('#notifmenu').hidden && nt.tab === 'history'){ renderNotif(); markSeen(); }   // seen as they arrive; nt.seenBefore keeps them highlighted
+  }catch(e){ /* the "not updated" banner reports a dead server */ }
+}
+function syncLanguage(){
+  if(langSynced || !state) return;
+  langSynced = true;
+  if(state.language !== lang) api('/api/config', {op: 'setLanguage', language: lang}).catch(() => {});
+}
+
+function openNotifications(tab, scope){
+  nt.tab = tab || 'history';
+  if(scope !== undefined) nt.open = scope;
+  nt.seenBefore = lastSeen;
+  if(nt.tab === 'history') markSeen();
+  document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());   // a menu cannot be used under a modal window
+  renderNotif();
+  openMenu($('#notifmenu'), $('#bell'));
+}
+function renderNotif(){
+  document.querySelectorAll('[data-ntab]').forEach(b => b.classList.toggle('on', b.dataset.ntab === nt.tab));
+  $('#notifbody').innerHTML = nt.tab === 'history' ? notifHistoryHtml() : notifSettingsHtml();
+}
+function notifHistoryHtml(){
+  const filters = ['all', ...SEVERITIES].map(f => `<button data-nfilter="${f}" class="${nt.filter === f ? 'on' : ''}">${esc(f === 'all' ? t('nt.filterAll') : t(`nt.sev.${f}`))}</button>`).join('');
+  const rows = events.filter(e => nt.filter === 'all' || e.severity === nt.filter).slice().reverse().map(e => `
+    <div class="evrow sev-${e.severity} ${nt.seenBefore !== null && e.id > nt.seenBefore ? 'unread' : ''}">
+      <span class="ico-${e.severity}">${SEV_ICON[e.severity]}</span>
+      <div><div class="evtext">${esc(e.text[lang] || e.text.en)}</div>
+      <div class="evmeta">${esc(e.scope || t('noDomain'))} · ${esc(new Date(e.time * 1000).toLocaleString())}</div></div></div>`).join('');
+  return `<div class="bar">${filters}<span class="sp"></span><button data-nact="markread">${esc(t('nt.markRead'))}</button>
+    <button data-nact="clear">${esc(t('nt.clear'))}</button></div>${rows || `<p class="hint">${esc(t('nt.empty'))}</p>`}`;
+}
+
+const browserPermission = () => 'Notification' in window ? Notification.permission : 'unsupported';
+function scopeSummary(cfg){
+  if(!cfg.enabled) return t('nt.scopeOff');
+  const how = [cfg.channels.browser && t('nt.ch.browserShort'), cfg.channels.sound && t('nt.sound'), cfg.channels.desktop && t('nt.desktop')].filter(Boolean);
+  return [t('nt.scopeOn'), cfg.levels.map(l => t(`nt.sev.${l}`)).join(', ') || '–', ...how].join(' · ');
+}
+function editorHtml(cfg){
+  const level = l => `<label class="opt"><input type="checkbox" data-nf="level-${l}" ${cfg.levels.includes(l) ? 'checked' : ''}>
+    <span>${esc(t(`nt.lvl.${l}`))}<small>${esc(t(`nt.lvl.${l}Hint`))}</small></span></label>`;
+  const channel = (id, key) => `<label class="opt"><input type="checkbox" data-nf="ch-${id}" ${cfg.channels[id] ? 'checked' : ''}><span>${esc(t(key))}</span></label>`;
+  const types = SEVERITIES.map(sev => Object.keys(state.eventTypes).filter(k => state.eventTypes[k] === sev).map(k =>
+    `<label class="opt"><input type="checkbox" data-nf="type-${k}" ${cfg.mute.includes(k) ? '' : 'checked'}><span class="ico-${sev}">${SEV_ICON[sev]}</span><span>${esc(t(`nt.type.${k}`))}</span></label>`).join('')).join('');
+  return `<div class="editor"><h5>${esc(t('nt.e.levels'))}</h5>${SEVERITIES.map(level).join('')}
+    <h5>${esc(t('nt.e.how'))}</h5><label class="opt"><input type="checkbox" checked disabled><span>${esc(t('nt.ch.page'))}</span></label>
+    ${channel('browser', 'nt.ch.browser')}${channel('sound', 'nt.ch.sound')}${channel('desktop', 'nt.ch.desktop')}
+    <h5>${esc(t('nt.e.memory'))}</h5><div class="line"><input type="number" min="0" data-nf="memory" value="${cfg.memoryMb}" style="width:7rem"> <span class="hint">${esc(t('nt.e.memoryHint'))}</span></div>
+    <details><summary>${esc(t('nt.e.details'))}</summary><div class="types">${types}</div></details>
+    <p class="saved">${Date.now() - nt.savedAt < 2500 ? esc(t('nt.saved')) : ''}</p></div>`;
+}
+function scopeCardHtml(scope, title, cfg){
+  const open = nt.open === scope;
+  return `<div class="scopecard" data-scope="${esc(scope)}"><div class="scopehead">
+    <label class="name"><input type="checkbox" data-nf="enabled" ${cfg.enabled ? 'checked' : ''}> ${esc(title)}</label>
+    <span class="sum">${esc(scopeSummary(cfg))}</span>
+    <button data-nact="edit" data-nscope="${esc(scope)}">${esc(open ? t('nt.hide') : t('nt.change'))}</button></div>${open ? editorHtml(cfg) : ''}</div>`;
+}
+function notifSettingsHtml(){
+  const permission = browserPermission();
+  const scopes = [['', t('noDomain'), state.notifyDefault], ...state.domains.map(d => [d.name, d.name, d.notify])];
+  return `<p class="hint">${esc(t('nt.intro'))}</p>
+    <div class="card"><h4>${esc(t('nt.thisPc'))}</h4>
+      <p>${esc(t('nt.browser'))}: <b>${esc(t(`nt.browserState.${permission}`))}</b>
+        ${permission === 'default' ? `<button class="primary" data-nact="allow">${esc(t('nt.allow'))}</button>` : ''}
+        ${permission === 'granted' ? `<button data-nact="testbrowser">${esc(t('nt.test'))}</button>` : ''}</p>
+      <p>${esc(t('nt.sound'))}: <button data-nact="testsound">${esc(t('nt.test'))}</button></p>
+      <p>${esc(t('nt.desktop'))}: <button data-nact="testdesktop">${esc(t('nt.test'))}</button> <span class="hint">${esc(t('nt.desktopHint'))}</span></p></div>
+    ${scopes.map(([scope, title, cfg]) => scopeCardHtml(scope, title, cfg)).join('')}`;
+}
+function readScope(card){
+  const scope = card.dataset.scope, base = scope === '' ? state.notifyDefault : (state.domains.find(d => d.name === scope) || {}).notify;
+  const box = key => card.querySelector(`[data-nf="${key}"]`);
+  const has = key => !!box(key);
+  return {
+    enabled: box('enabled').checked,
+    levels: has('level-error') ? SEVERITIES.filter(l => box(`level-${l}`).checked) : base.levels,
+    mute: has('level-error') ? [...card.querySelectorAll('[data-nf^="type-"]')].filter(i => !i.checked).map(i => i.dataset.nf.slice(5)) : base.mute,
+    memoryMb: has('memory') ? parseInt(box('memory').value, 10) || 0 : base.memoryMb,
+    channels: has('ch-browser') ? {browser: box('ch-browser').checked, sound: box('ch-sound').checked, desktop: box('ch-desktop').checked} : base.channels
+  };
+}
+// A change in a settings card is saved at once; `rerender` redraws the place the card lives in (menu or domain dialog).
+async function saveNotifyChange(e, rerender){
+  const card = e.target.closest('.scopecard'); if(!card || !e.target.dataset.nf) return;
+  if(e.target.dataset.nf === 'ch-browser' && e.target.checked && browserPermission() === 'default') Notification.requestPermission().then(rerender);
+  await config({op: 'setNotify', scope: card.dataset.scope, settings: readScope(card)});
+  nt.savedAt = Date.now(); rerender(); setTimeout(rerender, 2600);
+}
+$('#notifbody').addEventListener('change', e => saveNotifyChange(e, renderNotif));
+function renderDomainNotify(){
+  const domain = state.domains.find(d => d.name === editedDomain), box = $('#domainnotifbox');
+  box.innerHTML = domain ? `<div class="scopecard" data-scope="${esc(domain.name)}"><div class="scopehead">
+    <label class="name"><input type="checkbox" data-nf="enabled" ${domain.notify.enabled ? 'checked' : ''}> ${esc(t('nt.e.enabled'))}</label>
+    <span class="sum">${esc(scopeSummary(domain.notify))}</span></div>${editorHtml(domain.notify)}</div>` : '';
+}
+$('#domainnotifbox').addEventListener('change', e => saveNotifyChange(e, renderDomainNotify));
+$('#notifbody').addEventListener('click', async e => {
+  const filter = e.target.closest('[data-nfilter]'); if(filter){ nt.filter = filter.dataset.nfilter; return renderNotif(); }
+  const button = e.target.closest('[data-nact]'); if(!button) return;
+  const action = button.dataset.nact;
+  if(action === 'edit'){ nt.open = nt.open === button.dataset.nscope ? null : button.dataset.nscope; return renderNotif(); }
+  if(action === 'markread'){ nt.seenBefore = lastSeen = events.length ? events[events.length - 1].id : lastEventId; markSeen(); return renderNotif(); }
+  if(action === 'clear'){
+    if(!confirm(t('nt.confirmClear'))) return;
+    await api('/api/events/clear', {}); events = []; lastEventId = 0; nt.seenBefore = null; updateBell(); return renderNotif();
+  }
+  if(action === 'allow'){ Notification.requestPermission().then(renderNotif); return; }
+  if(action === 'testsound') return beep('error');
+  if(action === 'testbrowser'){ try{ new Notification('pm2 monitor', {body: t('nt.testBody')}); }catch(err){ toast(String(err), true); } return; }
+  if(action === 'testdesktop'){
+    try{ const j = await api('/api/notify/test', {}); toast(j.ok ? t('nt.testSent') : errText(j.error, j.params, j.output), !j.ok); }
+    catch(err){ toast(t('serverDown'), true); }
+  }
+});
+document.querySelectorAll('[data-ntab]').forEach(b => b.onclick = () => { nt.tab = b.dataset.ntab; if(nt.tab === 'history'){ nt.seenBefore = lastSeen; markSeen(); } renderNotif(); });
+$('#bell').onclick = () => $('#notifmenu').hidden ? openNotifications('history') : closeMenu($('#notifmenu'));
+$('#notifclose').onclick = () => closeMenu($('#notifmenu'));
+
+/* ---------- logs: layout, size, panels ---------- */
+let logLayout = 'right';
+try{ if(localStorage.getItem('logLayout') === 'below') logLayout = 'below'; }catch(e){}
+const SIZE_DEFAULTS = {right: {1: 0.44, 2: 0.68}, below: {1: 0.42, 2: 0.42}};   // share of the window taken by the logs
+const MAX_PANELS = 2;
+let logSizes = JSON.parse(JSON.stringify(SIZE_DEFAULTS)), logSplit = 0.5;            // logSplit: share of the first of two panels
+try{
+  const saved = JSON.parse(localStorage.getItem('logSizes') || '{}');
+  for(const where of ['right', 'below']) for(const n of [1, 2]) if(saved[where] && saved[where][n] >= 0.2 && saved[where][n] <= 0.85) logSizes[where][n] = saved[where][n];
+  const split = parseFloat(localStorage.getItem('logSplit')); if(split >= 0.2 && split <= 0.8) logSplit = split;
+}catch(e){}
+const clamp = (value, low, high) => Math.min(high, Math.max(low, value));
+const panels = []; let activePanel = null;
+const sizeKey = () => Math.min(MAX_PANELS, Math.max(1, panels.length));
+
+function applyLogSizes(){
+  const logs = $('#logs'), size = logSizes[logLayout][sizeKey()];
+  logs.style.width = logLayout === 'right' ? (size * 100) + '%' : '';
+  logs.style.height = logLayout === 'below' ? (size * 100) + '%' : '';
+  panels.forEach((panel, i) => { panel.el.style.flex = panels.length === 2 ? `${i === 0 ? logSplit : 1 - logSplit} 1 0` : '1 1 0'; });
+}
+function applyLogLayout(){
+  $('main').classList.toggle('below', logLayout === 'below');
+  document.querySelectorAll('.lp-layout').forEach(b => {
+    b.textContent = logLayout === 'below' ? '◧' : '⬓';
+    b.title = t(logLayout === 'below' ? 'logLayoutRight' : 'logLayoutBelow');
+  });
+  applyLogSizes();
+}
+function toggleLayout(){
+  logLayout = logLayout === 'below' ? 'right' : 'below';
+  try{ localStorage.setItem('logLayout', logLayout); }catch(e){}
+  applyLogLayout();
+}
+function setLogSize(size){
+  logSizes[logLayout][sizeKey()] = clamp(size, 0.2, 0.85);
+  try{ localStorage.setItem('logSizes', JSON.stringify(logSizes)); }catch(e){}
+  applyLogSizes();
+}
+function setLogSplit(share){
+  logSplit = clamp(share, 0.2, 0.8);
+  try{ localStorage.setItem('logSplit', String(logSplit)); }catch(e){}
+  applyLogSizes();
+}
+// Dragging a splitter: `onMove` receives every pointer move until the button is released.
+function dragSplitter(event, handle, onMove){
+  event.preventDefault(); handle.classList.add('drag'); document.body.classList.add('dragging');
+  window.addEventListener('pointermove', onMove);
+  window.addEventListener('pointerup', () => {
+    window.removeEventListener('pointermove', onMove); handle.classList.remove('drag'); document.body.classList.remove('dragging');
+  }, {once: true});
+}
+function panelSplitter(){
+  const bar = document.createElement('div');
+  bar.className = 'psplit'; bar.setAttribute('role', 'separator'); bar.title = t('lg.splitTitle');
+  bar.addEventListener('pointerdown', e => dragSplitter(e, bar, ev => { const r = $('#logs').getBoundingClientRect(); setLogSplit((ev.clientX - r.left) / r.width); }));
+  bar.addEventListener('dblclick', () => setLogSplit(0.5));
+  return bar;
+}
+$('#splitter').addEventListener('pointerdown', e => dragSplitter(e, $('#splitter'), ev => {
+  const r = $('main').getBoundingClientRect();
+  setLogSize(logLayout === 'right' ? (r.right - ev.clientX) / r.width : (r.bottom - ev.clientY) / r.height);
+}));
+$('#splitter').addEventListener('dblclick', () => setLogSize(SIZE_DEFAULTS[logLayout][sizeKey()]));
+$('#splitter').addEventListener('keydown', e => {   // the bar is focusable: arrows resize it too
+  const grow = logLayout === 'right' ? 'ArrowLeft' : 'ArrowUp', shrink = logLayout === 'right' ? 'ArrowRight' : 'ArrowDown';
+  if(e.key !== grow && e.key !== shrink) return;
+  e.preventDefault(); setLogSize(logSizes[logLayout][sizeKey()] + (e.key === grow ? 0.02 : -0.02));
+});
+
+/* ---------- folder picker: project folders (wizard) and pm2 folders (daemons, wizard) ---------- */
+const pickers = {};   // context -> {path, parent, folders, places, isPm2Home, hidden}
+const pickerHosts = {daemons: () => renderDaemonDialog(), project: () => renderWizard(), home: () => renderWizard()};
+const pickerIsPm2 = ctx => ctx !== 'project';
+async function pickerLoad(ctx, path){
+  const pk = pickers[ctx] || (pickers[ctx] = {hidden: pickerIsPm2(ctx)});   // pm2 keeps its data in a hidden folder
+  try{
+    const j = await (await fetch(`/api/browse?path=${encodeURIComponent(path)}&hidden=${pk.hidden ? 1 : 0}`)).json();
+    if(j.ok === false) toast(errText(j.error, j.params, j.output), true); else Object.assign(pk, j, {hidden: pk.hidden});
+  }catch(e){ toast(t('serverDown'), true); }
+  pickerHosts[ctx]();
+}
+function pickerHtml(ctx){
+  const pk = pickers[ctx]; if(!pk || !pk.path) return '';
+  const pm2 = pickerIsPm2(ctx), usable = !pm2 || pk.isPm2Home;
+  const places = (pk.places || []).filter(p => pm2 || !p.pm2).map(p => `<button data-pk-go="${esc(p.path)}">${esc(p.home ? t('wz.s3.home') : p.name)}</button>`).join('');
+  const entries = pk.folders.map(f => `<button data-pk-go="${esc(f.path)}">📁 ${esc(f.name)}${f.pm2 ? '<span class="pm2tag">pm2</span>' : ''}</button>`).join('');
+  return `<div data-pk="${ctx}"><div class="places"><span class="hint">${esc(t('wz.s3.places'))}</span>${places}</div>
+    <div class="browse"><div class="bar"><input data-pk-input value="${esc(pk.path)}" autocomplete="off" aria-label="${esc(t('pk.path'))}">
+      <button data-pk-gobtn>${esc(t('pk.go'))}</button>
+      <label class="hint"><input type="checkbox" data-pk-hidden ${pk.hidden ? 'checked' : ''}> ${esc(t('pk.hidden'))}</label></div>
+    <div class="entries">${pk.parent ? `<button data-pk-go="${esc(pk.parent)}">${esc(t('wz.s3.up'))}</button>` : ''}
+    ${entries || `<p class="hint" style="padding:0.5rem 0.8rem">${esc(t('wz.s3.noFolders'))}</p>`}</div>
+    <div class="foot">${pm2 ? `<span class="${pk.isPm2Home ? 'ok' : 'hint'}">${esc(t(pk.isPm2Home ? 'pk.isPm2' : 'pk.notPm2'))}</span>` : ''}
+    <span class="sp"></span><button class="primary" data-pk-use ${usable ? '' : 'disabled'}>${esc(t(pm2 ? 'pk.usePm2' : 'wz.s3.useFolder'))}</button></div></div></div>`;
+}
+async function pickerUse(ctx){
+  const pk = pickers[ctx];
+  if(ctx === 'project'){ wiz.folder = pk.path; pickers.project = null; await inspectFolder(); return renderWizard(); }
+  await config({op: 'addHome', home: pk.path});
+  pickers[ctx] = null;
+  if(ctx === 'home') await loadSetup();
+  pickerHosts[ctx]();
+}
+document.addEventListener('click', e => {
+  const root = e.target.closest('[data-pk]'); if(!root) return;
+  const ctx = root.dataset.pk, go = e.target.closest('[data-pk-go]'), use = e.target.closest('[data-pk-use]');
+  if(go) return pickerLoad(ctx, go.dataset.pkGo);
+  if(e.target.closest('[data-pk-gobtn]')) return pickerLoad(ctx, root.querySelector('[data-pk-input]').value);
+  if(use && !use.disabled) return pickerUse(ctx);
+});
+document.addEventListener('keydown', e => {
+  if(e.key !== 'Enter' || !e.target.matches('[data-pk-input]')) return;
+  e.preventDefault(); pickerLoad(e.target.closest('[data-pk]').dataset.pk, e.target.value);
+});
+document.addEventListener('change', e => {
+  if(!e.target.matches('[data-pk-hidden]')) return;
+  const ctx = e.target.closest('[data-pk]').dataset.pk;
+  pickers[ctx].hidden = e.target.checked; pickerLoad(ctx, pickers[ctx].path);
+});
+
+function setActive(panel){
+  activePanel = panel;
+  panels.forEach(other => other.el.classList.toggle('active', other === panel));
+}
+function layoutPanels(){
+  const logs = $('#logs'); logs.replaceChildren();
+  panels.forEach((panel, i) => { if(i) logs.appendChild(panelSplitter()); logs.appendChild(panel.el); });
+  logs.classList.toggle('open', panels.length > 0); $('#splitter').classList.toggle('on', panels.length > 0);
+  panels.forEach(panel => panel.refreshButtons());
+  applyLogLayout();
+}
+function addPanel(){
+  if(panels.length >= MAX_PANELS) return panels[panels.length - 1];
+  const panel = new LogPanel(); panels.push(panel);
+  layoutPanels(); setActive(panel);
+  return panel;
+}
+function closePanel(panel){
+  panels.splice(panels.indexOf(panel), 1);
+  if(activePanel === panel) setActive(panels[0] || null);
+  layoutPanels(); render(true);
+}
+// A click on a process shows its log in the active panel (a second panel is opened with the ⧉ button).
+function openLog(sel){
+  const shown = panels.find(panel => panel.sel && panel.sel.key === sel.key);
+  if(shown) setActive(shown);
+  else (activePanel || addPanel()).show(sel);
+  render(true);
+}
+
+/* logview:start — pure functions, also exercised by the tests under node */
+const LOG_LEVELS = [
+  ['error', /\b(ERROR|SEVERE|FATAL|CRITICAL)\b|Exception\b|Traceback \(most recent|^\s*[A-Za-z]*Error:/],
+  ['warn', /\b(WARN|WARNING)\b/], ['info', /\bINFO\b/], ['debug', /\b(DEBUG|TRACE)\b/]];
+const LOG_CONTINUATION = /^(\s+\S|Caused by:|\.\.\. \d+ more)/;   // stack-trace lines belong to the line above
+const LOG_TIMESTAMP = /^[\[(]?(\d{4}-\d{2}-\d{2}[T ])?\d{2}:\d{2}:\d{2}([.,]\d+)?(Z|[+-]\d{2}:?\d{2})?[\])]?\s*[:|-]?\s*/;
+function annotateLog(lines){
+  let current = null;
+  return lines.map(text => {
+    let level = (LOG_LEVELS.find(([, re]) => re.test(text)) || [null])[0];
+    if(!level && current && LOG_CONTINUATION.test(text)) level = current;
+    current = level;
+    return {text, level};
+  });
+}
+// Two lines that differ only by their timestamps count as the same line.
+function normalizeLogLine(text){
+  let s = text;
+  for(let i = 0; i < 3 && LOG_TIMESTAMP.test(s); i++) s = s.replace(LOG_TIMESTAMP, '');
+  return s.trim();
+}
+function buildLogView(raw, f){
+  const lines = annotateLog(raw === '' ? [] : raw.split('\n'));
+  const query = (f.query || '').trim().toLowerCase(), levels = f.levels || new Set();
+  const filtering = !!query || levels.size > 0;
+  const hit = lines.map(l => (!levels.size || levels.has(l.level)) && (!query || l.text.toLowerCase().includes(query)));
+  const show = filtering ? hit.slice() : lines.map(() => true);
+  if(filtering && f.context > 0)
+    hit.forEach((h, i) => { if(h) for(let d = -f.context; d <= f.context; d++) if(i + d >= 0 && i + d < show.length) show[i + d] = true; });
+  const rows = []; let previous = -2;
+  lines.forEach((l, i) => {
+    if(!show[i]) return;
+    if(filtering && f.context > 0 && previous !== i - 1 && rows.length) rows.push({gap: true});
+    previous = i;
+    const ctx = filtering && !hit[i], norm = normalizeLogLine(l.text), last = rows[rows.length - 1];
+    if(f.collapse && last && !last.gap && last.norm === norm && last.ctx === ctx) last.count++;
+    else rows.push({text: l.text, level: l.level, ctx, norm, count: 1});
+  });
+  return {rows, hits: filtering ? hit.filter(Boolean).length : lines.length, total: lines.length};
+}
+/* logview:end */
+
+let logPrefs = {lines: 400, context: 0, collapse: false};
+try{ Object.assign(logPrefs, JSON.parse(localStorage.getItem('logPrefs') || '{}')); }catch(e){}
+const saveLogPrefs = () => { try{ localStorage.setItem('logPrefs', JSON.stringify(logPrefs)); }catch(e){} };
+
+function markMatches(text, query){
+  if(!query) return esc(text);
+  const lower = text.toLowerCase(); let out = '', from = 0, at;
+  while((at = lower.indexOf(query, from)) !== -1){ out += esc(text.slice(from, at)) + '<mark>' + esc(text.slice(at, at + query.length)) + '</mark>'; from = at + query.length; }
+  return out + esc(text.slice(from));
+}
+// Size of the text inside the logs: separate from the zoom of the whole page, shared by all log panels.
+const LOG_FONTS = [0.75, 0.875, 1, 1.125, 1.25, 1.5, 1.75, 2];
+let logFont = 1;
+try{ const saved = parseFloat(localStorage.getItem('logFont')); if(LOG_FONTS.includes(saved)) logFont = saved; }catch(e){}
+function applyLogFont(next){
+  logFont = next; document.documentElement.style.setProperty('--logfont', String(logFont));
+  try{ localStorage.setItem('logFont', String(logFont)); }catch(e){}
+  document.querySelectorAll('.lp-fontreset').forEach(b => b.textContent = Math.round(logFont * 100) + '%');
+  document.querySelectorAll('.lp-fontdown').forEach(b => b.disabled = logFont === LOG_FONTS[0]);
+  document.querySelectorAll('.lp-fontup').forEach(b => b.disabled = logFont === LOG_FONTS[LOG_FONTS.length - 1]);
+  panels.forEach(panel => { if(panel.follow){ const log = panel.q('.lp-text'); log.scrollTop = log.scrollHeight; } });
+}
+const stepLogFont = direction => applyLogFont(LOG_FONTS[clamp(LOG_FONTS.indexOf(logFont) + direction, 0, LOG_FONTS.length - 1)]);
+const PANEL_HTML = `
+  <div class="lp-head">
+    <span class="t lp-title"></span><span class="sp"></span>
+    <button data-k="out" class="on">out</button><button data-k="err">err</button>
+    <button class="lp-follow on" data-i18n="follow" data-i18n-title="followTitle"></button>
+    <button class="lp-top" data-i18n-title="logTop">⤒</button><button class="lp-bottom" data-i18n-title="logBottom">⤓</button>
+    <button class="lp-add" data-i18n-title="lg.addPanel">⧉</button><button class="lp-layout"></button>
+    <button class="lp-close" data-i18n-title="lg.closePanel">✕</button>
+  </div>
+  <div class="lp-tools">
+    <input type="search" class="lp-search" data-i18n-placeholder="lg.search" autocomplete="off">
+    <span class="lvls">
+      <button data-lv="error" data-i18n-title="lg.lvError">ERROR</button><button data-lv="warn" data-i18n-title="lg.lvWarn">WARN</button>
+      <button data-lv="info" data-i18n-title="lg.lvInfo">INFO</button><button data-lv="debug" data-i18n-title="lg.lvDebug">DEBUG</button>
+    </span>
+    <select class="lp-lines" data-i18n-title="lg.lines"></select><select class="lp-ctx" data-i18n-title="lg.context"></select>
+    <label><input type="checkbox" class="lp-collapse"> <span data-i18n="lg.collapse"></span></label>
+    <span class="count lp-count"></span>
+    <button class="lp-clear" data-i18n="lg.clear" hidden></button>
+    <button class="lp-copy" data-i18n="lg.copy" data-i18n-title="lg.copyTitle"></button>
+    <button class="lp-save" data-i18n="lg.save" data-i18n-title="lg.saveTitle"></button>
+    <span class="lp-font"><button class="lp-fontdown" data-i18n-title="lg.fontDown">A−</button><button class="lp-fontreset" data-i18n-title="zoomReset"></button><button class="lp-fontup" data-i18n-title="lg.fontUp">A+</button></span>
+  </div>
+  <pre class="lp-text" tabindex="0"></pre>`;
+
+// One log viewer: its own process, stream, filters, follow mode and scroll position.
+class LogPanel{
+  constructor(){
+    Object.assign(this, {sel: null, kind: 'out', follow: true, data: null, visible: ''});
+    this.f = {query: '', levels: new Set(), lines: logPrefs.lines, context: logPrefs.context, collapse: logPrefs.collapse};
+    this.el = document.createElement('section'); this.el.className = 'logpanel'; this.el.innerHTML = PANEL_HTML;
+    translateIn(this.el); this.fillSelects(); this.wire(); this.renderTitle(); this.render(); applyLogFont(logFont);
+  }
+  q(selector){ return this.el.querySelector(selector); }
+  setFollow(on){ this.follow = on; this.q('.lp-follow').classList.toggle('on', on); }
+  refreshButtons(){ this.q('.lp-add').hidden = panels.length >= MAX_PANELS; }
+  renderTitle(){ this.q('.lp-title').textContent = this.sel ? `${this.sel.name} · ${this.sel.daemon}` : ''; }
+  show(sel){ this.sel = sel; this.data = null; this.renderTitle(); this.render('reset'); this.load(true); }
+  fillSelects(){
+    const f = this.f;
+    this.q('.lp-lines').innerHTML = [200, 400, 1000, 2000].map(n => `<option value="${n}" ${n === f.lines ? 'selected' : ''}>${esc(t('lg.linesOpt', {n}))}</option>`).join('');
+    this.q('.lp-ctx').innerHTML = [0, 2, 5].map(n => `<option value="${n}" ${n === f.context ? 'selected' : ''}>${esc(n ? t('lg.ctxOpt', {n}) : t('lg.ctxNone'))}</option>`).join('');
+    this.q('.lp-collapse').checked = f.collapse;
+    this.el.querySelectorAll('[data-lv]').forEach(b => b.classList.toggle('on', f.levels.has(b.dataset.lv)));
+  }
+  wire(){
+    const f = this.f, q = s => this.q(s);
+    this.el.addEventListener('pointerdown', () => setActive(this), true);
+    this.el.addEventListener('focusin', () => setActive(this));
+    this.el.querySelectorAll('[data-k]').forEach(b => b.onclick = () => {
+      this.kind = b.dataset.k; this.el.querySelectorAll('[data-k]').forEach(x => x.classList.toggle('on', x === b)); this.load(true); });
+    q('.lp-follow').onclick = () => this.setFollow(!this.follow);
+    // Going to the first line must also stop following, or the next refresh would jump straight back to the end.
+    q('.lp-top').onclick = () => { this.setFollow(false); q('.lp-text').scrollTop = 0; };
+    q('.lp-bottom').onclick = () => { this.setFollow(true); const log = q('.lp-text'); log.scrollTop = log.scrollHeight; };
+    q('.lp-fontdown').onclick = () => stepLogFont(-1);
+    q('.lp-fontup').onclick = () => stepLogFont(1);
+    q('.lp-fontreset').onclick = () => applyLogFont(1);
+    q('.lp-add').onclick = () => addPanel();
+    q('.lp-layout').onclick = toggleLayout;
+    q('.lp-close').onclick = () => closePanel(this);
+    q('.lp-search').oninput = e => { f.query = e.target.value; this.render('filter'); };
+    this.el.querySelectorAll('[data-lv]').forEach(b => b.onclick = () => {
+      f.levels.has(b.dataset.lv) ? f.levels.delete(b.dataset.lv) : f.levels.add(b.dataset.lv);
+      b.classList.toggle('on', f.levels.has(b.dataset.lv)); this.render('filter'); });
+    q('.lp-lines').onchange = e => { f.lines = logPrefs.lines = +e.target.value; saveLogPrefs(); this.load(true); };
+    q('.lp-ctx').onchange = e => { f.context = logPrefs.context = +e.target.value; saveLogPrefs(); this.render('filter'); };
+    q('.lp-collapse').onchange = e => { f.collapse = logPrefs.collapse = e.target.checked; saveLogPrefs(); this.render('filter'); };
+    q('.lp-clear').onclick = () => { f.query = ''; f.levels.clear(); q('.lp-search').value = ''; this.fillSelects(); this.render('filter'); };
+    q('.lp-copy').onclick = async () => {
+      try{ await navigator.clipboard.writeText(this.visible); toast(t('lg.copied')); }catch(e){ toast(t('wz.copyFailed'), true); } };
+    q('.lp-save').onclick = () => {
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(new Blob([this.visible + '\n'], {type: 'text/plain'}));
+      link.download = `${this.sel ? this.sel.name : 'log'}-${this.kind}.log`; link.click(); setTimeout(() => URL.revokeObjectURL(link.href), 1000); };
+  }
+  async load(reset){
+    if(!this.sel) return;
+    try{ this.data = await (await fetch(`/api/logs?key=${encodeURIComponent(this.sel.key)}&n=${this.f.lines}`)).json(); }
+    catch(e){ this.data = {ok: false, error: 'error_detail', params: {detail: t('serverDown')}, output: t('serverDown')}; }
+    this.render(reset ? 'reset' : null);
+  }
+  render(scrollMode){
+    const pre = this.q('.lp-text'), top = pre.scrollTop, count = this.q('.lp-count'), j = this.data, f = this.f;
+    this.q('.lp-clear').hidden = !(f.query.trim() || f.levels.size);
+    if(!this.sel){ pre.innerHTML = `<span class="gap">${esc(t('lg.pickHint'))}</span>`; count.textContent = ''; this.visible = ''; return; }
+    if(!j){ pre.textContent = ''; count.textContent = ''; return; }
+    const kind = this.kind;
+    const message = j.ok === false ? `[${errText(j.error, j.params, j.output)}]`
+      : j[kind + '_error'] ? t('logUnreadable', {detail: j[kind + '_error']}) : (j[kind] || '') === '' ? t('logEmpty') : null;
+    pre.title = j[kind + '_path'] || '';
+    if(message !== null){ pre.textContent = message; count.textContent = ''; this.visible = ''; }
+    else{
+      const query = f.query.trim().toLowerCase(), view = buildLogView(j[kind], f);
+      this.visible = view.rows.filter(r => !r.gap).map(r => r.text + (r.count > 1 ? ` (×${r.count})` : '')).join('\n');
+      pre.innerHTML = view.rows.length ? view.rows.map(r => r.gap ? '<span class="gap">⋯</span>'
+          : `<span class="lv-${r.level || 'none'} ${r.ctx ? 'ctx' : ''}">${markMatches(r.text, r.ctx ? '' : query)}${r.count > 1 ? ` <span class="rep">(×${r.count})</span>` : ''}</span>`).join('\n')
+        : `<span class="gap">${esc(t('lg.nomatch'))}</span>`;
+      count.textContent = t('lg.count', {shown: view.hits, total: view.total});
+    }
+    if(scrollMode === 'filter') pre.scrollTop = this.follow ? pre.scrollHeight : 0;
+    else if(this.follow || scrollMode === 'reset') pre.scrollTop = pre.scrollHeight;
+    else pre.scrollTop = top;
+  }
+}
+
+$('#quit').onclick = async () => {
+  if(!confirm(t('quitConfirm'))) return;
+  try{
+    const j = await api('/api/shutdown', {});
+    if(!j.ok) return toast(errText(j.error, j.params, j.output), true);
+  }catch(e){ return toast(t('serverDown'), true); }
+  halted = true;
+  document.querySelectorAll('dialog[open]').forEach(dialog => dialog.close());
+  $('#stopped').hidden = false;
+};
 $('#zoomout').onclick = () => stepScale(-1);
 $('#zoomin').onclick = () => stepScale(1);
 $('#zoomreset').onclick = () => applyScale(1);
 applyScale(scale);
 applyStaticTexts();
-poll(true); setInterval(poll, POLL); setInterval(updClock, 1000); setInterval(()=>loadLogs(false), LOGPOLL);
+poll(true); setInterval(poll, POLL); setInterval(updClock, 1000); setInterval(() => { if(!halted) panels.forEach(panel => panel.load(false)); }, LOGPOLL);
 </script>
 </body>
 </html>

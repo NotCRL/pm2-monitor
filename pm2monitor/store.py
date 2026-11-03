@@ -12,7 +12,8 @@ DEFAULT_ORDER = 100
 
 
 def empty_config():
-    return {"version": 1, "pm2Path": None, "extraHomes": [], "daemons": {}, "domains": {}, "processes": {}}
+    return {"version": 1, "pm2Path": None, "extraHomes": [], "daemons": {}, "domains": {}, "processes": {},
+            "notifyDefault": None, "language": "en", "probeLinks": True}
 
 
 class ConfigStore:
@@ -88,6 +89,19 @@ class ConfigStore:
         for entry in self.data["processes"].values():
             if entry.get("domain") == name:
                 entry["domain"] = None
+
+    # --- notifications -------------------------------------------------------
+    def get_notify(self, scope):
+        """Stored (raw) notification settings of a domain, or of the processes without domain when scope is ''."""
+        if scope:
+            return (self.data["domains"].get(scope) or {}).get("notify")
+        return self.data.get("notifyDefault")
+
+    def set_notify(self, scope, settings):
+        if scope:
+            self.data["domains"][scope]["notify"] = settings
+        else:
+            self.data["notifyDefault"] = settings
 
     # --- processes ----------------------------------------------------------
     def process_entry(self, key):

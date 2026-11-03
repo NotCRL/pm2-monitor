@@ -14,7 +14,7 @@ import time
 import uuid
 from pathlib import Path
 
-from .discovery import make_daemon_id
+from .discovery import looks_like_pm2_home, make_daemon_id
 from .osenv import (HOME, IS_WINDOWS, find_node, find_npm, os_name, refresh_tool_cache,
                     subprocess_flags, tool_environment)
 from .service import ActionError, strip_ansi, tail
@@ -23,6 +23,8 @@ NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]{0,59}$")
 STABLE_SECONDS = 3  # a first app counts as running only if it is still online after this long
 INSTALL_TIMEOUT_SECONDS = 900
 MAX_FOLDERS_LISTED = 500
+PLACE_NAMES = ("Desktop", "Documents", "Downloads", "Projects", "projects", "dev", "code", "work", "workspace", "src", "repos")
+USER_DIRS = re.compile(r'^XDG_(?:DESKTOP|DOCUMENTS|DOWNLOAD)_DIR="(.*)"$')
 LOG_LINES_SHOWN = 15
 
 _install_jobs = {}
@@ -126,19 +128,48 @@ def get_install_job(job_id):
 
 
 # --- choosing a project --------------------------------------------------------------------------
-def list_folders(path):
-    """Sub-folders of a folder, for the folder picker (files are never listed)."""
+def list_folders(path, hidden=False):
+    """Sub-folders of a folder, for the folder picker (files are never listed). pm2 keeps its data in a hidden
+    folder, so the picker can show hidden ones too and says which folders look like a pm2 home."""
     base = Path(path).expanduser() if path else HOME
     if not base.is_dir():
         raise ActionError("folder_not_found", path=str(path))
     base = base.resolve()
     try:
-        names = [e.name for e in os.scandir(base) if e.is_dir(follow_symlinks=False) and not e.name.startswith(".")]
+        with os.scandir(base) as scan:
+            names = [e.name for e in scan if e.is_dir(follow_symlinks=False) and (hidden or not e.name.startswith("."))]
     except OSError:
         raise ActionError("folder_unreadable", path=str(base))
     names.sort(key=str.lower)
-    return {"path": str(base), "parent": str(base.parent) if base.parent != base else None,
-            "folders": [{"name": n, "path": str(base / n)} for n in names[:MAX_FOLDERS_LISTED]]}
+    return {"path": str(base), "parent": str(base.parent) if base.parent != base else None, "places": _places(),
+            "hidden": bool(hidden), "isPm2Home": looks_like_pm2_home(base),
+            "folders": [{"name": n, "path": str(base / n), "pm2": looks_like_pm2_home(base / n)} for n in names[:MAX_FOLDERS_LISTED]]}
+
+
+def _localized_user_folders():
+    """Desktop, Documents and Downloads under their real names in the user's language (Linux keeps them in user-dirs.dirs)."""
+    try:
+        lines = (HOME / ".config" / "user-dirs.dirs").read_text(encoding="utf-8").splitlines()
+    except OSError:
+        return []
+    found = (USER_DIRS.match(line.strip()) for line in lines)
+    return [Path(m.group(1).replace("$HOME", str(HOME))) for m in found if m]
+
+
+def _places():
+    """Where projects usually live, as one-click shortcuts in the folder picker."""
+    places, seen = [{"name": HOME.name, "path": str(HOME), "home": True}], {os.path.normcase(os.path.realpath(HOME))}
+    for folder in _localized_user_folders() + [HOME / name for name in PLACE_NAMES]:
+        real = os.path.normcase(os.path.realpath(folder))
+        if folder.is_dir() and real not in seen:  # 'projects' and 'Projects' are one folder on macOS and Windows
+            seen.add(real)
+            places.append({"name": folder.name, "path": str(folder), "home": False})
+    for folder in sorted(HOME.glob(".pm2*")):  # pm2's own data folders, for the picker that adds a daemon
+        real = os.path.normcase(os.path.realpath(folder))
+        if looks_like_pm2_home(folder) and real not in seen:
+            seen.add(real)
+            places.append({"name": folder.name, "path": str(folder), "home": False, "pm2": True})
+    return places
 
 
 def sanitize_name(text):

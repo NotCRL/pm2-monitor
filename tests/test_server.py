@@ -10,6 +10,7 @@ from http.server import ThreadingHTTPServer
 from unittest import mock
 
 import server
+from pm2monitor import control, notifier
 from pm2monitor.service import ActionError, Monitor
 from pm2monitor.store import ConfigStore
 
@@ -21,6 +22,7 @@ class ServerTest(unittest.TestCase):
         # No discovery: the test must not touch whatever pm2 daemons the machine has.
         with mock.patch("pm2monitor.service.discover_homes", return_value=[]):
             server.monitor = Monitor(ConfigStore(cls.tmp.name))
+        server.event_log = notifier.EventLog()
         cls.httpd = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)
         cls.base = f"http://127.0.0.1:{cls.httpd.server_port}"
         threading.Thread(target=cls.httpd.serve_forever, daemon=True).start()
@@ -88,6 +90,13 @@ class ServerTest(unittest.TestCase):
         suggestion = json.loads(self.request("/api/inspect?path=" + urllib.parse.quote(project))[1])
         self.assertEqual((suggestion["name"], suggestion["command"]), ("demo", "npm start"))
 
+    def test_browse_can_show_hidden_folders(self):
+        project = tempfile.mkdtemp(dir=self.tmp.name, prefix=".hid")
+        shown = json.loads(self.request("/api/browse?path=" + urllib.parse.quote(self.tmp.name) + "&hidden=1")[1])
+        hidden = json.loads(self.request("/api/browse?path=" + urllib.parse.quote(self.tmp.name))[1])
+        self.assertIn(project, [f["path"] for f in shown["folders"]])
+        self.assertNotIn(project, [f["path"] for f in hidden["folders"]])
+
     def test_setup_errors_are_codes(self):
         status, body = self.request("/api/inspect?path=/definitely/not/here")
         self.assertEqual((status, json.loads(body)["error"]), (400, "folder_not_found"))
@@ -101,6 +110,66 @@ class ServerTest(unittest.TestCase):
             status, body = self.request("/api/action", {"key": "x/y", "action": "start"})
         error = json.loads(body)
         self.assertEqual((status, error["error"], error["params"]), (400, "process_failed", {"status": "errored", "log": "boom"}))
+
+    def test_state_carries_the_notification_catalogue(self):
+        state = json.loads(self.request("/api/state")[1])
+        self.assertEqual(state["eventTypes"], notifier.EVENT_TYPES)
+        self.assertEqual(state["notifyDefault"], notifier.DEFAULT_NOTIFY)
+
+    def test_notification_settings_are_saved_per_domain_and_cleaned(self):
+        self.request("/api/config", {"op": "createDomain", "name": "shop"})
+        status, _ = self.request("/api/config", {"op": "setNotify", "scope": "shop",
+                                                  "settings": {"levels": ["info", "bogus"], "memoryMb": "256"}})
+        self.assertEqual(status, 200)
+        shop = next(d for d in json.loads(self.request("/api/state")[1])["domains"] if d["name"] == "shop")
+        self.assertEqual((shop["notify"]["levels"], shop["notify"]["memoryMb"]), (["info"], 256))
+        status, body = self.request("/api/config", {"op": "setNotify", "scope": "missing", "settings": {}})
+        self.assertEqual((status, json.loads(body)["error"]), (400, "unknown_domain"))
+
+    def test_events_can_be_read_incrementally_and_cleared(self):
+        first = server.event_log.add({"type": "process_crashed", "severity": "error"})
+        server.event_log.add({"type": "process_stopped", "severity": "warning"})
+        listing = json.loads(self.request(f"/api/events?after={first['id']}")[1])
+        self.assertEqual([e["type"] for e in listing["events"]], ["process_stopped"])
+        self.assertEqual(listing["last"], server.event_log.latest_id())
+        self.request("/api/events/clear", {})
+        self.assertEqual(json.loads(self.request("/api/events?after=0")[1])["events"], [])
+
+    def test_desktop_test_reports_a_missing_tool_as_a_code(self):
+        with mock.patch.object(notifier, "send_desktop", return_value=(False, "no_tool")):
+            status, body = self.request("/api/notify/test", {})
+        self.assertEqual((status, json.loads(body)["error"]), (400, "desktop_unavailable"))
+        with mock.patch.object(notifier, "send_desktop", return_value=(True, "")):
+            self.assertEqual(self.request("/api/notify/test", {})[0], 200)
+
+    def test_language_is_remembered_for_desktop_messages(self):
+        self.request("/api/config", {"op": "setLanguage", "language": "it"})
+        self.assertEqual(json.loads(self.request("/api/state")[1])["language"], "it")
+        self.request("/api/config", {"op": "setLanguage", "language": "xx"})  # unknown: ignored
+        self.assertEqual(json.loads(self.request("/api/state")[1])["language"], "it")
+
+    def test_ping_identifies_the_monitor(self):
+        status, body = self.request("/api/ping")
+        self.assertEqual((status, json.loads(body)["app"]), (200, "pm2-monitor"))
+        self.assertEqual(control.running_version(self.httpd.server_port), json.loads(body)["version"])
+
+    def test_shutdown_turns_the_server_off_and_answers_first(self):
+        other = ThreadingHTTPServer(("127.0.0.1", 0), server.Handler)   # a second server: the shared one must stay up
+        thread = threading.Thread(target=other.serve_forever, daemon=True)
+        thread.start()
+        port = other.server_port
+        self.assertTrue(control.running_version(port))
+        self.assertTrue(control.request_shutdown(port))
+        thread.join(timeout=10)
+        self.assertFalse(thread.is_alive())
+        other.server_close()
+        self.assertIsNone(control.running_version(port))
+        self.assertFalse(control.request_shutdown(port))   # nothing left to stop
+
+    def test_shutdown_refuses_requests_from_other_sites(self):
+        status, _ = self.request("/api/shutdown", {}, headers={"Origin": "http://evil.example"})
+        self.assertEqual(status, 403)
+        self.assertTrue(control.running_version(self.httpd.server_port))
 
     def test_domain_can_be_created_and_listed(self):
         status, _ = self.request("/api/config", {"op": "createDomain", "name": "backend"})

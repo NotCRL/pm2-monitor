@@ -5,6 +5,29 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.3.0] - 2026-10-30
+
+### Aggiunto
+- **Notifiche per dominio.** Un controllo in background ti avvisa quando un'app va in errore, si ferma, viene rimossa, si riavvia da sola o usa troppa memoria, quando un demone si ferma o torna, e quando finisce un avvio / arresto di un intero dominio. Ogni dominio (e i processi senza dominio) sceglie quali gravità (errori, avvisi, buone notizie) e quali tipi di evento vuole, un limite di memoria facoltativo, e come essere avvisato: il menu della campanella (gli avvisi stanno lì, mai come popup sopra la pagina; la campanella si scuote e mostra un contatore), notifiche del browser, un suono, e notifiche del sistema operativo che funzionano anche a pagina chiusa. Una campanella nella testata apre storico e impostazioni; i cambiamenti fatti dal monitor stesso non vengono segnalati come sorprese, e un'app che si riavvia in continuazione produce un solo avviso al minuto.
+- La lingua dell'interfaccia è ricordata dal server, così anche le notifiche del desktop parlano la stessa lingua.
+- I log si possono mostrare a destra o sotto l'elenco (pulsante nella testata dei log, ricordato).
+- Le finestre aperte da dentro un'altra (aiuto, notifiche) ora si sovrappongono con un link "Torna a: …", invece di chiuderla: la configurazione guidata mantiene il suo passo e le impostazioni del dominio mantengono quello che hai scritto.
+- **Spegnere pm2 monitor** dalla pagina (pulsante di accensione nella testata) o con `python3 server.py --stop`. Le tue app continuano a funzionare sotto pm2.
+- **Lanciatori con doppio clic per ogni sistema:** `Start pm2-monitor.bat` (Windows), `Start pm2-monitor.command` (macOS) e `start-pm2-monitor.sh` (Linux) eseguono tutti `launch.py`, che avvia il monitor staccato (senza finestra di console, log nella cartella di configurazione), riconosce quando è già acceso o quando la porta è occupata, e apre il browser. `launch.py --stop` lo spegne; `launch.py --install-shortcut` lo aggiunge al menu delle applicazioni di Linux.
+- **Due log affiancati** (⧉ in un pannello dei log, al massimo due) e **log ridimensionabili**: trascina la barra tra l'elenco e i log e quella tra i due log; le misure vengono ricordate, il doppio clic le ripristina.
+- **Una testata più ordinata:** azioni raggruppate, indicatori di stato per ogni demone, un menu "Impostazioni" (ingranaggio) con dimensione e lingua, etichette che diventano icone nelle finestre strette.
+- **Link alle app in esecuzione:** una colonna "link" mostra l'indirizzo su cui risponde ogni app (`localhost:3000`, ...), cliccabile, anche per il programma che un'app avvia (il server dietro `npm start`). Sono elencate solo le porte che rispondono come una pagina web: pm2 monitor invia una richiesta `HEAD /` innocua (user agent `pm2-monitor-link-check`) a ogni porta in ascolto, una volta per processo, così database e porte interne non diventano link morti. Il controllo si può disattivare nelle Impostazioni, e allora vengono elencate tutte le porte in ascolto. Linux legge `/proc`; macOS usa `lsof` e Windows `netstat` (solo Linux è stato provato).
+- **Comprimere ed espandere** i gruppi dell'elenco (con memoria; "Comprimi tutto" / "Espandi tutto"); un gruppo compresso mostra comunque quanti dei suoi processi sono online.
+- **Sfoglia per scegliere la cartella di pm2** invece di scriverne il percorso, nella finestra dei demoni e nella configurazione guidata: il selettore può mostrare le cartelle nascoste, segna quelle che sono cartelle dati di pm2, le propone come posti rapidi e accetta solo una vera cartella di pm2.
+- **Dimensione del testo dentro i log** (A− / A+ nella barra dei log), separata dallo zoom di tutta la pagina.
+- **Filtri dei log:** ricerca (senza distinguere maiuscole, con le parole evidenziate), pulsanti di livello ERROR / WARN / INFO / DEBUG con i colori (gli stack trace restano con il loro errore), 0 / ±2 / ±5 righe di contesto attorno a ogni risultato, scelta di 200 / 400 / 1000 / 2000 righe, unione delle righe ripetute con un contatore (orari ignorati), e Copia / Salva di esattamente le righe visibili.
+- Pulsanti nel pannello dei log per andare alla prima riga e all'ultima (che riprende anche a seguire le nuove righe).
+
+### Modificato
+- **Le notifiche si aprono come menu a tendina sotto la campanella** invece che in una finestra modale, così la pagina resta utilizzabile; le impostazioni di un dominio stanno anche nella finestra delle impostazioni di quel dominio.
+- **La configurazione guidata è stata ridisegnata per chi parte davvero da zero:** una barra dei passi chiara con segni di spunta e "Passo N di 3", una spiegazione in parole semplici per ogni passo, un grande pulsante per passo, rilevamento automatico (non serve cliccare "controlla": si accorge da solo di un nuovo Node.js o pm2), un selettore di cartelle con posti rapidi, convalida in diretta, un aiuto "non so qual è il comando", una schermata di festa quando la prima app parte, ed extra facoltativi (domini, notifiche). "Avanti" resta disattivato finché un passo obbligatorio non è davvero completato.
+- Il monitor condivide una sola lettura di pm2 tra la pagina e il controllo, così la sorveglianza in più non aggiunge carico.
+
 ## [1.2.0] - 2026-10-30
 
 ### Aggiunto

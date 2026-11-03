@@ -156,7 +156,9 @@ Con più demoni (sezione 5) il comando di avvio automatico va ripetuto per ciasc
 
 1. Scarica l'ultima versione dalla [pagina **Releases**](https://github.com/NotCRL/pm2-monitor/releases) della repository (file `.zip` o `.tar.gz`) e decomprimila in una cartella fissa, per esempio `~/pm2-monitor` (su Windows `C:\Users\<tu>\pm2-monitor`). In alternativa `git clone` della repository.
 2. Controlla Python: `python3 --version` (Windows: `python --version`). Su Windows, se manca: `winget install Python.Python.3.12`. Su macOS: `brew install python` oppure l'installer da <https://www.python.org>. Su Linux di solito c'è già; altrimenti `sudo apt install python3` (o l'equivalente della tua distribuzione).
-3. Avvia, dalla cartella decompressa:
+3. **Il più semplice: fai doppio clic sul lanciatore** nella cartella decompressa: `Start pm2-monitor.bat` (Windows), `Start pm2-monitor.command` (macOS) o `start-pm2-monitor.sh` (Linux). Avvia il monitor in background e lo apre nel browser; puoi rilanciarlo quando vuoi (se il monitor è già acceso, apre solo la pagina). Note: su macOS la prima volta clic destro sul file > Apri (non è firmato); su Linux alcuni gestori di file richiedono di attivare "Esegui i file di testo eseguibili", oppure esegui `./start-pm2-monitor.sh` in un terminale; `python3 launch.py --install-shortcut` aggiunge pm2 monitor al menu delle applicazioni. Per spegnerlo usa il pulsante di accensione nella pagina o `python3 launch.py --stop`.
+
+   Oppure da un terminale, nella cartella decompressa:
    ```bash
    python3 server.py          # Windows: python server.py
    ```
@@ -173,6 +175,7 @@ Al primo avvio il monitor cerca da solo i demoni pm2 del computer. Poi, dall'int
 - **scansiona**: rifà la ricerca dei demoni.
 - **demoni**: rinomina un demone, nascondilo, aggiungine uno a mano (cartella `PM2_HOME`).
 - **domini** (`+ dominio`): raggruppa i processi, anche di demoni diversi. Assegna un processo a un dominio dal menu a tendina della riga.
+- **campanella** (testata): lo storico delle notifiche e, per ogni dominio, di quali problemi vuoi essere avvisato (errori, avvisi, buone notizie) e come: menu della campanella, notifica del browser, suono, o una notifica del desktop che funziona anche a pagina chiusa. Su Linux le notifiche del desktop richiedono `notify-send` (pacchetto `libnotify`).
 - **ord**: ordine di avvio nel dominio (numero più basso = parte prima). "avvia tutti" aspetta che ognuno sia online prima del successivo. ⚙ accanto al dominio imposta il tempo massimo di attesa.
 
 ### Dove sta il file di configurazione

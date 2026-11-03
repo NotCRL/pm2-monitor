@@ -9,11 +9,13 @@ import subprocess
 import threading
 import time
 import uuid
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import ISSUES_URL, __version__
+from . import ISSUES_URL, __version__, ports
 from .discovery import (daemon_alive, discover_homes, extract_launch_spec, looks_like_pm2_home,
                         make_daemon_id, read_dump)
+from .notifier import EVENT_TYPES, LANGUAGES, normalize_settings
 from .osenv import find_pm2, pm2_environment, subprocess_flags
 from .store import DEFAULT_ORDER
 
@@ -23,6 +25,9 @@ LOG_TAIL_BYTES = 256 * 1024
 SCAN_INTERVAL_SECONDS = 30
 STABLE_SECONDS = 2  # a process counts as started only if it stays online for this long
 MAX_JOBS_KEPT = 20
+RETRY_PROBE_SECONDS = 60.0  # a port that did not answer like a web server may just not have been ready
+PORTS_TTL_SECONDS = 8.0  # scanning the system for listening ports is dearer than reading pm2: do it less often
+SNAPSHOT_TTL_SECONDS = 2.0  # the page and the notification watcher share one reading of pm2
 
 
 class ActionError(Exception):
@@ -69,6 +74,12 @@ class Monitor:
         self.jobs = {}
         self.jobs_lock = threading.Lock()
         self.last_scan = 0.0
+        self.snapshot_lock = threading.Lock()
+        self.snapshot_cache = (0.0, None)
+        self.ports_cache = (0.0, {})
+        self.probe_cache = {}  # (pid, port) -> (is a web page, when it was checked)
+        self.expected = {}  # process key -> until when a change is expected (made through this monitor)
+        self.on_job_finished = None
         self.scan()
 
     # --- pm2 ----------------------------------------------------------------
@@ -87,6 +98,8 @@ class Monitor:
         if not self.pm2_path:
             raise ActionError("pm2_not_found")
         home = self.home_of(daemon_id)
+        if args and args[0] != "jlist":
+            self.invalidate_snapshot()  # anything but a read changes what the next snapshot must show
         return subprocess.run([self.pm2_path, *args], env=pm2_environment(self.pm2_path, home),
                               capture_output=True, text=True, timeout=timeout, cwd=cwd, **subprocess_flags())
 
@@ -118,11 +131,30 @@ class Monitor:
             self.last_scan = time.time()
 
     # --- state --------------------------------------------------------------
+    def invalidate_snapshot(self):
+        self.snapshot_cache = (0.0, None)
+
+    def expect(self, key, seconds=45):
+        """A change of this process is about to be made through the monitor: it is not a surprise."""
+        self.expected[key] = time.time() + seconds
+
+    def is_expected(self, key):
+        return self.expected.get(key, 0) > time.time()
+
     def snapshot(self):
+        with self.snapshot_lock:
+            taken, cached = self.snapshot_cache
+            if cached is not None and time.time() - taken < SNAPSHOT_TTL_SECONDS:
+                return cached
+            fresh = self._build_snapshot()
+            self.snapshot_cache = (time.time(), fresh)
+            return fresh
+
+    def _build_snapshot(self):
         if time.time() - self.last_scan > SCAN_INTERVAL_SECONDS:
             self.scan()
         now_ms = time.time() * 1000
-        daemons, procs, specs_changed = [], [], False
+        daemons, procs, specs_changed, link_sources = [], [], False, []
         for daemon_id, entry in list(self.store.data["daemons"].items()):
             home = Path(entry["home"])
             info = {"id": daemon_id, "label": entry["label"], "home": str(home),
@@ -150,7 +182,10 @@ class Monitor:
                 pm2_env = item.get("pm2_env", {})
                 seen.add(item.get("name"))
                 specs_changed |= self._remember(daemon_id, item.get("name"), extract_launch_spec(pm2_env), overwrite=True)
-                procs.append(self._proc_row(daemon_id, item.get("name"), pm2_env, item, now_ms))
+                row = self._proc_row(daemon_id, item.get("name"), pm2_env, item, now_ms)
+                procs.append(row)
+                if row["status"] == "online" and row["pid"]:
+                    link_sources.append((row, row["pid"], pm2_env.get("pm_out_log_path")))
             if live is None:  # daemon down: recover the config from the dump (with a live daemon the dump may be stale)
                 for pm2_env in dump:
                     specs_changed |= self._remember(daemon_id, pm2_env["name"], extract_launch_spec(pm2_env), overwrite=False)
@@ -162,11 +197,14 @@ class Monitor:
                 if saved_daemon == daemon_id and name not in seen and saved.get("spec"):
                     seen.add(name)
                     procs.append(self._proc_row(daemon_id, name, {}, None, now_ms, status="absent"))
+        self._attach_links(link_sources)
         if specs_changed:
             with self.store.lock:
                 self.store.save()
-        domains = [{"name": n, **cfg} for n, cfg in sorted(self.store.data["domains"].items())]
-        return {"time": time.time(), "pm2": self.pm2_path, "warning": self.store.warning,
+        domains = [{"name": n, **cfg, "notify": normalize_settings(cfg.get("notify"))}
+                   for n, cfg in sorted(self.store.data["domains"].items())]
+        return {"time": time.time(), "language": self.store.data.get("language", "en"),
+                "notifyDefault": normalize_settings(self.store.data.get("notifyDefault")), "probeLinks": self.store.data.get("probeLinks", True), "eventTypes": EVENT_TYPES, "pm2": self.pm2_path, "warning": self.store.warning,
                 "version": __version__, "issuesUrl": ISSUES_URL,
                 "configPath": str(self.store.path), "daemons": daemons, "domains": domains,
                 "procs": procs, "jobs": self.active_jobs()}
@@ -179,6 +217,36 @@ class Monitor:
             if has_spec and not overwrite:
                 return False
             return self.store.remember_spec(key, spec)
+
+    def _attach_links(self, sources):
+        """Adds to each running process the addresses it answers on (localhost:PORT), if it listens on any."""
+        if not sources:
+            return
+        taken, found = self.ports_cache
+        pids = {pid for _, pid, _ in sources}
+        if time.time() - taken > PORTS_TTL_SECONDS or not pids <= set(found):
+            scanned = ports.listening_ports(pids)
+            found = {pid: scanned.get(pid, []) for pid in pids}   # a failed scan is remembered too, not retried at every poll
+            self.ports_cache = (time.time(), found)
+        hints = {pid: ports.log_hints(ports.read_log_hint(out_log)) if found.get(pid) else {} for _, pid, out_log in sources}
+        probing = self.store.data.get("probeLinks", True)
+        if probing:
+            self._probe([(pid, port) for pid in pids for port in ports.needs_check(found.get(pid, []), hints.get(pid, {}))])
+        for row, pid, _ in sources:
+            web = {port for port in found.get(pid, []) if self.probe_cache.get((pid, port), (False,))[0]} if probing else None
+            row["links"] = ports.build_links(found.get(pid, []), hints.get(pid, {}), web)
+
+    def _probe(self, wanted):
+        """Tests, in parallel and once per process, which of the listening ports answer like a web server."""
+        now = time.time()
+        live = set(wanted)
+        self.probe_cache = {k: v for k, v in self.probe_cache.items() if k[0] in {pid for pid, _ in live} or now - v[1] < RETRY_PROBE_SECONDS}
+        todo = [k for k in live if k not in self.probe_cache or (not self.probe_cache[k][0] and now - self.probe_cache[k][1] > RETRY_PROBE_SECONDS)]
+        if not todo:
+            return
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            for key, answer in zip(todo, pool.map(lambda key: ports.speaks_http(key[1]), todo)):
+                self.probe_cache[key] = (answer, now)
 
     def _proc_row(self, daemon_id, name, pm2_env, item, now_ms, status=None):
         key = f"{daemon_id}/{name}"
@@ -193,7 +261,7 @@ class Monitor:
             "uptime": (now_ms - pm2_env["pm_uptime"]) / 1000 if online and pm2_env.get("pm_uptime") else None,
             "restarts": pm2_env.get("restart_time", 0), "unstable": pm2_env.get("unstable_restarts", 0),
             "cwd": pm2_env.get("pm_cwd") or (saved.get("spec") or {}).get("cwd"),
-            "domain": saved.get("domain"), "order": saved.get("order", DEFAULT_ORDER),
+            "domain": saved.get("domain"), "order": saved.get("order", DEFAULT_ORDER), "links": [],
         }
 
     def find_logs(self, key):
@@ -224,6 +292,7 @@ class Monitor:
         if action not in ACTIONS:
             raise ActionError("invalid_action")
         daemon_id, name = split_key(key)
+        self.expect(key)
         with self._mutation_lock(daemon_id):
             item = self.live_entry(daemon_id, name)
             online = bool(item) and item.get("pm2_env", {}).get("status") == "online"
@@ -299,6 +368,16 @@ class Monitor:
         job["steps"].append({"key": key, "label": label, "ok": ok, "message": message, "params": params})
 
     def _run_job(self, job):
+        try:
+            self._run_job_steps(job)
+        finally:
+            if self.on_job_finished:
+                try:
+                    self.on_job_finished(job)
+                except Exception:  # noqa: BLE001 - telling the user must never break the job
+                    pass
+
+    def _run_job_steps(self, job):
         domain, action = job["domain"], job["action"]
         timeout = self.store.data["domains"][domain]["startTimeout"]
         members = self.domain_members(domain)
@@ -384,6 +463,19 @@ class Monitor:
                 self.scan()
             elif op == "forgetProcess":
                 store.forget_process(request.get("key"))
+            elif op == "setNotify":
+                scope = (request.get("scope") or "").strip()
+                if scope and scope not in store.data["domains"]:
+                    raise ActionError("unknown_domain")
+                store.set_notify(scope, normalize_settings(request.get("settings")))
+            elif op == "setProbeLinks":
+                store.data["probeLinks"] = bool(request.get("enabled"))
+                self.probe_cache.clear()
+                self.ports_cache = (0.0, {})
+            elif op == "setLanguage":
+                if request.get("language") in LANGUAGES:
+                    store.data["language"] = request["language"]
             else:
                 raise ActionError("unknown_config_op")
             store.save()
+            self.invalidate_snapshot()

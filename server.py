@@ -2,16 +2,18 @@
 """pm2-monitor — local web UI for the pm2 processes of any daemon on this computer.
 
 Standard library only. Listens on 127.0.0.1:8440. Works on Linux, macOS and Windows.
-Usage: python3 server.py [--port N] [--config PATH] [--version]
+Usage: python3 server.py [--port N] [--config PATH] [--stop] [--version]
 """
 import argparse
 import json
 import subprocess
+import sys
+import threading
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
-from pm2monitor import __version__, setup
+from pm2monitor import __version__, control, notifier, setup
 from pm2monitor.service import ActionError, Monitor, strip_ansi, tail
 from pm2monitor.store import ConfigStore
 
@@ -20,6 +22,8 @@ PORT = 8440
 MAX_BODY_BYTES = 64 * 1024
 
 monitor = None
+event_log = None
+watcher = None
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -90,12 +94,23 @@ class Handler(BaseHTTPRequestHandler):
             err, err_error = tail(err_path, line_count)
             self.send_json({"out": out, "err": err, "out_error": out_error, "err_error": err_error,
                             "out_path": out_path, "err_path": err_path})
+        elif url.path == "/api/ping":  # cheap: lets a launcher tell "the monitor is running" from "something else is on this port"
+            self.send_json({"app": "pm2-monitor", "version": __version__})
+        elif url.path == "/api/events":
+            try:
+                after = int(query.get("after", 0))
+            except ValueError:
+                after = 0
+            log = event_log or notifier.EventLog()
+            self.send_json({"events": log.since(after), "last": log.latest_id()})
         elif url.path == "/api/setup":
             self.send_json(setup.doctor(monitor))
         elif url.path in ("/api/browse", "/api/inspect"):
             try:
-                action = setup.list_folders if url.path == "/api/browse" else setup.suggest_command
-                self.send_json(action(query.get("path", "")))
+                if url.path == "/api/browse":
+                    self.send_json(setup.list_folders(query.get("path", ""), query.get("hidden") == "1"))
+                else:
+                    self.send_json(setup.suggest_command(query.get("path", "")))
             except ActionError as e:
                 self.send_error_json(e.code, str(e), 400, e.params)
         elif url.path == "/api/setup-job":
@@ -131,6 +146,19 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/config":
                 monitor.apply_config(request)
                 self.send_json({"ok": True})
+            elif path == "/api/shutdown":
+                self.send_json({"ok": True})  # the answer is out before the server goes down
+                threading.Thread(target=self.server.shutdown, daemon=True).start()
+            elif path == "/api/events/clear":
+                (event_log or notifier.EventLog()).clear()
+                self.send_json({"ok": True})
+            elif path == "/api/notify/test":
+                language = monitor.store.data.get("language", "en")
+                messages = notifier.MESSAGES.get(language, notifier.MESSAGES["en"])
+                ok, detail = notifier.send_desktop(messages["test_title"], messages["test_body"], "info")
+                if not ok:
+                    raise ActionError("desktop_unavailable" if detail == "no_tool" else "desktop_failed", detail=detail)
+                self.send_json({"ok": True})
             elif path == "/api/setup/install-pm2":
                 self.send_json({"ok": True, "job": setup.start_install_pm2(monitor)})
             elif path == "/api/setup/add-process":
@@ -146,18 +174,29 @@ class Handler(BaseHTTPRequestHandler):
 
 
 def main():
-    global monitor
+    global monitor, event_log, watcher
     parser = argparse.ArgumentParser(description="Local web UI for pm2 processes.")
     parser.add_argument("--port", type=int, default=PORT, help=f"local port (default {PORT})")
     parser.add_argument("--config", metavar="PATH",
                         help="config .json file or directory (otherwise PM2_MONITOR_CONFIG or the per-OS default)")
     parser.add_argument("--version", action="version", version=f"pm2-monitor {__version__}")
+    parser.add_argument("--stop", action="store_true", help="turn off the monitor that is running on --port and exit")
     args = parser.parse_args()
+    if args.stop:
+        stopped = control.request_shutdown(args.port)
+        print(f"pm2-monitor on port {args.port} " + ("is stopping." if stopped else "is not running."))
+        sys.exit(0 if stopped else 1)
     monitor = Monitor(ConfigStore(args.config))
+    event_log = notifier.EventLog(monitor.store.directory / "events.json")
+    watcher = notifier.Watcher(monitor, event_log)
+    monitor.on_job_finished = watcher.job_finished
+    watcher.start()
     server = ThreadingHTTPServer(("127.0.0.1", args.port), Handler)
     print(f"pm2-monitor on http://127.0.0.1:{args.port}  (pm2: {monitor.pm2_path or 'NOT FOUND'}, "
           f"config: {monitor.store.path})", flush=True)
-    server.serve_forever()
+    server.serve_forever()  # returns when /api/shutdown (or --stop) asks for it
+    server.server_close()
+    print("pm2-monitor stopped.", flush=True)
 
 
 if __name__ == "__main__":

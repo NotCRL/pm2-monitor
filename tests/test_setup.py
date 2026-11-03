@@ -52,6 +52,47 @@ class SuggestCommandTest(unittest.TestCase):
 
 
 class FolderListTest(unittest.TestCase):
+    def test_hidden_folders_are_optional_and_pm2_homes_are_flagged(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            Path(tmp, ".pm2").mkdir()
+            Path(tmp, ".pm2", "dump.pm2").write_text("[]")
+            Path(tmp, ".cache").mkdir()
+            Path(tmp, "app").mkdir()
+            plain = setup.list_folders(tmp)
+            everything = setup.list_folders(tmp, hidden=True)
+            inside = setup.list_folders(str(Path(tmp, ".pm2")), hidden=True)
+        self.assertEqual([f["name"] for f in plain["folders"]], ["app"])
+        self.assertEqual([(f["name"], f["pm2"]) for f in everything["folders"]], [(".cache", False), (".pm2", True), ("app", False)])
+        self.assertEqual((plain["isPm2Home"], inside["isPm2Home"]), (False, True))
+
+    def test_pm2_data_folders_are_offered_as_places(self):
+        with tempfile.TemporaryDirectory() as home:
+            Path(home, ".pm2-work").mkdir()
+            Path(home, ".pm2-work", "pm2.pid").write_text("1")
+            Path(home, ".pm2-empty").mkdir()           # no pm2 files inside: not a pm2 home
+            with mock.patch.object(setup, "HOME", Path(home)):
+                places = setup._places()
+        self.assertEqual([(p["name"], p.get("pm2", False)) for p in places[1:]], [(".pm2-work", True)])
+
+    def test_places_start_with_home_and_have_no_duplicates(self):
+        with tempfile.TemporaryDirectory() as home:
+            Path(home, "Projects").mkdir()
+            with mock.patch.object(setup, "HOME", Path(home)):
+                places = setup._places()
+        self.assertEqual([p["home"] for p in places], [True, False])
+        self.assertTrue(places[1]["path"].endswith("Projects"))
+
+    def test_places_use_the_folder_names_of_the_users_language(self):
+        with tempfile.TemporaryDirectory() as home:
+            (Path(home) / ".config").mkdir()
+            (Path(home) / ".config" / "user-dirs.dirs").write_text(
+                'XDG_DESKTOP_DIR="$HOME/Bureau"\nXDG_MUSIC_DIR="$HOME/Musique"\nXDG_DOWNLOAD_DIR="$HOME/Telechargements"\n')
+            for name in ("Bureau", "Musique"):
+                (Path(home) / name).mkdir()
+            with mock.patch.object(setup, "HOME", Path(home)):
+                names = [p["name"] for p in setup._places()]
+        self.assertEqual(names[1:], ["Bureau"])  # Musique is not a project place; Telechargements does not exist
+
     def test_lists_only_visible_folders_with_full_paths(self):
         with tempfile.TemporaryDirectory() as tmp:
             for name in ("beta", "Alpha", ".hidden"):

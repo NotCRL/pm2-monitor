@@ -156,7 +156,9 @@ With several daemons (section 5) the startup command must be repeated for each `
 
 1. Download the latest version from the repository's [**Releases** page](https://github.com/NotCRL/pm2-monitor/releases) (`.zip` or `.tar.gz` file) and unpack it into a fixed folder, for example `~/pm2-monitor` (on Windows `C:\Users\<you>\pm2-monitor`). Alternatively `git clone` the repository.
 2. Check Python: `python3 --version` (Windows: `python --version`). On Windows, if missing: `winget install Python.Python.3.12`. On macOS: `brew install python` or the installer from <https://www.python.org>. On Linux it is usually already there; otherwise `sudo apt install python3` (or your distribution's equivalent).
-3. Start it from the unpacked folder:
+3. **Easiest: double-click the launcher** in the unpacked folder: `Start pm2-monitor.bat` (Windows), `Start pm2-monitor.command` (macOS) or `start-pm2-monitor.sh` (Linux). It starts the monitor in the background and opens it in your browser; run it again any time (if the monitor is already on, it just opens the page). Notes: on macOS the first time, right-click the file > Open (it is not signed); on Linux some file managers need "Run executable text files" enabled, or run `./start-pm2-monitor.sh` in a terminal; `python3 launch.py --install-shortcut` adds pm2 monitor to your applications menu. To turn it off use the power button in the page or `python3 launch.py --stop`.
+
+   Or from a terminal, in the unpacked folder:
    ```bash
    python3 server.py          # Windows: python server.py
    ```
@@ -173,6 +175,7 @@ On first start the monitor looks for the computer's pm2 daemons by itself. Then,
 - **scan**: repeats the daemon search.
 - **daemons**: rename a daemon, hide it, add one by hand (a `PM2_HOME` folder).
 - **domains** (`+ domain`): group processes, even from different daemons. Assign a process to a domain from the row's drop-down.
+- **bell** (header): the notification history and, per domain, which problems you want to be told about (errors, warnings, good news) and how: the bell menu, browser notification, sound, or a desktop notification that works even when the page is closed. On Linux desktop notifications need `notify-send` (package `libnotify`).
 - **ord**: start order within the domain (lower number = starts first). "start all" waits for each process to be online before the next. ⚙ next to the domain sets the maximum wait time.
 
 ### Where the configuration file lives
