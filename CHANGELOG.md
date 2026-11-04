@@ -5,6 +5,15 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.4.0] - 2026-11-04
+
+### Added
+- **Type column (backend / frontend / your own).** The type is guessed from what the process runs (a `java` program or an Express project is a backend; a `react-scripts`, `vite` or Angular project is a frontend) and shown as "auto: …" until you choose one. Change it from the column, or pick "+ new type…" to create your own (database, worker, ...).
+- **Labels.** Any number of coloured labels per process, shown next to its name. Assign or create them from the "+" button, rename, recolour or delete them (and your types) in "Types and labels…" (Settings menu, or the bar above the list), and **filter the list** by type and by labels.
+
+### Changed
+- Dropdown menus now stay on the screen wherever their button is: they line up with the button's left edge when it is on the left side, and open upwards when there is little room below.
+
 ## [1.3.0] - 2026-10-30
 
 ### Added

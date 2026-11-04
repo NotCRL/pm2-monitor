@@ -49,10 +49,10 @@ display:flex;gap:0.769rem;align-items:center}
 h2 .sp{flex:1}
 h2 .name{color:var(--fg)}
 h2 .btns button{text-transform:none;letter-spacing:0}
-table{width:100%;min-width:80rem;border-collapse:collapse;table-layout:fixed}
-th:nth-child(1){width:15%}th:nth-child(2){width:7%}th:nth-child(3){width:10%}th:nth-child(4){width:15%}
-th:nth-child(5){width:5%}th:nth-child(6){width:8%}th:nth-child(7){width:7%}th:nth-child(8){width:6%}
-th:nth-child(9){width:5%}th:nth-child(10){width:10%}
+table{width:100%;min-width:88rem;border-collapse:collapse;table-layout:fixed}
+th:nth-child(1){width:15%}th:nth-child(2){width:6%}th:nth-child(3){width:9%}th:nth-child(4){width:8%}
+th:nth-child(5){width:13%}th:nth-child(6){width:4%}th:nth-child(7){width:6%}th:nth-child(8){width:6%}
+th:nth-child(9){width:5%}th:nth-child(10){width:5%}th:nth-child(11){width:9%}
 td{overflow:hidden;text-overflow:ellipsis}
 th{text-align:left;font-weight:500;color:var(--dim);font-size:0.846rem;padding:0.308rem 0.615rem;border-bottom:1px solid var(--line)}
 td{padding:0.308rem 0.615rem;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -235,12 +235,35 @@ main.below #splitter{width:auto;height:0.4rem;cursor:row-resize}
 .logpanel.active .lp-head{box-shadow:inset 0 -2px 0 var(--acc)}
 body.dragging{user-select:none}
 td.links{white-space:normal}
+td.namecell{white-space:normal}
+.tags{display:inline-flex;flex-wrap:wrap;align-items:center;gap:0.25rem;margin-left:0.5rem;vertical-align:middle}
+.tag{display:inline-block;padding:0 0.5rem;border-radius:0.6rem;font-size:0.75rem;line-height:1.35rem;border:1px solid transparent}
+button.tag{cursor:pointer;opacity:0.65}
+button.tag.on{opacity:1;outline:2px solid var(--fg)}
+.tagadd{padding:0 0.45rem;font-size:0.75rem;line-height:1.35rem;border-radius:0.6rem;border-style:dashed;background:transparent;color:var(--dim);opacity:0.45}
+tr.row:hover .tagadd,.tagadd:focus-visible{opacity:1}
+td.kindcell select{width:100%;border-left-width:0.25rem}
+select.kind-backend{border-left-color:#4a8fd8}
+select.kind-frontend{border-left-color:#3fb97a}
+select.kind-custom{border-left-color:var(--warn)}
+#labelmenu{width:min(21rem,calc(100vw - 1rem));padding:0.7rem 1rem}
+#labelmenu .line{display:flex;gap:0.4rem;margin-top:0.5rem}
+#labelmenu .line input{flex:1}
+.menu label.opt{display:flex;align-items:center;gap:0.5rem;margin:0.3rem 0}
+.menu label.opt .dim{margin-left:auto}
+dialog#metadialog{width:min(38rem,95vw);padding:1.1rem 1.4rem}
+.metarow{display:flex;align-items:center;gap:0.5rem;padding:0.35rem 0;border-bottom:1px solid var(--line)}
+.metarow .mname{min-width:6rem}
+.metarow input[type=color]{width:2rem;height:1.6rem;padding:0;border:0;background:none}
+.metarow .sp{flex:1}
+.metaadd{display:flex;gap:0.4rem;margin:0.6rem 0}
+.metaadd input[type=text]{flex:1}
 a.lnk{color:var(--acc);text-decoration:none;margin-right:0.5rem;white-space:nowrap}
 a.lnk:hover{text-decoration:underline}
 .hbtn.keepico .ico{display:inline}
 h2.grouphead{cursor:pointer;user-select:none}
 h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;font-size:1rem}
-.listbar{display:flex;gap:0.4rem;margin:0.6rem 0 0}
+.listbar{display:flex;flex-wrap:wrap;align-items:center;gap:0.4rem;margin:0.6rem 0 0}
 .lp-text{font-size:calc(0.923rem * var(--logfont, 1))}
 .lp-font{display:inline-flex;gap:0.2rem}
 #stopped{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;align-items:center;justify-content:center;padding:1.5rem}
@@ -321,6 +344,8 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
   <div id="notifbody"></div>
 </div>
 
+<div id="labelmenu" class="menu" hidden></div>
+
 <div id="viewmenu" class="menu" hidden>
   <div class="row"><span data-i18n="viewSize"></span>
     <span class="zoom"><button id="zoomout" data-i18n-title="zoomOut">A−</button><button id="zoomreset" data-i18n-title="zoomReset">100%</button><button id="zoomin" data-i18n-title="zoomIn">A+</button></span></div>
@@ -328,7 +353,14 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
     <select id="lang" title="Language / Lingua"><option value="en">English</option><option value="it">Italiano</option></select></div>
   <label class="row"><span data-i18n="probeLinks"></span><input type="checkbox" id="probelinks"></label>
   <p class="hint" data-i18n="probeLinksHint"></p>
+  <p><button class="linkbtn" data-meta-open data-i18n="metaManage"></button></p>
 </div>
+
+<dialog id="metadialog">
+  <div class="wizhead"><h3 data-i18n="metaTitle"></h3><button id="metaclose" data-i18n-title="close">✕</button></div>
+  <h4 class="subhead" data-i18n="metaTypes"></h4><div id="metatypes"></div>
+  <h4 class="subhead" data-i18n="metaLabels"></h4><div id="metalabels"></div>
+</dialog>
 
 <dialog id="helpdialog" class="help">
   <p class="backrow"><button class="linkbtn" id="helpback" hidden></button></p>
@@ -358,6 +390,7 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
       <li>The <b>bell</b> in the header shows what happened (an app crashed, stopped, restarted by itself, a daemon went down...) and lets you choose, <b>for each domain</b>, what you want to be told about (errors, warnings, good news), how (the bell menu, browser notification, sound, desktop notification) and an optional memory limit.</li>
       <li>Notifications are produced while the monitor is running. Changes you make through the monitor itself (a stop, a restart) are not reported.</li>
       <li><b>Two logs side by side:</b> click <b>⧉</b> in a log panel to open a second one next to it (at most two). The next process you click is shown in the active panel, the one underlined in blue. Drag the bar between the list and the logs, and the bar between the two logs, to resize them; double-click a bar to reset it.</li>
+      <li><b>Type and labels:</b> the <b>type</b> column says whether a process is a backend or a frontend; pm2 monitor guesses it ("auto: …") and you can change it, or choose "+ new type…" to create your own. Click the <b>＋</b> next to a name to give the process labels (any number, each with its own colour); <b>Types and labels…</b> (⚙ Settings, or the bar above the list) renames, recolours and deletes them. The bar above the list filters by type and by labels.</li>
       <li><b>Links:</b> the <b>links</b> column shows where a running app answers (for example <code>localhost:3000</code>); click it to open the page. To list only real web pages, pm2 monitor sends one harmless web request to each port an app listens on; the switch is in <b>⚙ Settings</b>.</li>
       <li><b>Groups:</b> click a group's title to collapse or expand it ("Collapse all" / "Expand all" above the list); the choice is remembered. The <b>⚙ Settings</b> menu holds the page size and the language. In a log, <b>A− / A+</b> change the size of the log text.</li>
       <li><b>Turning it off:</b> the power button (⏻) in the header turns pm2 monitor off. Your apps keep running under pm2. To start it again, double-click <b>Start pm2-monitor</b> (<code>.bat</code> on Windows, <code>.command</code> on macOS, <code>start-pm2-monitor.sh</code> on Linux).</li>
@@ -413,6 +446,7 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
       <li>La <b>campanella</b> nella testata mostra cosa è successo (un'app è andata in errore, si è fermata, si è riavviata da sola, un demone è caduto...) e ti lascia scegliere, <b>per ogni dominio</b>, di cosa vuoi essere avvisato (errori, avvisi, buone notizie), come (menu della campanella, notifica del browser, suono, notifica del desktop) e un limite di memoria facoltativo.</li>
       <li>Le notifiche vengono prodotte mentre il monitor è in esecuzione. I cambiamenti che fai dal monitor stesso (uno stop, un riavvio) non vengono segnalati.</li>
       <li><b>Due log affiancati:</b> clicca <b>⧉</b> in un pannello dei log per aprirne un secondo accanto (al massimo due). Il prossimo processo che clicchi si apre nel pannello attivo, quello sottolineato di blu. Trascina la barra tra l'elenco e i log, e quella tra i due log, per ridimensionarli; doppio clic su una barra per ripristinarla.</li>
+      <li><b>Tipo ed etichette:</b> la colonna <b>tipo</b> dice se un processo è un backend o un frontend; pm2 monitor lo indovina ("auto: …") e puoi cambiarlo, oppure scegliere "+ nuovo tipo…" per crearne uno tuo. Clicca il <b>＋</b> accanto a un nome per dare etichette al processo (quante vuoi, ciascuna con il suo colore); <b>Tipi ed etichette…</b> (⚙ Impostazioni, o la barra sopra l'elenco) le rinomina, ne cambia il colore e le elimina. La barra sopra l'elenco filtra per tipo e per etichette.</li>
       <li><b>Link:</b> la colonna <b>link</b> mostra dove risponde un'app in esecuzione (per esempio <code>localhost:3000</code>); cliccala per aprire la pagina. Per elencare solo le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un'app è in ascolto; l'interruttore è in <b>⚙ Impostazioni</b>.</li>
       <li><b>Gruppi:</b> clicca il titolo di un gruppo per comprimerlo o espanderlo ("Comprimi tutto" / "Espandi tutto" sopra l'elenco); la scelta viene ricordata. Il menu <b>⚙ Impostazioni</b> contiene la dimensione della pagina e la lingua. In un log, <b>A− / A+</b> cambiano la dimensione del testo del log.</li>
       <li><b>Spegnere:</b> il pulsante di accensione (⏻) nella testata spegne pm2 monitor. Le tue app continuano a funzionare sotto pm2. Per riavviarlo, fai doppio clic su <b>Start pm2-monitor</b> (<code>.bat</code> su Windows, <code>.command</code> su macOS, <code>start-pm2-monitor.sh</code> su Linux).</li>
@@ -505,7 +539,15 @@ const I18N = {
     view: 'Settings', browse: 'Browse…', browseHomeHint: 'Look for the folder where pm2 keeps its data (usually a hidden folder called .pm2).',
     'pk.path': 'Folder path', 'pk.go': 'Go', 'pk.hidden': 'Show hidden folders', 'pk.isPm2': '✓ This is a pm2 folder',
     'pk.notPm2': 'This does not look like a pm2 folder yet: open the one marked "pm2" (it contains pm2.pid or dump.pm2).', 'pk.usePm2': 'Add this pm2 folder',
-    probeLinks: 'Detect web links', probeLinksHint: 'To show a link only for real web pages, pm2 monitor sends one harmless web request to each port an app listens on. Turn it off to list every port without testing.', colLinks: 'links', linksMore: '+{n} more', collapseAll: 'Collapse all', expandAll: 'Expand all', collapseTitle: 'Collapse this group', expandTitle: 'Expand this group', collapsedSummary: '{on} of {n} online',
+    probeLinks: 'Detect web links', probeLinksHint: 'To show a link only for real web pages, pm2 monitor sends one harmless web request to each port an app listens on. Turn it off to list every port without testing.', colKind: 'type', kindAuto: 'auto: {kind}', kindNone: '—', kindNew: '+ new type…', kindNewPrompt: 'Name of the new type (for example database, worker):',
+    'kind.backend': 'Backend', 'kind.frontend': 'Frontend', labelsEdit: 'Edit the labels', labelNew: 'New label…',
+    labelsEmpty: 'No labels yet: type a name below to create the first one.', metaManage: 'Types and labels…', metaTitle: 'Types and labels',
+    metaTypes: 'Types', metaLabels: 'Labels', metaBuiltin: 'built-in', metaRename: 'rename', metaDelete: 'delete', metaUsed: '{n} in use', metaAdd: 'Add',
+    metaNewType: 'New type…', metaNewLabel: 'New label…', metaColor: 'Colour', metaRenamePrompt: 'New name:',
+    metaConfirmDeleteKind: 'Delete the type "{name}"? Processes that use it go back to the automatic guess.',
+    metaConfirmDeleteLabel: 'Delete the label "{name}" from every process?',
+    filterKind: 'All types', filterClear: 'Clear filter', filterCount: '{shown} of {total} processes', filterNone: 'No process matches the filter.',
+    colLinks: 'links', linksMore: '+{n} more', collapseAll: 'Collapse all', expandAll: 'Expand all', collapseTitle: 'Collapse this group', expandTitle: 'Expand this group', collapsedSummary: '{on} of {n} online',
     'lg.fontDown': 'Smaller text in the logs', 'lg.fontUp': 'Larger text in the logs', viewSize: 'Size', viewLanguage: 'Language', quit: 'Turn off pm2 monitor', quitConfirm: 'Turn off pm2 monitor?\n\nYour apps keep running under pm2: only the monitor stops. The page, the notifications and the history will not update until you start it again.', quitDone: 'pm2 monitor is off', quitDoneHint: 'Your apps are still running under pm2. To start the monitor again, double-click "Start pm2-monitor" (or run: python3 launch.py). You can close this window.',
     backTo: '← Back to {place}', 'lg.splitTitle': 'Drag to resize, double-click to reset', 'lg.addPanel': 'Open a second log next to this one', 'lg.closePanel': 'Close this log', 'lg.pickHint': 'Click a process in the list to see its log here.', logTop: 'Go to the first line', logBottom: 'Go to the last line and keep following', logLayoutRight: 'Show the logs on the right', logLayoutBelow: 'Show the logs below the list',
     'wz.title': 'Guided setup', 'wz.progress': 'Step {n} of {total}', 'wz.extras': 'Optional extras: you can skip these',
@@ -609,6 +651,8 @@ const I18N = {
     'err.npm_not_found': 'npm not found: finish step 1 (Node.js) first', 'err.process_exists': 'a process called "{name}" already exists',
     'err.process_failed': 'the app stopped right away ({status})', 'err.install_in_progress': 'an installation is already running',
     'err.install_failed': 'installation failed', 'err.pm2_missing_after_install': 'pm2 was installed but I cannot find it',
+    'err.bad_label_name': 'a name must have between 1 and 30 characters', 'err.label_exists': 'a label with that name already exists',
+    'err.kind_exists': 'a type with that name already exists', 'err.unknown_label': 'unknown label', 'err.unknown_kind': 'unknown type', 'err.bad_color': 'the colour is not valid',
     'err.desktop_unavailable': 'this computer has no tool for desktop notifications (on Linux install libnotify, which provides notify-send)',
     'err.desktop_failed': 'the desktop notification failed: {detail}'
   },
@@ -667,7 +711,15 @@ const I18N = {
     view: 'Impostazioni', browse: 'Sfoglia…', browseHomeHint: 'Cerca la cartella in cui pm2 conserva i suoi dati (di solito una cartella nascosta chiamata .pm2).',
     'pk.path': 'Percorso della cartella', 'pk.go': 'Vai', 'pk.hidden': 'Mostra le cartelle nascoste', 'pk.isPm2': '✓ Questa è una cartella di pm2',
     'pk.notPm2': 'Questa non sembra ancora una cartella di pm2: apri quella con l\'etichetta "pm2" (contiene pm2.pid o dump.pm2).', 'pk.usePm2': 'Aggiungi questa cartella di pm2',
-    probeLinks: 'Rileva i link web', probeLinksHint: 'Per mostrare un link solo per le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un\'app è in ascolto. Disattivalo per elencare ogni porta senza provarla.', colLinks: 'link', linksMore: '+{n} altri', collapseAll: 'Comprimi tutto', expandAll: 'Espandi tutto', collapseTitle: 'Comprimi questo gruppo', expandTitle: 'Espandi questo gruppo', collapsedSummary: '{on} su {n} online',
+    probeLinks: 'Rileva i link web', probeLinksHint: 'Per mostrare un link solo per le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un\'app è in ascolto. Disattivalo per elencare ogni porta senza provarla.', colKind: 'tipo', kindAuto: 'auto: {kind}', kindNone: '—', kindNew: '+ nuovo tipo…', kindNewPrompt: 'Nome del nuovo tipo (per esempio database, worker):',
+    'kind.backend': 'Backend', 'kind.frontend': 'Frontend', labelsEdit: 'Modifica le etichette', labelNew: 'Nuova etichetta…',
+    labelsEmpty: 'Ancora nessuna etichetta: scrivi un nome qui sotto per crearne una.', metaManage: 'Tipi ed etichette…', metaTitle: 'Tipi ed etichette',
+    metaTypes: 'Tipi', metaLabels: 'Etichette', metaBuiltin: 'predefinito', metaRename: 'rinomina', metaDelete: 'elimina', metaUsed: '{n} in uso', metaAdd: 'Aggiungi',
+    metaNewType: 'Nuovo tipo…', metaNewLabel: 'Nuova etichetta…', metaColor: 'Colore', metaRenamePrompt: 'Nuovo nome:',
+    metaConfirmDeleteKind: 'Eliminare il tipo "{name}"? I processi che lo usano tornano alla scelta automatica.',
+    metaConfirmDeleteLabel: 'Eliminare l\'etichetta "{name}" da tutti i processi?',
+    filterKind: 'Tutti i tipi', filterClear: 'Azzera il filtro', filterCount: '{shown} di {total} processi', filterNone: 'Nessun processo corrisponde al filtro.',
+    colLinks: 'link', linksMore: '+{n} altri', collapseAll: 'Comprimi tutto', expandAll: 'Espandi tutto', collapseTitle: 'Comprimi questo gruppo', expandTitle: 'Espandi questo gruppo', collapsedSummary: '{on} su {n} online',
     'lg.fontDown': 'Testo più piccolo nei log', 'lg.fontUp': 'Testo più grande nei log', viewSize: 'Dimensione', viewLanguage: 'Lingua', quit: 'Spegni pm2 monitor', quitConfirm: 'Spegnere pm2 monitor?\n\nLe tue app continuano a funzionare sotto pm2: si ferma solo il monitor. La pagina, le notifiche e lo storico non si aggiorneranno finché non lo riavvii.', quitDone: 'pm2 monitor è spento', quitDoneHint: 'Le tue app sono ancora in esecuzione sotto pm2. Per riavviare il monitor, fai doppio clic su "Start pm2-monitor" (oppure esegui: python3 launch.py). Puoi chiudere questa finestra.',
     backTo: '← Torna a: {place}', 'lg.splitTitle': 'Trascina per ridimensionare, doppio clic per ripristinare', 'lg.addPanel': 'Apri un secondo log accanto a questo', 'lg.closePanel': 'Chiudi questo log', 'lg.pickHint': 'Clicca un processo nell\'elenco per vederne qui il log.', logTop: 'Vai alla prima riga', logBottom: 'Vai all\'ultima riga e continua a seguire', logLayoutRight: 'Mostra i log a destra', logLayoutBelow: 'Mostra i log sotto l\'elenco',
     'wz.title': 'Configurazione guidata', 'wz.progress': 'Passo {n} di {total}', 'wz.extras': 'Extra facoltativi: puoi saltarli',
@@ -771,6 +823,8 @@ const I18N = {
     'err.npm_not_found': 'npm non trovato: completa prima il passo 1 (Node.js)', 'err.process_exists': 'esiste già un processo chiamato "{name}"',
     'err.process_failed': 'l\'app si è fermata subito ({status})', 'err.install_in_progress': 'un\'installazione è già in corso',
     'err.install_failed': 'installazione non riuscita', 'err.pm2_missing_after_install': 'pm2 è stato installato ma non riesco a trovarlo',
+    'err.bad_label_name': 'un nome deve avere da 1 a 30 caratteri', 'err.label_exists': 'esiste già un\'etichetta con quel nome',
+    'err.kind_exists': 'esiste già un tipo con quel nome', 'err.unknown_label': 'etichetta sconosciuta', 'err.unknown_kind': 'tipo sconosciuto', 'err.bad_color': 'il colore non è valido',
     'err.desktop_unavailable': 'questo computer non ha uno strumento per le notifiche del desktop (su Linux installa libnotify, che fornisce notify-send)',
     'err.desktop_failed': 'la notifica del desktop non è riuscita: {detail}'
   }
@@ -805,6 +859,52 @@ const errText = (code, params, fallback) => {
   const key = 'err.' + code;
   return (I18N[lang][key] ?? I18N.en[key]) ? t(key, params || {}) : (fallback || code || '');
 };
+// ---- types and labels ----
+const kindName = k => I18N[lang]['kind.' + k] ? t('kind.' + k) : k;   // backend / frontend are translated, your own types are shown as typed
+function hslToHex(h, s, l){
+  s /= 100; l /= 100;
+  const k = n => (n + h / 30) % 12, a = s * Math.min(l, 1 - l), f = n => l - a * Math.max(-1, Math.min(k(n) - 3, Math.min(9 - k(n), 1)));
+  const hex = x => Math.round(255 * x).toString(16).padStart(2, '0');
+  return `#${hex(f(0))}${hex(f(8))}${hex(f(4))}`;
+}
+function labelColor(name){   // the colour chosen for the label, else one derived from its name (the same name always gets the same colour)
+  const label = (state.labels || []).find(l => l.name === name);
+  if(label && label.color) return label.color;
+  let hue = 0; for(const c of name) hue = (hue * 31 + c.charCodeAt(0)) % 360;
+  return hslToHex(hue, 55, 38);
+}
+function readableOn(hex){   // black or white text, whichever reads better on this background
+  const [r, g, b] = [1, 3, 5].map(i => parseInt(hex.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b > 0.6 ? '#111' : '#fff';
+}
+const tagHtml = (name, extra = '') => { const c = labelColor(name); return `<span class="tag" style="background:${esc(c)};color:${readableOn(c)}" ${extra}>${esc(name)}</span>`; };
+function kindCell(p){
+  const kinds = [...state.kinds.builtin, ...state.kinds.custom], shown = p.kind || p.kindAuto;
+  const auto = p.kindAuto ? t('kindAuto', {kind: kindName(p.kindAuto)}) : t('kindNone');
+  return `<select data-cfg="kind" class="kind kind-${['backend', 'frontend'].includes(shown) ? shown : shown ? 'custom' : 'none'}" title="${esc(t('colKind'))}">
+    <option value="" ${p.kind ? '' : 'selected'}>${esc(auto)}</option>
+    ${kinds.map(k => `<option value="${esc(k)}" ${p.kind === k ? 'selected' : ''}>${esc(kindName(k))}</option>`).join('')}
+    <option value="__new__">${esc(t('kindNew'))}</option></select>`;
+}
+// ---- filter of the list by type and labels ----
+const filt = {kind: '', labels: new Set()};
+try{ const saved = JSON.parse(localStorage.getItem('filter') || '{}'); filt.kind = saved.kind || ''; filt.labels = new Set(saved.labels || []); }catch(e){}
+const saveFilter = () => { try{ localStorage.setItem('filter', JSON.stringify({kind: filt.kind, labels: [...filt.labels]})); }catch(e){} };
+const filterActive = () => !!filt.kind || filt.labels.size > 0;
+function passesFilter(p){
+  return (!filt.kind || (p.kind || p.kindAuto || '') === filt.kind) && [...filt.labels].every(l => (p.labels || []).includes(l));
+}
+function listBarHtml(groupCount, shown, total){
+  const kinds = [...state.kinds.builtin, ...state.kinds.custom];
+  const select = `<select data-filter="kind" title="${esc(t('filterKind'))}"><option value="">${esc(t('filterKind'))}</option>${kinds.map(k =>
+    `<option value="${esc(k)}" ${filt.kind === k ? 'selected' : ''}>${esc(kindName(k))}</option>`).join('')}</select>`;
+  const chips = state.labels.map(l => { const c = labelColor(l.name);
+    return `<button class="tag ${filt.labels.has(l.name) ? 'on' : ''}" data-filter-label="${esc(l.name)}" style="background:${esc(c)};color:${readableOn(c)}">${esc(l.name)}</button>`; }).join('');
+  return `<div class="listbar">${groupCount > 1 ? `<button data-collapse-all>${esc(t('collapseAll'))}</button><button data-expand-all>${esc(t('expandAll'))}</button>` : ''}
+    ${select}${chips}${filterActive() ? `<button data-filter-clear>${esc(t('filterClear'))}</button><span class="dim">${esc(t('filterCount', {shown, total}))}</span>` : ''}
+    <button class="linkbtn" data-meta-open>${esc(t('metaManage'))}</button></div>`;
+}
+
 // Where a running app answers (localhost:3000 ...): found by the server from the ports it listens on.
 function linkCell(p){
   const links = p.links || [];
@@ -845,10 +945,12 @@ async function api(path, body){
   const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
   return r.json();
 }
-async function config(body){
-  try{ const j = await api('/api/config', body); if(!j.ok) toast(errText(j.error, j.params, j.output), true); }
+async function config(body){   // true when the server accepted the change
+  let ok = false;
+  try{ const j = await api('/api/config', body); ok = !!j.ok; if(!ok) toast(errText(j.error, j.params, j.output), true); }
   catch(e){ toast(t('serverDown'), true); }
   await poll(true);
+  return ok;
 }
 
 let halted = false;   // the monitor was turned off from this page: nothing to poll any more
@@ -878,12 +980,13 @@ function groupByDomain(){
   const visible = new Set(state.daemons.filter(d => !d.hidden).map(d => d.id));
   const NONE = Symbol('none'); groups.set(NONE, []);
   for(const p of state.procs){
-    if(!visible.has(p.daemon)) continue;
+    if(!visible.has(p.daemon) || !passesFilter(p)) continue;
     groups.get((p.domain && groups.has(p.domain)) ? p.domain : NONE).push(p);
   }
   for(const list of groups.values()) list.sort((a,b) => (a.order-b.order) || a.name.localeCompare(b.name));
   const unassigned = groups.get(NONE); groups.delete(NONE);
   if(unassigned.length) groups.set(NONE, unassigned);
+  if(filterActive()) for(const [key, list] of [...groups]) if(!list.length) groups.delete(key);   // a filter hides the groups it empties
   return groups;
 }
 
@@ -908,8 +1011,12 @@ function render(force){
       ? `<span class="pill ${own.length - on ? 'warn' : 'ok'}">${esc(t('daemonOnline', {label: d.label, on, total: own.length}))}${own.length - on ? ` · <b>${esc(t('down', {n: own.length - on}))}</b>` : ''}</span>`
       : `<span class="pill bad">${esc(d.label)}: <b>${esc(errText(d.error, d.errorParams) || t('status.offline'))}</b></span>`;
   }
-  const groupCount = groupByDomain().size;
-  if(groupCount > 1) html += `<div class="listbar"><button data-collapse-all>${esc(t('collapseAll'))}</button><button data-expand-all>${esc(t('expandAll'))}</button></div>`;
+  state.labels = state.labels || [];
+  filt.labels = new Set([...filt.labels].filter(name => state.labels.some(l => l.name === name)));   // a deleted label cannot keep filtering
+  const groupCount = groupByDomain().size, visibleDaemons = new Set(state.daemons.filter(d => !d.hidden).map(d => d.id));
+  const everyone = state.procs.filter(p => visibleDaemons.has(p.daemon));
+  if(everyone.length) html += listBarHtml(groupCount, everyone.filter(passesFilter).length, everyone.length);
+  if(everyone.length && !groupCount) html += `<p class="dim">${esc(t('filterNone'))}</p>`;
   for(const [name, procs] of groupByDomain()){
     const isDomain = typeof name === 'string', title = isDomain ? name : t('noDomain');
     const anyBusy = isDomain && state.jobs.some(j => j.domain === name);
@@ -924,14 +1031,15 @@ function render(force){
       <button data-da="settings" title="${esc(t('settings'))}">⚙</button></span>`;
     html += '</h2>';
     if(closed) continue;
-    html += `<table><tr><th>${esc(t('colName'))}</th><th>${esc(t('colDaemon'))}</th><th>${esc(t('colStatus'))}</th><th>${esc(t('colLinks'))}</th><th class="num">${esc(t('colCpu'))}</th><th class="num">${esc(t('colMemory'))}</th>
+    html += `<table><tr><th>${esc(t('colName'))}</th><th>${esc(t('colDaemon'))}</th><th>${esc(t('colStatus'))}</th><th>${esc(t('colKind'))}</th><th>${esc(t('colLinks'))}</th><th class="num">${esc(t('colCpu'))}</th><th class="num">${esc(t('colMemory'))}</th>
     <th class="num">${esc(t('colUptime'))}</th><th class="num">${esc(t('colRestarts'))}</th><th class="num">${esc(t('colOrd'))}</th><th>${esc(t('colDomain'))}</th><th></th></tr>`;
     for(const p of procs){
       const b = busy.has(p.key);
       html += `<tr class="row ${esc(p.status)} ${panels.some(panel => panel.sel && panel.sel.key === p.key) ? 'sel' : ''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
-        <td><span class="dot"></span>${esc(p.name)}</td>
+        <td class="namecell"><span class="dot"></span>${esc(p.name)}<span class="tags">${(p.labels || []).map(tagHtml).join('')}<button class="tagadd" data-tagedit="${esc(p.key)}" title="${esc(t('labelsEdit'))}">＋</button></span></td>
         <td class="dim">${esc(labelOf[p.daemon])}</td>
         <td class="st">${esc(I18N[lang]['status.'+p.status] ? t('status.'+p.status) : p.status)}</td>
+        <td class="kindcell">${kindCell(p)}</td>
         <td class="links">${linkCell(p)}</td>
         <td class="num">${p.status==='online'?p.cpu+'%':'–'}</td>
         <td class="num">${p.status==='online'?mem(p.memory):'–'}</td>
@@ -952,6 +1060,7 @@ function render(force){
   if(level) html = setupCardHtml(level) + html;
   else if(!html) html = `<p class="dim">${esc(t('empty'))}</p>`;
   $('#list').innerHTML = html; $('#summary').innerHTML = sum;
+  anchorLabelMenu();
   $('#setupbtn').classList.toggle('attention', level === 'hard');
   if(level === 'hard') maybeAutoOpenWizard();
   if(state.jobs.length && !jobTimer) trackJob(state.jobs[0].id);
@@ -961,6 +1070,10 @@ $('#list').addEventListener('click', async e => {
   if(e.target.closest('[data-setup]')) return openWizard();
   const domainBtn = e.target.closest('[data-da]');
   if(domainBtn) return domainAction(domainBtn.closest('[data-domain]').dataset.domain, domainBtn.dataset.da);
+  const tagButton = e.target.closest('[data-tagedit]'); if(tagButton) return openLabelMenu(tagButton.dataset.tagedit, tagButton);
+  const filterLabel = e.target.closest('[data-filter-label]');
+  if(filterLabel){ const n = filterLabel.dataset.filterLabel; filt.labels.has(n) ? filt.labels.delete(n) : filt.labels.add(n); saveFilter(); return render(true); }
+  if(e.target.closest('[data-filter-clear]')){ filt.kind = ''; filt.labels.clear(); saveFilter(); return render(true); }
   if(e.target.closest('[data-collapse-all]')){ groupKeys().forEach(k => collapsed.add(k)); saveCollapsed(); return render(true); }
   if(e.target.closest('[data-expand-all]')){ collapsed.clear(); saveCollapsed(); return render(true); }
   const head = e.target.closest('h2[data-collapse]');
@@ -981,7 +1094,18 @@ $('#list').addEventListener('click', async e => {
 });
 
 $('#list').addEventListener('change', async e => {
+  if(e.target.dataset.filter === 'kind'){ filt.kind = e.target.value; saveFilter(); return render(true); }
   const key = e.target.closest('tr.row')?.dataset.key; if(!key) return;
+  if(e.target.dataset.cfg === 'kind'){
+    let kind = e.target.value;
+    if(kind === '__new__'){
+      const name = (prompt(t('kindNewPrompt')) || '').trim().split(/\s+/).join(' ');
+      if(!name){ render(true); return; }
+      if(!await config({op: 'createKind', name})){ render(true); return; }
+      kind = name;
+    }
+    return config({op: 'setKind', key, kind});
+  }
   if(e.target.dataset.cfg === 'order') return config({op:'setProcess', key, order: e.target.value});
   if(e.target.dataset.cfg === 'domain'){
     let domain = e.target.value;
@@ -1091,10 +1215,17 @@ function showOver(dialog, backButton){
 /* ---------- dropdown menus (notifications, view): anchored under their button, light dismiss ---------- */
 const openMenus = new Map();   // menu element -> its anchor button
 function placeMenu(menu, anchor){
-  const r = anchor.getBoundingClientRect();
-  menu.style.top = (r.bottom + 6) + 'px';
-  menu.style.right = Math.max(8, window.innerWidth - r.right) + 'px';
-  menu.style.maxHeight = Math.max(160, window.innerHeight - r.bottom - 24) + 'px';
+  const r = anchor.getBoundingClientRect(), width = menu.offsetWidth, margin = 8;
+  let left = r.right - width;                                   // normally the menu's right edge lines up with the button's
+  if(left < margin) left = r.left;                              // a button on the left side: line up the left edges instead
+  menu.style.left = Math.max(margin, Math.min(left, window.innerWidth - width - margin)) + 'px';
+  menu.style.right = 'auto';
+  const below = window.innerHeight - r.bottom - 24, above = r.top - 24;
+  if(below < 220 && above > below){                             // little room under the button: open upwards
+    menu.style.top = 'auto'; menu.style.bottom = (window.innerHeight - r.top + 6) + 'px'; menu.style.maxHeight = Math.max(160, above) + 'px';
+  }else{
+    menu.style.bottom = 'auto'; menu.style.top = (r.bottom + 6) + 'px'; menu.style.maxHeight = Math.max(160, below) + 'px';
+  }
 }
 function closeMenu(menu){
   if(!openMenus.has(menu)) return;
@@ -1383,6 +1514,74 @@ $('#wizhelp').onclick = openHelp;
 $('#wizard').addEventListener('close', () => clearInterval(wiz.auto));
 window.addEventListener('focus', autoCheck);
 $('#setupbtn').onclick = () => openWizard();
+
+/* ---------- labels of a process (menu) and the types / labels manager (dialog) ---------- */
+let labelKey = null;
+const tidyName = text => String(text || '').trim().split(/\s+/).join(' ');
+function renderLabelMenu(){
+  const p = state.procs.find(x => x.key === labelKey), menu = $('#labelmenu');
+  if(!p) return closeMenu(menu);
+  const rows = state.labels.map(l => `<label class="opt"><input type="checkbox" data-label="${esc(l.name)}" ${(p.labels || []).includes(l.name) ? 'checked' : ''}>${tagHtml(l.name)}<span class="dim">${l.count}</span></label>`).join('')
+    || `<p class="hint">${esc(t('labelsEmpty'))}</p>`;
+  menu.innerHTML = `<h4 class="subhead">${esc(p.name)}</h4>${rows}
+    <div class="line"><input id="newlabel" placeholder="${esc(t('labelNew'))}" maxlength="30" autocomplete="off"><button id="addlabel">＋</button></div>
+    <p><button class="linkbtn" data-meta-open>${esc(t('metaManage'))}</button></p>`;
+}
+function anchorLabelMenu(){   // the list is redrawn at every refresh: follow the new "+" button
+  const menu = $('#labelmenu'); if(menu.hidden) return;
+  const anchor = document.querySelector(`[data-tagedit="${CSS.escape(labelKey)}"]`);
+  if(anchor){ openMenus.set(menu, anchor); placeMenu(menu, anchor); } else closeMenu(menu);
+}
+function openLabelMenu(key, anchor){ labelKey = key; renderLabelMenu(); openMenu($('#labelmenu'), anchor); $('#newlabel') && $('#newlabel').focus(); }
+const checkedLabels = () => [...document.querySelectorAll('#labelmenu [data-label]:checked')].map(box => box.dataset.label);
+$('#labelmenu').addEventListener('change', async e => {
+  if(!e.target.dataset.label) return;
+  await config({op: 'setLabels', key: labelKey, labels: checkedLabels()});
+  renderLabelMenu(); anchorLabelMenu();
+});
+async function addLabelFromMenu(){
+  const name = tidyName($('#newlabel').value); if(!name) return;
+  if(await config({op: 'createLabel', name})) await config({op: 'setLabels', key: labelKey, labels: [...checkedLabels(), name]});
+  renderLabelMenu(); anchorLabelMenu(); $('#newlabel') && $('#newlabel').focus();
+}
+$('#labelmenu').addEventListener('click', e => { if(e.target.closest('#addlabel')) addLabelFromMenu(); });
+$('#labelmenu').addEventListener('keydown', e => { if(e.key === 'Enter' && e.target.id === 'newlabel'){ e.preventDefault(); addLabelFromMenu(); } });
+
+function renderMeta(){
+  const kindUse = k => state.procs.filter(p => (p.kind || p.kindAuto) === k).length;
+  $('#metatypes').innerHTML = [...state.kinds.builtin.map(k => ({name: k, builtin: true})), ...state.kinds.custom.map(k => ({name: k}))].map(k => `<div class="metarow">
+      <span class="mname">${esc(kindName(k.name))}</span>
+      ${k.builtin ? `<span class="dim">${esc(t('metaBuiltin'))}</span>` : `<button data-kind-rename="${esc(k.name)}">${esc(t('metaRename'))}</button><button data-kind-delete="${esc(k.name)}">${esc(t('metaDelete'))}</button>`}
+      <span class="sp"></span><span class="dim">${esc(t('metaUsed', {n: kindUse(k.name)}))}</span></div>`).join('')
+    + `<div class="metaadd"><input type="text" id="newkindname" placeholder="${esc(t('metaNewType'))}" maxlength="30" autocomplete="off"><button id="addkindbtn">${esc(t('metaAdd'))}</button></div>`;
+  $('#metalabels').innerHTML = state.labels.map(l => `<div class="metarow">
+      <input type="color" data-label-color="${esc(l.name)}" value="${esc(labelColor(l.name))}" title="${esc(t('metaColor'))}">
+      <span class="mname">${tagHtml(l.name)}</span><button data-label-rename="${esc(l.name)}">${esc(t('metaRename'))}</button><button data-label-delete="${esc(l.name)}">${esc(t('metaDelete'))}</button>
+      <span class="sp"></span><span class="dim">${esc(t('metaUsed', {n: l.count}))}</span></div>`).join('')
+    + `<div class="metaadd"><input type="color" id="newlabelcolor" value="#4a8fd8" title="${esc(t('metaColor'))}"><input type="text" id="newlabelname" placeholder="${esc(t('metaNewLabel'))}" maxlength="30" autocomplete="off"><button id="addlabelbtn">${esc(t('metaAdd'))}</button></div>`;
+}
+function openMeta(){ openMenus.forEach((_, menu) => closeMenu(menu)); renderMeta(); if(!$('#metadialog').open) $('#metadialog').showModal(); }
+document.addEventListener('click', e => { if(e.target.closest('[data-meta-open]')) openMeta(); });
+$('#metaclose').onclick = () => $('#metadialog').close();
+$('#metadialog').addEventListener('click', async e => {
+  const q = attribute => e.target.closest(`[${attribute}]`);
+  let target;
+  if(target = q('data-kind-rename')){ const name = tidyName(prompt(t('metaRenamePrompt'), target.dataset.kindRename)); if(name && name !== target.dataset.kindRename) await config({op: 'renameKind', old: target.dataset.kindRename, new: name}); }
+  else if(target = q('data-kind-delete')){ if(confirm(t('metaConfirmDeleteKind', {name: target.dataset.kindDelete}))) await config({op: 'deleteKind', name: target.dataset.kindDelete}); }
+  else if(target = q('data-label-rename')){ const name = tidyName(prompt(t('metaRenamePrompt'), target.dataset.labelRename)); if(name && name !== target.dataset.labelRename) await config({op: 'renameLabel', old: target.dataset.labelRename, new: name}); }
+  else if(target = q('data-label-delete')){ if(confirm(t('metaConfirmDeleteLabel', {name: target.dataset.labelDelete}))) await config({op: 'deleteLabel', name: target.dataset.labelDelete}); }
+  else if(q('#addkindbtn') || e.target.id === 'addkindbtn'){ const name = tidyName($('#newkindname').value); if(name) await config({op: 'createKind', name}); }
+  else if(e.target.id === 'addlabelbtn'){ const name = tidyName($('#newlabelname').value); if(name) await config({op: 'createLabel', name, color: $('#newlabelcolor').value}); }
+  else return;
+  renderMeta();
+});
+$('#metadialog').addEventListener('change', async e => {
+  if(e.target.dataset.labelColor){ await config({op: 'setLabelColor', name: e.target.dataset.labelColor, color: e.target.value}); renderMeta(); }
+});
+$('#metadialog').addEventListener('keydown', e => {
+  if(e.key !== 'Enter') return;
+  if(e.target.id === 'newkindname') $('#addkindbtn').click(); else if(e.target.id === 'newlabelname') $('#addlabelbtn').click();
+});
 
 /* ---------- notifications ---------- */
 const SEV_ICON = {error: '✕', warning: '⚠', info: 'ℹ'};

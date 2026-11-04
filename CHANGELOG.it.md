@@ -5,6 +5,15 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.4.0] - 2026-11-04
+
+### Aggiunto
+- **Colonna del tipo (backend / frontend / i tuoi).** Il tipo viene indovinato da ciò che il processo esegue (un programma `java` o un progetto Express è un backend; un progetto `react-scripts`, `vite` o Angular è un frontend) e mostrato come "auto: …" finché non ne scegli uno. Cambialo dalla colonna, oppure scegli "+ nuovo tipo…" per crearne uno tuo (database, worker, ...).
+- **Etichette.** Quante etichette colorate vuoi per ogni processo, mostrate accanto al nome. Assegnale o creale dal pulsante "+", rinominale, cambiane il colore o eliminale (insieme ai tuoi tipi) in "Tipi ed etichette…" (menu Impostazioni, o la barra sopra l'elenco), e **filtra l'elenco** per tipo e per etichette.
+
+### Modificato
+- I menu a tendina restano sempre dentro lo schermo, ovunque sia il loro pulsante: si allineano al bordo sinistro del pulsante se è sul lato sinistro, e si aprono verso l'alto quando sotto c'è poco spazio.
+
 ## [1.3.0] - 2026-10-30
 
 ### Aggiunto

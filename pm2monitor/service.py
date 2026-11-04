@@ -12,12 +12,12 @@ import uuid
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
-from . import ISSUES_URL, __version__, ports
+from . import ISSUES_URL, __version__, classify, ports
 from .discovery import (daemon_alive, discover_homes, extract_launch_spec, looks_like_pm2_home,
                         make_daemon_id, read_dump)
 from .notifier import EVENT_TYPES, LANGUAGES, normalize_settings
 from .osenv import find_pm2, pm2_environment, subprocess_flags
-from .store import DEFAULT_ORDER
+from .store import BUILTIN_KINDS, DEFAULT_ORDER
 
 ACTIONS = {"start", "stop", "restart"}
 ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
@@ -28,6 +28,10 @@ MAX_JOBS_KEPT = 20
 RETRY_PROBE_SECONDS = 60.0  # a port that did not answer like a web server may just not have been ready
 PORTS_TTL_SECONDS = 8.0  # scanning the system for listening ports is dearer than reading pm2: do it less often
 SNAPSHOT_TTL_SECONDS = 2.0  # the page and the notification watcher share one reading of pm2
+
+
+TAXONOMY_OPS = frozenset({"createKind", "renameKind", "deleteKind", "setKind", "createLabel", "renameLabel",
+                          "deleteLabel", "setLabelColor", "setLabels"})
 
 
 class ActionError(Exception):
@@ -204,6 +208,7 @@ class Monitor:
         domains = [{"name": n, **cfg, "notify": normalize_settings(cfg.get("notify"))}
                    for n, cfg in sorted(self.store.data["domains"].items())]
         return {"time": time.time(), "language": self.store.data.get("language", "en"),
+                "kinds": {"builtin": list(BUILTIN_KINDS), "custom": list(self.store.data["kinds"])}, "labels": self._label_list(),
                 "notifyDefault": normalize_settings(self.store.data.get("notifyDefault")), "probeLinks": self.store.data.get("probeLinks", True), "eventTypes": EVENT_TYPES, "pm2": self.pm2_path, "warning": self.store.warning,
                 "version": __version__, "issuesUrl": ISSUES_URL,
                 "configPath": str(self.store.path), "daemons": daemons, "domains": domains,
@@ -217,6 +222,14 @@ class Monitor:
             if has_spec and not overwrite:
                 return False
             return self.store.remember_spec(key, spec)
+
+    def _label_list(self):
+        counts = {}
+        for entry in self.store.data["processes"].values():
+            for label in entry.get("labels", []):
+                counts[label] = counts.get(label, 0) + 1
+        return [{"name": name, "color": meta.get("color"), "count": counts.get(name, 0)}
+                for name, meta in self.store.data["labels"].items()]
 
     def _attach_links(self, sources):
         """Adds to each running process the addresses it answers on (localhost:PORT), if it listens on any."""
@@ -254,6 +267,7 @@ class Monitor:
         status = status or pm2_env.get("status")
         online = status == "online"
         monit = (item or {}).get("monit", {})
+        kind = saved.get("kind") if saved.get("kind") in self.store.all_kinds() else None
         return {
             "key": key, "name": name, "daemon": daemon_id, "status": status,
             "pid": (item or {}).get("pid") or None,
@@ -262,6 +276,8 @@ class Monitor:
             "restarts": pm2_env.get("restart_time", 0), "unstable": pm2_env.get("unstable_restarts", 0),
             "cwd": pm2_env.get("pm_cwd") or (saved.get("spec") or {}).get("cwd"),
             "domain": saved.get("domain"), "order": saved.get("order", DEFAULT_ORDER), "links": [],
+            "kind": kind, "kindAuto": None if kind else classify.guess_kind(saved.get("spec")),
+            "labels": [label for label in saved.get("labels", []) if label in self.store.data["labels"]],
         }
 
     def find_logs(self, key):
@@ -418,6 +434,34 @@ class Monitor:
             return dict(job, steps=list(job["steps"])) if job else None
 
     # --- config changes -----------------------------------------------------
+    def _apply_taxonomy(self, op, request):
+        """Types (backend / frontend / your own) and labels of processes. Errors become codes the UI translates."""
+        store, name, subject = self.store, request.get("name"), "label" if "abel" in op else "kind"
+        try:
+            if op in ("setKind", "setLabels") and split_key(request.get("key", ""))[0] not in store.data["daemons"]:
+                raise ActionError("unknown_process")
+            if op == "createKind":
+                store.add_kind(name)
+            elif op == "renameKind":
+                store.rename_kind(request.get("old"), request.get("new"))
+            elif op == "deleteKind":
+                store.delete_kind(name)
+            elif op == "setKind":
+                store.set_kind(request["key"], request.get("kind"))
+            elif op == "createLabel":
+                store.add_label(name, request.get("color"))
+            elif op == "renameLabel":
+                store.rename_label(request.get("old"), request.get("new"))
+            elif op == "deleteLabel":
+                store.delete_label(name)
+            elif op == "setLabelColor":
+                store.set_label_color(name, request.get("color"))
+            elif op == "setLabels":
+                store.set_labels(request["key"], request.get("labels") if isinstance(request.get("labels"), list) else [])
+        except ValueError as e:
+            raise ActionError({"bad_name": "bad_label_name", "exists": f"{subject}_exists", "unknown": f"unknown_{subject}",
+                               "bad_color": "bad_color"}.get(str(e), "bad_label_name"))
+
     def apply_config(self, request):
         op = request.get("op")
         store = self.store
@@ -468,6 +512,8 @@ class Monitor:
                 if scope and scope not in store.data["domains"]:
                     raise ActionError("unknown_domain")
                 store.set_notify(scope, normalize_settings(request.get("settings")))
+            elif op in TAXONOMY_OPS:
+                self._apply_taxonomy(op, request)
             elif op == "setProbeLinks":
                 store.data["probeLinks"] = bool(request.get("enabled"))
                 self.probe_cache.clear()

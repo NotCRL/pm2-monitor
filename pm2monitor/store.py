@@ -1,6 +1,7 @@
 """Persistent configuration: known daemons, domains, start order and launch specs."""
 import json
 import os
+import re
 import threading
 import time
 from pathlib import Path
@@ -9,11 +10,27 @@ from .osenv import default_config_file, resolve_config_file
 
 DEFAULT_START_TIMEOUT = 30
 DEFAULT_ORDER = 100
+BUILTIN_KINDS = ("backend", "frontend")
+NAME_MAX_LENGTH = 30
+HEX_COLOR = re.compile(r"^#[0-9a-fA-F]{6}$")
+
+
+def clean_name(text):
+    """A type or label name as the user typed it: spaces tidied, 1-30 characters, no control characters."""
+    name = " ".join(str(text or "").split())
+    if not name or len(name) > NAME_MAX_LENGTH or any(ord(c) < 32 for c in name):
+        raise ValueError("bad_name")
+    return name
+
+
+def _taken(name, existing):
+    return name.lower() in {e.lower() for e in existing}
 
 
 def empty_config():
     return {"version": 1, "pm2Path": None, "extraHomes": [], "daemons": {}, "domains": {}, "processes": {},
-            "notifyDefault": None, "language": "en", "probeLinks": True}
+            "notifyDefault": None, "language": "en", "probeLinks": True,
+            "kinds": [], "labels": {}}
 
 
 class ConfigStore:
@@ -124,6 +141,82 @@ class ConfigStore:
             entry["domain"] = domain
         if order is not None:
             entry["order"] = int(order)
+
+    # --- types (backend / frontend / your own) and labels --------------------------
+    def all_kinds(self):
+        return list(BUILTIN_KINDS) + list(self.data["kinds"])
+
+    def add_kind(self, name):
+        name = clean_name(name)
+        if _taken(name, self.all_kinds()):
+            raise ValueError("exists")
+        self.data["kinds"].append(name)
+        return name
+
+    def rename_kind(self, old, new):
+        if old not in self.data["kinds"]:
+            raise ValueError("unknown")
+        new = clean_name(new)
+        if new != old and _taken(new, self.all_kinds()):
+            raise ValueError("exists")
+        self.data["kinds"][self.data["kinds"].index(old)] = new
+        for entry in self.data["processes"].values():
+            if entry.get("kind") == old:
+                entry["kind"] = new
+
+    def delete_kind(self, name):
+        if name not in self.data["kinds"]:
+            raise ValueError("unknown")
+        self.data["kinds"].remove(name)
+        for entry in self.data["processes"].values():
+            if entry.get("kind") == name:
+                entry["kind"] = None   # back to the automatic guess
+
+    def set_kind(self, key, kind):
+        """kind '' (or None) means: use the automatic guess."""
+        if kind and kind not in self.all_kinds():
+            raise ValueError("unknown")
+        self.process_entry(key)["kind"] = kind or None
+
+    def add_label(self, name, color=None):
+        name = clean_name(name)
+        if _taken(name, self.data["labels"]):
+            raise ValueError("exists")
+        if color and not HEX_COLOR.match(color):
+            raise ValueError("bad_color")
+        self.data["labels"][name] = {"color": color or None}
+        return name
+
+    def rename_label(self, old, new):
+        if old not in self.data["labels"]:
+            raise ValueError("unknown")
+        new = clean_name(new)
+        if new != old and _taken(new, self.data["labels"]):
+            raise ValueError("exists")
+        self.data["labels"] = {(new if name == old else name): meta for name, meta in self.data["labels"].items()}
+        for entry in self.data["processes"].values():
+            entry["labels"] = [new if label == old else label for label in entry.get("labels", [])]
+
+    def delete_label(self, name):
+        if name not in self.data["labels"]:
+            raise ValueError("unknown")
+        del self.data["labels"][name]
+        for entry in self.data["processes"].values():
+            entry["labels"] = [label for label in entry.get("labels", []) if label != name]
+
+    def set_label_color(self, name, color):
+        if name not in self.data["labels"]:
+            raise ValueError("unknown")
+        if color and not HEX_COLOR.match(color):
+            raise ValueError("bad_color")
+        self.data["labels"][name]["color"] = color or None
+
+    def set_labels(self, key, names):
+        """The labels of a process, in the order given; every one must already exist."""
+        names = [n for i, n in enumerate(names) if n not in names[:i]]
+        if any(n not in self.data["labels"] for n in names):
+            raise ValueError("unknown")
+        self.process_entry(key)["labels"] = names
 
     def forget_process(self, key):
         self.data["processes"].pop(key, None)
