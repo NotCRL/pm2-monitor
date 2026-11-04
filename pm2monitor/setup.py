@@ -243,6 +243,35 @@ def suggest_command(folder):
             "candidates": candidates}
 
 
+MAX_NAME_ATTEMPTS = 20
+
+
+def auto_start(monitor, folder, name=None):
+    """Scans a folder and starts the program by itself: the likely commands are tried in order until one stays up.
+
+    A name already in use gets a number added. Every failed attempt is removed again by add_process.
+    Returns the working name, command and kind plus the failed attempts; raises auto_start_failed when none works."""
+    suggestion = suggest_command(folder)
+    if not suggestion["candidates"]:
+        raise ActionError("no_command_found")
+    base, failed = (name or suggestion["name"]).strip(), []
+    for candidate in suggestion["candidates"]:
+        for attempt in range(1, MAX_NAME_ATTEMPTS + 1):
+            current = base if attempt == 1 else f"{base}-{attempt}"[:60]
+            try:
+                result = add_process(monitor, current, folder, candidate["command"])
+            except ActionError as error:
+                if error.code == "process_exists":
+                    continue                      # the name is taken: same command, next name
+                if error.code == "process_failed":
+                    failed.append({"command": candidate["command"], "status": error.params.get("status"),
+                                   "log": error.params.get("log", "")})
+                    break                         # this command does not work: try the next one
+                raise                             # pm2 missing, bad folder...: no other command would help
+            return {**result, "name": current, "command": candidate["command"], "kind": candidate["kind"], "failed": failed}
+    raise ActionError("auto_start_failed", tried=failed)
+
+
 # --- starting the first app -----------------------------------------------------------------------
 def ensure_default_daemon(monitor):
     """Registers pm2's default daemon (PM2_HOME or ~/.pm2) even if it does not exist yet: pm2 creates it

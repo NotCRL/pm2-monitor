@@ -167,6 +167,8 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/setup/add-process":
                 result = setup.add_process(monitor, request.get("name"), request.get("folder"), request.get("command"))
                 self.send_json({"ok": True, **result})
+            elif path == "/api/setup/auto-start":
+                self.send_json({"ok": True, **setup.auto_start(monitor, request.get("folder"), request.get("name"))})
             else:
                 self.send_error(404)
         except ActionError as e:

@@ -603,7 +603,7 @@ const I18N = {
     'wz.s3.plain': 'Here you add ONE program to pm2, for example your website, your API or your server. pm2 starts it, restarts it if it crashes, and this monitor shows it in the list. You do this once for each program. Just follow the three numbered boxes.',
     'wz.s3.found': '✓ I can see {n} process(es) in {d} pm2 daemon(s). You are all set here!',
     'wz.s3.needPm2': 'First finish step 2.',
-    'wz.s3.sub1': 'Which program? Choose its folder', 'wz.s3.sub1hint': 'Every program lives in a folder on your computer. Click the button and open the folder of the program you want (the one with its files, such as package.json, app.py or a .jar file).',
+    'wz.s3.sub1': 'Which program? Choose its folder', 'wz.s3.sub1hint': 'Every program lives in a folder on your computer. Click the button and open the folder of the program you want (the one with its files, such as package.json, app.py or a .jar file). As soon as you choose it I look inside and start it by myself.',
     'wz.s3.browse': 'Choose folder…', 'wz.s3.places': 'Quick places:', 'wz.s3.home': 'Home',
     'wz.s3.useFolder': 'Use this folder', 'wz.s3.up': '⬆ Go up one folder', 'wz.s3.noFolders': 'No sub-folders here.',
     'wz.s3.sub2': 'How does it start? Pick one', 'wz.s3.sub2hint': 'I looked inside the folder. Normally the first choice is the right one. If you are not sure, keep it: if it does not work I will tell you and you can try another.',
@@ -622,6 +622,9 @@ const I18N = {
     'wz.next.dbl': 'Easiest: open the folder below and double-click the file "{file}".',
     'wz.next.cmd': 'Or type this in a terminal:', 'wz.next.addr': 'Then open this address in your browser: {url}',
     'wz.next.folder': 'The monitor folder:',
+    'wz.s3.autoTrying': 'Looking at the folder and starting it by myself… I may try a few ways, this can take up to a minute.',
+    'wz.s3.autoFailedTitle': 'I tried to start it by myself, but these ways did not work:', 'wz.s3.autoFailedHelp': 'Pick another way below, or type the command yourself.',
+    'wz.s3.autoUsed': 'I started it with: {command}',
     'wz.s3.sub3': 'Start it', 'wz.s3.start': 'Start my program', 'wz.s3.starting': 'Starting… this takes a few seconds.',
     'wz.s3.fillAll': 'Choose the folder, how it starts and a name to continue.',
     'wz.s3.successTitle': 'Your program is running!',
@@ -675,7 +678,7 @@ const I18N = {
     'err.npm_not_found': 'npm not found: finish step 1 (Node.js) first', 'err.process_exists': 'a process called "{name}" already exists',
     'err.process_failed': 'the app stopped right away ({status})', 'err.install_in_progress': 'an installation is already running',
     'err.install_failed': 'installation failed', 'err.pm2_missing_after_install': 'pm2 was installed but I cannot find it',
-    'err.open_unavailable': 'this computer has no way to open a folder from here (on Linux install xdg-utils)', 'err.open_failed': 'the file manager could not open the folder',
+    'err.no_command_found': 'I found nothing in this folder that looks like a program to start; type the command yourself below', 'err.auto_start_failed': 'none of the ways I tried started it and kept it running', 'err.open_unavailable': 'this computer has no way to open a folder from here (on Linux install xdg-utils)', 'err.open_failed': 'the file manager could not open the folder',
     'err.bad_label_name': 'a name must have between 1 and 30 characters', 'err.label_exists': 'a label with that name already exists',
     'err.kind_exists': 'a type with that name already exists', 'err.unknown_label': 'unknown label', 'err.unknown_kind': 'unknown type', 'err.bad_color': 'the colour is not valid',
     'err.desktop_unavailable': 'this computer has no tool for desktop notifications (on Linux install libnotify, which provides notify-send)',
@@ -784,7 +787,7 @@ const I18N = {
     'wz.s3.plain': 'Qui aggiungi UN programma a pm2, per esempio il tuo sito, la tua API o il tuo server. pm2 lo avvia, lo riavvia se si blocca, e questo monitor lo mostra nell\'elenco. Lo fai una volta per ogni programma. Basta seguire i tre riquadri numerati.',
     'wz.s3.found': '✓ Vedo {n} processo/i in {d} demone/i pm2. Qui è tutto a posto!',
     'wz.s3.needPm2': 'Completa prima il passo 2.',
-    'wz.s3.sub1': 'Quale programma? Scegli la sua cartella', 'wz.s3.sub1hint': 'Ogni programma sta in una cartella del tuo computer. Clicca il pulsante e apri la cartella del programma che vuoi (quella con i suoi file, come package.json, app.py o un file .jar).',
+    'wz.s3.sub1': 'Quale programma? Scegli la sua cartella', 'wz.s3.sub1hint': 'Ogni programma sta in una cartella del tuo computer. Clicca il pulsante e apri la cartella del programma che vuoi (quella con i suoi file, come package.json, app.py o un file .jar). Appena la scegli guardo dentro e lo avvio da solo.',
     'wz.s3.browse': 'Scegli cartella…', 'wz.s3.places': 'Posti rapidi:', 'wz.s3.home': 'Home',
     'wz.s3.useFolder': 'Usa questa cartella', 'wz.s3.up': '⬆ Su di una cartella', 'wz.s3.noFolders': 'Nessuna sottocartella qui.',
     'wz.s3.sub2': 'Come si avvia? Scegline uno', 'wz.s3.sub2hint': 'Ho guardato dentro la cartella. Di solito la prima scelta è quella giusta. Se non sei sicuro, tienila: se non funziona te lo dico e puoi provarne un\'altra.',
@@ -803,6 +806,9 @@ const I18N = {
     'wz.next.dbl': 'Il modo più semplice: apri la cartella qui sotto e fai doppio clic sul file "{file}".',
     'wz.next.cmd': 'Oppure scrivi questo in un terminale:', 'wz.next.addr': 'Poi apri questo indirizzo nel browser: {url}',
     'wz.next.folder': 'La cartella del monitor:',
+    'wz.s3.autoTrying': 'Guardo la cartella e lo avvio da solo… posso provare più modi, può volerci fino a un minuto.',
+    'wz.s3.autoFailedTitle': 'Ho provato ad avviarlo da solo, ma questi modi non hanno funzionato:', 'wz.s3.autoFailedHelp': 'Scegli un altro modo qui sotto, oppure scrivi tu il comando.',
+    'wz.s3.autoUsed': 'L\'ho avviato con: {command}',
     'wz.s3.sub3': 'Avvialo', 'wz.s3.start': 'Avvia il mio programma', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
     'wz.s3.fillAll': 'Scegli la cartella, come si avvia e un nome per continuare.',
     'wz.s3.successTitle': 'Il tuo programma è in esecuzione!',
@@ -856,7 +862,7 @@ const I18N = {
     'err.npm_not_found': 'npm non trovato: completa prima il passo 1 (Node.js)', 'err.process_exists': 'esiste già un processo chiamato "{name}"',
     'err.process_failed': 'l\'app si è fermata subito ({status})', 'err.install_in_progress': 'un\'installazione è già in corso',
     'err.install_failed': 'installazione non riuscita', 'err.pm2_missing_after_install': 'pm2 è stato installato ma non riesco a trovarlo',
-    'err.open_unavailable': 'questo computer non ha un modo per aprire una cartella da qui (su Linux installa xdg-utils)', 'err.open_failed': 'il gestore dei file non è riuscito ad aprire la cartella',
+    'err.no_command_found': 'In questa cartella non ho trovato niente che somigli a un programma da avviare; scrivi tu il comando qui sotto', 'err.auto_start_failed': 'nessuno dei modi che ho provato è riuscito ad avviarlo e a tenerlo acceso', 'err.open_unavailable': 'questo computer non ha un modo per aprire una cartella da qui (su Linux installa xdg-utils)', 'err.open_failed': 'il gestore dei file non è riuscito ad aprire la cartella',
     'err.bad_label_name': 'un nome deve avere da 1 a 30 caratteri', 'err.label_exists': 'esiste già un\'etichetta con quel nome',
     'err.kind_exists': 'esiste già un tipo con quel nome', 'err.unknown_label': 'etichetta sconosciuta', 'err.unknown_kind': 'tipo sconosciuto', 'err.bad_color': 'il colore non è valido',
     'err.desktop_unavailable': 'questo computer non ha uno strumento per le notifiche del desktop (su Linux installa libnotify, che fornisce notify-send)',
@@ -1327,7 +1333,7 @@ const OS_COMMANDS = {
 };
 let setup = null, wizardOffered = false;
 const wiz = {step: 1, os: 'linux', osChosen: false, oldMode: false, adding: false, manualOpen: false, cmdHelpOpen: false,
-             folder: '', name: '', command: '', kind: null, candidates: [], pick: 0, inspected: false, busy: false, result: null,
+             folder: '', name: '', command: '', kind: null, candidates: [], pick: 0, inspected: false, busyKey: 'wz.s3.starting', autoTried: null, busy: false, result: null,
              installState: null, output: '', fallback: false, timer: null, auto: null, advancing: false};
 
 async function loadSetup(){
@@ -1425,8 +1431,10 @@ function wizNewApp(){
   }
   h += `</div><div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">3</span>${esc(t('wz.s3.sub3'))}</h4>
     <p class="okbox" id="wizsummary" ${canStart ? '' : 'hidden'}>${esc(wizSummary())}</p>
-    <button class="primary bigbtn" data-wact="addproc" ${canStart ? '' : 'disabled'}>${esc(wiz.busy ? t('wz.s3.starting') : t('wz.s3.start'))}</button>
-    <p class="hint" id="wizfillall" ${canStart || wiz.busy ? 'hidden' : ''}>${esc(t('wz.s3.fillAll'))}</p>${wiz.busy ? waiting(t('wz.s3.starting')) : ''}`;
+    <button class="primary bigbtn" data-wact="addproc" ${canStart ? '' : 'disabled'}>${esc(wiz.busy ? t(wiz.busyKey) : t('wz.s3.start'))}</button>
+    <p class="hint" id="wizfillall" ${canStart || wiz.busy ? 'hidden' : ''}>${esc(t('wz.s3.fillAll'))}</p>${wiz.busy ? waiting(t(wiz.busyKey)) : ''}`;
+  if(wiz.autoTried) h += `<div class="warnbox">${esc(t('wz.s3.autoFailedTitle'))}</div>` + wiz.autoTried.map(a =>
+    `<details><summary><code>${esc(a.command)}</code> (${esc(a.status || '')})</summary><pre class="out">${esc(a.log || '–')}</pre></details>`).join('') + `<p class="hint">${esc(t('wz.s3.autoFailedHelp'))}</p>`;
   if(wiz.result && !wiz.result.ok)
     h += `<div class="badbox">${esc(t('wz.s3.failedTitle', {status: wiz.result.status}))}</div><pre class="out">${esc(wiz.result.log || '–')}</pre><p class="hint">${esc(t('wz.s3.failedHelp'))}</p>`;
   return h + `</div><p><button class="linkbtn" data-wact="oldmode">${esc(t('wz.s3.oldLink'))}</button></p>`;
@@ -1451,7 +1459,7 @@ function nextTimeHtml(){
 function wizStep3(){
   const title = `<h3>${esc(t('wz.s3.title'))}</h3>`;
   if(wiz.result && wiz.result.ok) return `<div class="celebrate"><h3>🎉 ${esc(t('wz.s3.successTitle'))}</h3>
-    <p>${esc(t('wz.s3.successText', {name: wiz.result.name}))}</p>
+    <p>${esc(t('wz.s3.successText', {name: wiz.result.name}))}</p>${wiz.result.command ? `<p class="hint">${esc(t('wz.s3.autoUsed', {command: wiz.result.command}))}</p>` : ''}
     <p><button class="primary bigbtn" data-wact="showlist">${esc(t('wz.s3.showList'))}</button> <button data-wact="another">${esc(t('wz.s3.another'))}</button></p></div>` + nextTimeHtml();
   if(state.procs.length > 0 && !wiz.adding)
     return title + `<div class="okbox">${esc(t('wz.s3.found', {n: state.procs.length, d: state.daemons.filter(d => !d.hidden).length}))}</div>
@@ -1519,7 +1527,7 @@ async function checkProgress(manual){
 const autoCheck = () => { if($('#wizard').open && !wiz.busy && wiz.installState !== 'running' && wiz.step <= 3) checkProgress(false); };
 
 async function inspectFolder(){
-  wiz.inspected = false; wiz.result = null; wiz.candidates = []; wiz.pick = 'other';
+  wiz.inspected = false; wiz.result = null; wiz.candidates = []; wiz.pick = 'other'; wiz.autoTried = null;
   if(!wiz.folder.trim()) return;
   try{
     const j = await (await fetch('/api/inspect?path=' + encodeURIComponent(wiz.folder.trim()))).json();
@@ -1527,11 +1535,24 @@ async function inspectFolder(){
     Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, candidates: j.candidates || [], pick: j.candidates && j.candidates.length ? 0 : 'other', inspected: true});
   }catch(e){ toast(t('serverDown'), true); }
 }
+// Picking a folder is enough: the server scans it and tries the likely commands one by one until one stays up.
+async function autoStartFolder(){
+  if(wiz.busy || !wiz.candidates.length) return;
+  Object.assign(wiz, {busy: true, busyKey: 'wz.s3.autoTrying', result: null, autoTried: null}); renderWizard();
+  try{
+    const j = await api('/api/setup/auto-start', {folder: wiz.folder});
+    if(j.ok){ Object.assign(wiz, {name: j.name, command: j.command, result: {ok: true, name: j.name, command: j.command}}); await poll(true); }
+    else if(j.error === 'auto_start_failed') wiz.autoTried = j.params.tried;
+    else toast(errText(j.error, j.params, j.output), true);
+  }catch(e){ toast(t('serverDown'), true); }
+  wiz.busy = false; renderWizard();
+}
 async function addFirstProcess(){
+  wiz.busyKey = 'wz.s3.starting'; wiz.autoTried = null;
   wiz.busy = true; wiz.result = null; renderWizard();
   try{
     const j = await api('/api/setup/add-process', {name: wiz.name, folder: wiz.folder, command: wiz.command});
-    if(j.ok) wiz.result = {ok: true, name: wiz.name.trim()};
+    if(j.ok) wiz.result = {ok: true, name: wiz.name.trim(), command: wiz.command.trim()};
     else if(j.error === 'process_failed') wiz.result = {ok: false, status: j.params.status, log: j.params.log};
     else toast(errText(j.error, j.params, j.output), true);
   }catch(e){ toast(t('serverDown'), true); }
@@ -1588,7 +1609,7 @@ $('#wizard').addEventListener('input', e => {
 });
 $('#wizard').addEventListener('change', async e => {
   if(e.target.matches('[data-wos]')){ wiz.os = e.target.value; wiz.osChosen = true; renderWizard(); }
-  else if(e.target.id === 'wizfolder'){ await inspectFolder(); renderWizard(); }
+  else if(e.target.id === 'wizfolder'){ await inspectFolder(); renderWizard(); autoStartFolder(); }
   else if(e.target.name === 'wizpick'){
     wiz.pick = e.target.value === 'other' ? 'other' : +e.target.value;
     wiz.command = wiz.pick === 'other' ? '' : wiz.candidates[wiz.pick].command;
@@ -1955,7 +1976,7 @@ function pickerHtml(ctx){
 }
 async function pickerUse(ctx){
   const pk = pickers[ctx];
-  if(ctx === 'project'){ wiz.folder = pk.path; pickers.project = null; await inspectFolder(); return renderWizard(); }
+  if(ctx === 'project'){ wiz.folder = pk.path; pickers.project = null; await inspectFolder(); renderWizard(); return autoStartFolder(); }
   await config({op: 'addHome', home: pk.path});
   pickers[ctx] = null;
   if(ctx === 'home') await loadSetup();

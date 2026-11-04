@@ -5,6 +5,11 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.6.0] - 2026-11-04
+
+### Added
+- **It starts the program by itself.** As soon as you pick the folder, the monitor scans it, tries the likely commands one after the other until one stays up, and keeps it running under pm2. A name already in use gets a number. If nothing works you see every command it tried with its log, and can choose or type one yourself.
+
 ## [1.5.0] - 2026-11-04
 
 ### Added

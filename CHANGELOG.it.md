@@ -5,6 +5,11 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.6.0] - 2026-11-04
+
+### Aggiunto
+- **Avvia il programma da solo.** Appena scegli la cartella, il monitor la scansiona, prova i comandi probabili uno dopo l'altro finché uno resta acceso, e lo tiene in esecuzione sotto pm2. Un nome già in uso riceve un numero. Se niente funziona vedi ogni comando provato con il suo log, e puoi sceglierne o scriverne uno tu.
+
 ## [1.5.0] - 2026-11-04
 
 ### Aggiunto

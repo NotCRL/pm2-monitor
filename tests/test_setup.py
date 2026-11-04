@@ -83,6 +83,64 @@ class SuggestCommandTest(unittest.TestCase):
         self.assertEqual(caught.exception.code, "folder_not_found")
 
 
+class AutoStartTest(unittest.TestCase):
+    """add_process is replaced, so nothing is really started."""
+
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.dir = Path(self.tmp.name)
+        (self.dir / "package.json").write_text(json.dumps({"name": "shop", "scripts": {"start": "x", "dev": "y"}}))
+
+    def run_auto(self, outcomes, name=None):
+        """outcomes: one result per call, either a dict (works) or an ActionError (raised)."""
+        calls = []
+
+        def fake(monitor, process_name, folder, command):
+            calls.append((process_name, command))
+            outcome = outcomes[len(calls) - 1]
+            if isinstance(outcome, Exception):
+                raise outcome
+            return outcome
+
+        with mock.patch.object(setup, "add_process", side_effect=fake):
+            try:
+                return setup.auto_start(make_monitor(), self.dir, name), calls
+            except ActionError as error:
+                return error, calls
+
+    def test_the_first_command_that_works_is_used(self):
+        result, calls = self.run_auto([{"key": "d/shop", "status": "online"}])
+        self.assertEqual((result["name"], result["command"], result["failed"]), ("shop", "npm start", []))
+        self.assertEqual(calls, [("shop", "npm start")])
+
+    def test_failed_commands_are_skipped_and_reported(self):
+        failure = ActionError("process_failed", status="errored", log="boom")
+        result, calls = self.run_auto([failure, {"key": "d/shop", "status": "online"}])
+        self.assertEqual(result["command"], "npm run dev")
+        self.assertEqual(result["failed"], [{"command": "npm start", "status": "errored", "log": "boom"}])
+
+    def test_a_taken_name_gets_a_number_and_the_same_command_is_kept(self):
+        result, calls = self.run_auto([ActionError("process_exists", name="shop"), {"key": "d/shop-2", "status": "online"}])
+        self.assertEqual(calls, [("shop", "npm start"), ("shop-2", "npm start")])
+        self.assertEqual(result["name"], "shop-2")
+
+    def test_when_nothing_works_every_attempt_is_returned(self):
+        failure = ActionError("process_failed", status="errored", log="x")
+        error, calls = self.run_auto([failure, failure])
+        self.assertEqual(error.code, "auto_start_failed")
+        self.assertEqual([a["command"] for a in error.params["tried"]], ["npm start", "npm run dev"])
+
+    def test_an_error_no_other_command_could_fix_stops_at_once(self):
+        error, calls = self.run_auto([ActionError("pm2_not_found")])
+        self.assertEqual((error.code, len(calls)), ("pm2_not_found", 1))
+
+    def test_a_folder_without_anything_to_start(self):
+        (self.dir / "package.json").unlink()
+        error, calls = self.run_auto([])
+        self.assertEqual((error.code, calls), ("no_command_found", []))
+
+
 class SplitCommandTest(unittest.TestCase):
     def test_quotes_keep_a_name_with_spaces_together(self):
         self.assertEqual(setup.split_command('java -jar "my app.jar"'), ["java", "-jar", "my app.jar"])
