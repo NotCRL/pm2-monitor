@@ -25,12 +25,44 @@ class SuggestCommandTest(unittest.TestCase):
 
     def test_npm_start_script(self):
         (self.dir / "package.json").write_text(json.dumps({"name": "@shop/web", "scripts": {"start": "x"}}))
-        self.assertEqual(setup.suggest_command(self.dir), {"name": "shop-web", "command": "npm start", "kind": "npm"})
+        suggestion = setup.suggest_command(self.dir)
+        self.assertEqual((suggestion["name"], suggestion["command"], suggestion["kind"]), ("shop-web", "npm start", "npm"))
 
     def test_node_entry_file_without_start_script(self):
         (self.dir / "package.json").write_text(json.dumps({"name": "api", "main": "src.js"}))
         (self.dir / "src.js").write_text("")
         self.assertEqual(setup.suggest_command(self.dir)["command"], "node src.js")
+
+    def test_a_project_offers_every_way_to_start_it_most_likely_first(self):
+        (self.dir / "package.json").write_text(json.dumps({"name": "site", "scripts": {"dev": "x", "start": "y"}}))
+        (self.dir / "server.js").write_text("")
+        (self.dir / "app.py").write_text("")
+        commands = [c["command"] for c in setup.suggest_command(self.dir)["candidates"]]
+        self.assertEqual(commands[:3], ["npm start", "npm run dev", "node server.js"])
+        self.assertIn(commands[-1], ("python3 app.py", "python app.py"))
+
+    def test_java_archives_are_found_where_build_tools_leave_them_and_quoted_when_needed(self):
+        (self.dir / "target").mkdir()
+        (self.dir / "target" / "my app.jar").write_text("")
+        (self.dir / "target" / "my app-sources.jar").write_text("")
+        (self.dir / "pom.xml").write_text("")
+        candidates = setup.suggest_command(self.dir)["candidates"]
+        self.assertEqual([(c["kind"], c["command"]) for c in candidates],
+                         [("java", 'java -jar "target/my app.jar"'), ("maven", "mvn spring-boot:run")])
+
+    def test_start_scripts_and_django(self):
+        (self.dir / "manage.py").write_text("")
+        (self.dir / "start.sh").write_text("")
+        (self.dir / "run.bat").write_text("")
+        kinds = {c["kind"]: c["command"] for c in setup.suggest_command(self.dir)["candidates"]}
+        self.assertTrue(kinds["django"].endswith("manage.py runserver"))
+        self.assertEqual(kinds["script"], "./start.sh")          # the .bat is for Windows only
+
+    def test_there_are_never_more_than_six_candidates(self):
+        (self.dir / "package.json").write_text(json.dumps({"scripts": {"start": "a", "dev": "b", "serve": "c"}}))
+        for name in ("server.js", "app.js", "index.js", "main.py", "app.py"):
+            (self.dir / name).write_text("")
+        self.assertEqual(len(setup.suggest_command(self.dir)["candidates"]), 6)
 
     def test_python_app(self):
         (self.dir / "app.py").write_text("")
@@ -49,6 +81,20 @@ class SuggestCommandTest(unittest.TestCase):
         with self.assertRaises(ActionError) as caught:
             setup.suggest_command(self.dir / "nope")
         self.assertEqual(caught.exception.code, "folder_not_found")
+
+
+class SplitCommandTest(unittest.TestCase):
+    def test_quotes_keep_a_name_with_spaces_together(self):
+        self.assertEqual(setup.split_command('java -jar "my app.jar"'), ["java", "-jar", "my app.jar"])
+
+    def test_on_windows_the_quotes_are_not_passed_to_the_program(self):
+        with mock.patch.object(setup, "IS_WINDOWS", True):
+            self.assertEqual(setup.split_command('java -jar "my app.jar" --port=80'), ["java", "-jar", "my app.jar", "--port=80"])
+
+    def test_unbalanced_quotes_are_refused(self):
+        with self.assertRaises(ActionError) as caught:
+            setup.split_command('npm "start')
+        self.assertEqual(caught.exception.code, "bad_command")
 
 
 class FolderListTest(unittest.TestCase):

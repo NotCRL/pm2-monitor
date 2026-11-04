@@ -49,10 +49,12 @@ display:flex;gap:0.769rem;align-items:center}
 h2 .sp{flex:1}
 h2 .name{color:var(--fg)}
 h2 .btns button{text-transform:none;letter-spacing:0}
-table{width:100%;min-width:88rem;border-collapse:collapse;table-layout:fixed}
-th:nth-child(1){width:15%}th:nth-child(2){width:6%}th:nth-child(3){width:9%}th:nth-child(4){width:8%}
-th:nth-child(5){width:13%}th:nth-child(6){width:4%}th:nth-child(7){width:6%}th:nth-child(8){width:6%}
-th:nth-child(9){width:5%}th:nth-child(10){width:5%}th:nth-child(11){width:9%}
+table{width:100%;min-width:96rem;border-collapse:collapse;table-layout:fixed}
+th.c-name{width:14%}th.c-daemon{width:5%}th.c-status{width:8%}th.c-kind{width:8%}th.c-links{width:11%}th.c-path{width:13%}
+th.c-cpu{width:4%}th.c-memory{width:5%}th.c-uptime{width:5%}th.c-restarts{width:5%}th.c-ord{width:4%}th.c-domain{width:8%}
+#list[data-hide~="daemon"] .c-daemon,#list[data-hide~="kind"] .c-kind,#list[data-hide~="links"] .c-links,#list[data-hide~="path"] .c-path,
+#list[data-hide~="cpu"] .c-cpu,#list[data-hide~="memory"] .c-memory,#list[data-hide~="uptime"] .c-uptime,#list[data-hide~="restarts"] .c-restarts,
+#list[data-hide~="ord"] .c-ord,#list[data-hide~="domain"] .c-domain{display:none}
 td{overflow:hidden;text-overflow:ellipsis}
 th{text-align:left;font-weight:500;color:var(--dim);font-size:0.846rem;padding:0.308rem 0.615rem;border-bottom:1px solid var(--line)}
 td{padding:0.308rem 0.615rem;border-bottom:1px solid var(--line);white-space:nowrap}
@@ -235,6 +237,16 @@ main.below #splitter{width:auto;height:0.4rem;cursor:row-resize}
 .logpanel.active .lp-head{box-shadow:inset 0 -2px 0 var(--acc)}
 body.dragging{user-select:none}
 td.links{white-space:normal}
+.pwrap{display:flex;align-items:center;min-width:0}
+a.pathlink{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:left;color:var(--fg);text-decoration:none}
+a.pathlink:hover{color:var(--acc);text-decoration:underline}
+label.choice{display:flex;align-items:flex-start;gap:0.6rem;padding:0.5rem 0.7rem;margin:0.35rem 0;border:1px solid var(--line);border-radius:0.4rem;cursor:pointer}
+label.choice.on{border-color:var(--acc);background:var(--panel)}
+label.choice input{margin-top:0.25rem}
+.copybtn{border:0;background:none;color:var(--dim);padding:0 0.3rem;opacity:0.4}
+tr.row:hover .copybtn,.copybtn:focus-visible{opacity:1}
+.colspicker{display:grid;grid-template-columns:repeat(2,1fr);gap:0.2rem 0.8rem;margin:0.3rem 0 0.6rem}
+.colspicker label{display:flex;align-items:center;gap:0.4rem}
 td.namecell{white-space:normal}
 .tags{display:inline-flex;flex-wrap:wrap;align-items:center;gap:0.25rem;margin-left:0.5rem;vertical-align:middle}
 .tag{display:inline-block;padding:0 0.5rem;border-radius:0.6rem;font-size:0.75rem;line-height:1.35rem;border:1px solid transparent}
@@ -353,6 +365,8 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
     <select id="lang" title="Language / Lingua"><option value="en">English</option><option value="it">Italiano</option></select></div>
   <label class="row"><span data-i18n="probeLinks"></span><input type="checkbox" id="probelinks"></label>
   <p class="hint" data-i18n="probeLinksHint"></p>
+  <h4 class="subhead" data-i18n="colsTitle"></h4>
+  <div id="colspicker" class="colspicker"></div>
   <p><button class="linkbtn" data-meta-open data-i18n="metaManage"></button></p>
 </div>
 
@@ -390,6 +404,7 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
       <li>The <b>bell</b> in the header shows what happened (an app crashed, stopped, restarted by itself, a daemon went down...) and lets you choose, <b>for each domain</b>, what you want to be told about (errors, warnings, good news), how (the bell menu, browser notification, sound, desktop notification) and an optional memory limit.</li>
       <li>Notifications are produced while the monitor is running. Changes you make through the monitor itself (a stop, a restart) are not reported.</li>
       <li><b>Two logs side by side:</b> click <b>⧉</b> in a log panel to open a second one next to it (at most two). The next process you click is shown in the active panel, the one underlined in blue. Drag the bar between the list and the logs, and the bar between the two logs, to resize them; double-click a bar to reset it.</li>
+      <li><b>Folder:</b> the <b>folder</b> column shows where a process runs; click it to open the folder in your file manager (the monitor asks your system to open it), or use the small <b>⧉</b> button to copy the path. <b>⚙ Settings &gt; Columns</b> hides the columns you do not need.</li>
       <li><b>Type and labels:</b> the <b>type</b> column says whether a process is a backend or a frontend; pm2 monitor guesses it ("auto: …") and you can change it, or choose "+ new type…" to create your own. Click the <b>＋</b> next to a name to give the process labels (any number, each with its own colour); <b>Types and labels…</b> (⚙ Settings, or the bar above the list) renames, recolours and deletes them. The bar above the list filters by type and by labels.</li>
       <li><b>Links:</b> the <b>links</b> column shows where a running app answers (for example <code>localhost:3000</code>); click it to open the page. To list only real web pages, pm2 monitor sends one harmless web request to each port an app listens on; the switch is in <b>⚙ Settings</b>.</li>
       <li><b>Groups:</b> click a group's title to collapse or expand it ("Collapse all" / "Expand all" above the list); the choice is remembered. The <b>⚙ Settings</b> menu holds the page size and the language. In a log, <b>A− / A+</b> change the size of the log text.</li>
@@ -446,6 +461,7 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
       <li>La <b>campanella</b> nella testata mostra cosa è successo (un'app è andata in errore, si è fermata, si è riavviata da sola, un demone è caduto...) e ti lascia scegliere, <b>per ogni dominio</b>, di cosa vuoi essere avvisato (errori, avvisi, buone notizie), come (menu della campanella, notifica del browser, suono, notifica del desktop) e un limite di memoria facoltativo.</li>
       <li>Le notifiche vengono prodotte mentre il monitor è in esecuzione. I cambiamenti che fai dal monitor stesso (uno stop, un riavvio) non vengono segnalati.</li>
       <li><b>Due log affiancati:</b> clicca <b>⧉</b> in un pannello dei log per aprirne un secondo accanto (al massimo due). Il prossimo processo che clicchi si apre nel pannello attivo, quello sottolineato di blu. Trascina la barra tra l'elenco e i log, e quella tra i due log, per ridimensionarli; doppio clic su una barra per ripristinarla.</li>
+      <li><b>Cartella:</b> la colonna <b>cartella</b> mostra dove gira un processo; cliccala per aprire la cartella nel gestore dei file (è il monitor a chiedere al sistema di aprirla), oppure usa il piccolo pulsante <b>⧉</b> per copiare il percorso. <b>⚙ Impostazioni &gt; Colonne</b> nasconde le colonne che non ti servono.</li>
       <li><b>Tipo ed etichette:</b> la colonna <b>tipo</b> dice se un processo è un backend o un frontend; pm2 monitor lo indovina ("auto: …") e puoi cambiarlo, oppure scegliere "+ nuovo tipo…" per crearne uno tuo. Clicca il <b>＋</b> accanto a un nome per dare etichette al processo (quante vuoi, ciascuna con il suo colore); <b>Tipi ed etichette…</b> (⚙ Impostazioni, o la barra sopra l'elenco) le rinomina, ne cambia il colore e le elimina. La barra sopra l'elenco filtra per tipo e per etichette.</li>
       <li><b>Link:</b> la colonna <b>link</b> mostra dove risponde un'app in esecuzione (per esempio <code>localhost:3000</code>); cliccala per aprire la pagina. Per elencare solo le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un'app è in ascolto; l'interruttore è in <b>⚙ Impostazioni</b>.</li>
       <li><b>Gruppi:</b> clicca il titolo di un gruppo per comprimerlo o espanderlo ("Comprimi tutto" / "Espandi tutto" sopra l'elenco); la scelta viene ricordata. Il menu <b>⚙ Impostazioni</b> contiene la dimensione della pagina e la lingua. In un log, <b>A− / A+</b> cambiano la dimensione del testo del log.</li>
@@ -539,7 +555,7 @@ const I18N = {
     view: 'Settings', browse: 'Browse…', browseHomeHint: 'Look for the folder where pm2 keeps its data (usually a hidden folder called .pm2).',
     'pk.path': 'Folder path', 'pk.go': 'Go', 'pk.hidden': 'Show hidden folders', 'pk.isPm2': '✓ This is a pm2 folder',
     'pk.notPm2': 'This does not look like a pm2 folder yet: open the one marked "pm2" (it contains pm2.pid or dump.pm2).', 'pk.usePm2': 'Add this pm2 folder',
-    probeLinks: 'Detect web links', probeLinksHint: 'To show a link only for real web pages, pm2 monitor sends one harmless web request to each port an app listens on. Turn it off to list every port without testing.', colKind: 'type', kindAuto: 'auto: {kind}', kindNone: '—', kindNew: '+ new type…', kindNewPrompt: 'Name of the new type (for example database, worker):',
+    probeLinks: 'Detect web links', probeLinksHint: 'To show a link only for real web pages, pm2 monitor sends one harmless web request to each port an app listens on. Turn it off to list every port without testing.', colPath: 'folder', pathOpenHint: 'Click to open this folder', pathCopy: 'Copy the path', pathCopied: 'Path copied', colsTitle: 'Columns', colKind: 'type', kindAuto: 'auto: {kind}', kindNone: '—', kindNew: '+ new type…', kindNewPrompt: 'Name of the new type (for example database, worker):',
     'kind.backend': 'Backend', 'kind.frontend': 'Frontend', labelsEdit: 'Edit the labels', labelNew: 'New label…',
     labelsEmpty: 'No labels yet: type a name below to create the first one.', metaManage: 'Types and labels…', metaTitle: 'Types and labels',
     metaTypes: 'Types', metaLabels: 'Labels', metaBuiltin: 'built-in', metaRename: 'rename', metaDelete: 'delete', metaUsed: '{n} in use', metaAdd: 'Add',
@@ -551,7 +567,7 @@ const I18N = {
     'lg.fontDown': 'Smaller text in the logs', 'lg.fontUp': 'Larger text in the logs', viewSize: 'Size', viewLanguage: 'Language', quit: 'Turn off pm2 monitor', quitConfirm: 'Turn off pm2 monitor?\n\nYour apps keep running under pm2: only the monitor stops. The page, the notifications and the history will not update until you start it again.', quitDone: 'pm2 monitor is off', quitDoneHint: 'Your apps are still running under pm2. To start the monitor again, double-click "Start pm2-monitor" (or run: python3 launch.py). You can close this window.',
     backTo: '← Back to {place}', 'lg.splitTitle': 'Drag to resize, double-click to reset', 'lg.addPanel': 'Open a second log next to this one', 'lg.closePanel': 'Close this log', 'lg.pickHint': 'Click a process in the list to see its log here.', logTop: 'Go to the first line', logBottom: 'Go to the last line and keep following', logLayoutRight: 'Show the logs on the right', logLayoutBelow: 'Show the logs below the list',
     'wz.title': 'Guided setup', 'wz.progress': 'Step {n} of {total}', 'wz.extras': 'Optional extras: you can skip these',
-    'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Your app', 'wz.step4': 'After reboot', 'wz.step5': 'Extras',
+    'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Your program', 'wz.step4': 'After reboot', 'wz.step5': 'Extras',
     'wz.back': '← Back', 'wz.next': 'Next →', 'wz.skip': 'Skip →', 'wz.finish': 'Finish', 'wz.check': 'Check now',
     'wz.copy': 'Copy', 'wz.copied': 'Copied!', 'wz.copyFailed': 'Could not copy: select the command and copy it by hand.',
     'wz.waiting': 'Waiting… I check by myself every few seconds, you do not need to click anything.',
@@ -583,26 +599,34 @@ const I18N = {
     'wz.s2.manual': 'I prefer to do it myself',
     'wz.s2.fallback': 'The system folder is protected, so I installed pm2 in your own folder instead. The monitor will use it. If you also want to type "pm2" in a terminal, add ~/.npm-global/bin to your PATH.',
     'wz.s2.failed': 'The installation did not work. Here is what happened:', 'wz.s2.failedHelp': 'You can try the manual way below, or read docs/INSTALL.md (section 3).',
-    'wz.s3.title': 'Start your first app',
-    'wz.s3.plain': 'Tell me where your app lives and how it starts. I will keep it running with pm2 and show it in the list.',
+    'wz.s3.title': 'Add the program you want to keep running',
+    'wz.s3.plain': 'Here you add ONE program to pm2, for example your website, your API or your server. pm2 starts it, restarts it if it crashes, and this monitor shows it in the list. You do this once for each program. Just follow the three numbered boxes.',
     'wz.s3.found': '✓ I can see {n} process(es) in {d} pm2 daemon(s). You are all set here!',
     'wz.s3.needPm2': 'First finish step 2.',
-    'wz.s3.sub1': 'Choose the folder of your app', 'wz.s3.sub1hint': 'It is the folder that holds your project files (for example package.json or app.py).',
+    'wz.s3.sub1': 'Which program? Choose its folder', 'wz.s3.sub1hint': 'Every program lives in a folder on your computer. Click the button and open the folder of the program you want (the one with its files, such as package.json, app.py or a .jar file).',
     'wz.s3.browse': 'Choose folder…', 'wz.s3.places': 'Quick places:', 'wz.s3.home': 'Home',
     'wz.s3.useFolder': 'Use this folder', 'wz.s3.up': '⬆ Go up one folder', 'wz.s3.noFolders': 'No sub-folders here.',
-    'wz.s3.sub2': 'Check how it starts', 'wz.s3.sub2hint': 'I filled these in for you when I could. Change them only if you know they are wrong.',
+    'wz.s3.sub2': 'How does it start? Pick one', 'wz.s3.sub2hint': 'I looked inside the folder. Normally the first choice is the right one. If you are not sure, keep it: if it does not work I will tell you and you can try another.',
     'wz.s3.suggest': 'This looks like {kind}, so I suggest the name and command below.',
     'wz.kind.npm': 'a Node.js project (npm)', 'wz.kind.node': 'a Node.js app', 'wz.kind.python': 'a Python app',
-    'wz.s3.noSuggest': 'I could not guess how to start this folder. Type the command you normally use in a terminal.',
+    'wz.s3.noSuggest': 'I could not work out how to start this folder, so you need to type the command yourself (below).',
     'wz.s3.name': 'Name (how it will appear in the list)', 'wz.s3.nameBad': 'Use letters, numbers, dash, underscore or dot, and start with a letter or number.',
     'wz.s3.command': 'Command that starts it', 'wz.s3.commandHint': 'The same thing you would type in a terminal to start the app.',
     'wz.s3.commandHelp': 'I do not know the command',
     'wz.s3.commandHelpText': 'Open your project folder. If you see a file called package.json, type: npm start. If you see app.py or main.py, type: python3 app.py (or main.py). Otherwise ask whoever gave you the project, or look for a README file.',
-    'wz.s3.sub3': 'Start it', 'wz.s3.start': 'Start my app', 'wz.s3.starting': 'Starting… this takes a few seconds.',
-    'wz.s3.fillAll': 'Fill in the folder, the name and the command to continue.',
-    'wz.s3.successTitle': 'Your app is running!',
+    'wz.s3.other': 'Another command (I will type it)', 'wz.s3.otherHint': 'Type exactly what you would type in a terminal, from inside that folder.',
+    'wz.s3.summary': 'I will run "{command}" in the folder {folder}, keep it running, and call it "{name}".',
+    'wz.kind.django': 'a Django website', 'wz.kind.java': 'a Java program', 'wz.kind.maven': 'a Java project (Maven)', 'wz.kind.gradle': 'a Java project (Gradle)', 'wz.kind.script': 'a start script',
+    'wz.next.title': 'Next time: how to open this monitor',
+    'wz.next.intro': 'The monitor is a small program that runs on this computer; you open it in your browser. To start it again after you closed it:',
+    'wz.next.dbl': 'Easiest: open the folder below and double-click the file "{file}".',
+    'wz.next.cmd': 'Or type this in a terminal:', 'wz.next.addr': 'Then open this address in your browser: {url}',
+    'wz.next.folder': 'The monitor folder:',
+    'wz.s3.sub3': 'Start it', 'wz.s3.start': 'Start my program', 'wz.s3.starting': 'Starting… this takes a few seconds.',
+    'wz.s3.fillAll': 'Choose the folder, how it starts and a name to continue.',
+    'wz.s3.successTitle': 'Your program is running!',
     'wz.s3.successText': '"{name}" is now running under pm2 and the list is saved. You can see it in the list behind this window.',
-    'wz.s3.showList': 'Show it in the list', 'wz.s3.another': 'Add another app',
+    'wz.s3.showList': 'Show it in the list', 'wz.s3.another': 'Add another program',
     'wz.s3.failedTitle': 'The app stopped right away (status: {status}). I removed it so you can try again. Last lines of its log:',
     'wz.s3.failedHelp': 'Check the command and the folder, then try again.',
     'wz.s3.oldLink': 'I already use pm2 but I see nothing here', 'wz.s3.newLink': '← Back to starting a new app',
@@ -651,6 +675,7 @@ const I18N = {
     'err.npm_not_found': 'npm not found: finish step 1 (Node.js) first', 'err.process_exists': 'a process called "{name}" already exists',
     'err.process_failed': 'the app stopped right away ({status})', 'err.install_in_progress': 'an installation is already running',
     'err.install_failed': 'installation failed', 'err.pm2_missing_after_install': 'pm2 was installed but I cannot find it',
+    'err.open_unavailable': 'this computer has no way to open a folder from here (on Linux install xdg-utils)', 'err.open_failed': 'the file manager could not open the folder',
     'err.bad_label_name': 'a name must have between 1 and 30 characters', 'err.label_exists': 'a label with that name already exists',
     'err.kind_exists': 'a type with that name already exists', 'err.unknown_label': 'unknown label', 'err.unknown_kind': 'unknown type', 'err.bad_color': 'the colour is not valid',
     'err.desktop_unavailable': 'this computer has no tool for desktop notifications (on Linux install libnotify, which provides notify-send)',
@@ -711,7 +736,7 @@ const I18N = {
     view: 'Impostazioni', browse: 'Sfoglia…', browseHomeHint: 'Cerca la cartella in cui pm2 conserva i suoi dati (di solito una cartella nascosta chiamata .pm2).',
     'pk.path': 'Percorso della cartella', 'pk.go': 'Vai', 'pk.hidden': 'Mostra le cartelle nascoste', 'pk.isPm2': '✓ Questa è una cartella di pm2',
     'pk.notPm2': 'Questa non sembra ancora una cartella di pm2: apri quella con l\'etichetta "pm2" (contiene pm2.pid o dump.pm2).', 'pk.usePm2': 'Aggiungi questa cartella di pm2',
-    probeLinks: 'Rileva i link web', probeLinksHint: 'Per mostrare un link solo per le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un\'app è in ascolto. Disattivalo per elencare ogni porta senza provarla.', colKind: 'tipo', kindAuto: 'auto: {kind}', kindNone: '—', kindNew: '+ nuovo tipo…', kindNewPrompt: 'Nome del nuovo tipo (per esempio database, worker):',
+    probeLinks: 'Rileva i link web', probeLinksHint: 'Per mostrare un link solo per le vere pagine web, pm2 monitor invia una richiesta web innocua a ogni porta su cui un\'app è in ascolto. Disattivalo per elencare ogni porta senza provarla.', colPath: 'cartella', pathOpenHint: 'Clic per aprire questa cartella', pathCopy: 'Copia il percorso', pathCopied: 'Percorso copiato', colsTitle: 'Colonne', colKind: 'tipo', kindAuto: 'auto: {kind}', kindNone: '—', kindNew: '+ nuovo tipo…', kindNewPrompt: 'Nome del nuovo tipo (per esempio database, worker):',
     'kind.backend': 'Backend', 'kind.frontend': 'Frontend', labelsEdit: 'Modifica le etichette', labelNew: 'Nuova etichetta…',
     labelsEmpty: 'Ancora nessuna etichetta: scrivi un nome qui sotto per crearne una.', metaManage: 'Tipi ed etichette…', metaTitle: 'Tipi ed etichette',
     metaTypes: 'Tipi', metaLabels: 'Etichette', metaBuiltin: 'predefinito', metaRename: 'rinomina', metaDelete: 'elimina', metaUsed: '{n} in uso', metaAdd: 'Aggiungi',
@@ -723,7 +748,7 @@ const I18N = {
     'lg.fontDown': 'Testo più piccolo nei log', 'lg.fontUp': 'Testo più grande nei log', viewSize: 'Dimensione', viewLanguage: 'Lingua', quit: 'Spegni pm2 monitor', quitConfirm: 'Spegnere pm2 monitor?\n\nLe tue app continuano a funzionare sotto pm2: si ferma solo il monitor. La pagina, le notifiche e lo storico non si aggiorneranno finché non lo riavvii.', quitDone: 'pm2 monitor è spento', quitDoneHint: 'Le tue app sono ancora in esecuzione sotto pm2. Per riavviare il monitor, fai doppio clic su "Start pm2-monitor" (oppure esegui: python3 launch.py). Puoi chiudere questa finestra.',
     backTo: '← Torna a: {place}', 'lg.splitTitle': 'Trascina per ridimensionare, doppio clic per ripristinare', 'lg.addPanel': 'Apri un secondo log accanto a questo', 'lg.closePanel': 'Chiudi questo log', 'lg.pickHint': 'Clicca un processo nell\'elenco per vederne qui il log.', logTop: 'Vai alla prima riga', logBottom: 'Vai all\'ultima riga e continua a seguire', logLayoutRight: 'Mostra i log a destra', logLayoutBelow: 'Mostra i log sotto l\'elenco',
     'wz.title': 'Configurazione guidata', 'wz.progress': 'Passo {n} di {total}', 'wz.extras': 'Extra facoltativi: puoi saltarli',
-    'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'La tua app', 'wz.step4': 'Dopo il riavvio', 'wz.step5': 'Extra',
+    'wz.step1': 'Node.js', 'wz.step2': 'pm2', 'wz.step3': 'Il tuo programma', 'wz.step4': 'Dopo il riavvio', 'wz.step5': 'Extra',
     'wz.back': '← Indietro', 'wz.next': 'Avanti →', 'wz.skip': 'Salta →', 'wz.finish': 'Fine', 'wz.check': 'Controlla ora',
     'wz.copy': 'Copia', 'wz.copied': 'Copiato!', 'wz.copyFailed': 'Non sono riuscito a copiare: seleziona il comando e copialo a mano.',
     'wz.waiting': 'In attesa… controllo da solo ogni pochi secondi, non devi cliccare nulla.',
@@ -755,26 +780,34 @@ const I18N = {
     'wz.s2.manual': 'Preferisco farlo io',
     'wz.s2.fallback': 'La cartella di sistema è protetta, quindi ho installato pm2 nella tua cartella personale. Il monitor lo userà. Se vuoi scrivere "pm2" anche in un terminale, aggiungi ~/.npm-global/bin al PATH.',
     'wz.s2.failed': 'L\'installazione non è riuscita. Ecco cosa è successo:', 'wz.s2.failedHelp': 'Puoi provare il modo manuale qui sotto, oppure leggere docs/INSTALL.it.md (sezione 3).',
-    'wz.s3.title': 'Avvia la tua prima app',
-    'wz.s3.plain': 'Dimmi dove sta la tua app e come si avvia. La tengo in esecuzione con pm2 e la mostro nell\'elenco.',
+    'wz.s3.title': 'Aggiungi il programma che vuoi tenere sempre acceso',
+    'wz.s3.plain': 'Qui aggiungi UN programma a pm2, per esempio il tuo sito, la tua API o il tuo server. pm2 lo avvia, lo riavvia se si blocca, e questo monitor lo mostra nell\'elenco. Lo fai una volta per ogni programma. Basta seguire i tre riquadri numerati.',
     'wz.s3.found': '✓ Vedo {n} processo/i in {d} demone/i pm2. Qui è tutto a posto!',
     'wz.s3.needPm2': 'Completa prima il passo 2.',
-    'wz.s3.sub1': 'Scegli la cartella della tua app', 'wz.s3.sub1hint': 'È la cartella che contiene i file del tuo progetto (per esempio package.json o app.py).',
+    'wz.s3.sub1': 'Quale programma? Scegli la sua cartella', 'wz.s3.sub1hint': 'Ogni programma sta in una cartella del tuo computer. Clicca il pulsante e apri la cartella del programma che vuoi (quella con i suoi file, come package.json, app.py o un file .jar).',
     'wz.s3.browse': 'Scegli cartella…', 'wz.s3.places': 'Posti rapidi:', 'wz.s3.home': 'Home',
     'wz.s3.useFolder': 'Usa questa cartella', 'wz.s3.up': '⬆ Su di una cartella', 'wz.s3.noFolders': 'Nessuna sottocartella qui.',
-    'wz.s3.sub2': 'Controlla come si avvia', 'wz.s3.sub2hint': 'Li ho compilati io quando ho potuto. Cambiali solo se sai che sono sbagliati.',
+    'wz.s3.sub2': 'Come si avvia? Scegline uno', 'wz.s3.sub2hint': 'Ho guardato dentro la cartella. Di solito la prima scelta è quella giusta. Se non sei sicuro, tienila: se non funziona te lo dico e puoi provarne un\'altra.',
     'wz.s3.suggest': 'Sembra {kind}, quindi ti suggerisco il nome e il comando qui sotto.',
     'wz.kind.npm': 'un progetto Node.js (npm)', 'wz.kind.node': 'un\'app Node.js', 'wz.kind.python': 'un\'app Python',
-    'wz.s3.noSuggest': 'Non sono riuscito a capire come avviare questa cartella. Scrivi il comando che usi di solito in un terminale.',
-    'wz.s3.name': 'Nome (come apparirà nell\'elenco)', 'wz.s3.nameBad': 'Usa lettere, numeri, trattino, underscore o punto, e inizia con una lettera o un numero.',
+    'wz.s3.noSuggest': 'Non sono riuscito a capire come avviare questa cartella, quindi devi scrivere tu il comando (qui sotto).',
+    'wz.s3.name': 'Nome (come comparirà nell\'elenco)', 'wz.s3.nameBad': 'Usa lettere, numeri, trattino, underscore o punto, e inizia con una lettera o un numero.',
     'wz.s3.command': 'Comando che la avvia', 'wz.s3.commandHint': 'La stessa cosa che scriveresti in un terminale per avviare l\'app.',
     'wz.s3.commandHelp': 'Non so qual è il comando',
     'wz.s3.commandHelpText': 'Apri la cartella del progetto. Se vedi un file chiamato package.json, scrivi: npm start. Se vedi app.py o main.py, scrivi: python3 app.py (o main.py). Altrimenti chiedi a chi ti ha dato il progetto, oppure cerca un file README.',
-    'wz.s3.sub3': 'Avviala', 'wz.s3.start': 'Avvia la mia app', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
-    'wz.s3.fillAll': 'Compila cartella, nome e comando per continuare.',
-    'wz.s3.successTitle': 'La tua app è in esecuzione!',
-    'wz.s3.successText': '"{name}" è ora in esecuzione sotto pm2 e l\'elenco è salvato. La vedi nell\'elenco dietro questa finestra.',
-    'wz.s3.showList': 'Mostrala nell\'elenco', 'wz.s3.another': 'Aggiungi un\'altra app',
+    'wz.s3.other': 'Un altro comando (lo scrivo io)', 'wz.s3.otherHint': 'Scrivi esattamente quello che scriveresti in un terminale, da dentro quella cartella.',
+    'wz.s3.summary': 'Eseguirò "{command}" nella cartella {folder}, lo terrò acceso e lo chiamerò "{name}".',
+    'wz.kind.django': 'un sito Django', 'wz.kind.java': 'un programma Java', 'wz.kind.maven': 'un progetto Java (Maven)', 'wz.kind.gradle': 'un progetto Java (Gradle)', 'wz.kind.script': 'uno script di avvio',
+    'wz.next.title': 'La prossima volta: come aprire questo monitor',
+    'wz.next.intro': 'Il monitor è un piccolo programma che gira su questo computer e si apre nel browser. Per riavviarlo dopo averlo chiuso:',
+    'wz.next.dbl': 'Il modo più semplice: apri la cartella qui sotto e fai doppio clic sul file "{file}".',
+    'wz.next.cmd': 'Oppure scrivi questo in un terminale:', 'wz.next.addr': 'Poi apri questo indirizzo nel browser: {url}',
+    'wz.next.folder': 'La cartella del monitor:',
+    'wz.s3.sub3': 'Avvialo', 'wz.s3.start': 'Avvia il mio programma', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
+    'wz.s3.fillAll': 'Scegli la cartella, come si avvia e un nome per continuare.',
+    'wz.s3.successTitle': 'Il tuo programma è in esecuzione!',
+    'wz.s3.successText': '"{name}" è ora in esecuzione sotto pm2 e l\'elenco è salvato. Lo vedi nell\'elenco dietro questa finestra.',
+    'wz.s3.showList': 'Mostrala nell\'elenco', 'wz.s3.another': 'Aggiungi un altro programma',
     'wz.s3.failedTitle': 'L\'app si è fermata subito (stato: {status}). L\'ho rimossa così puoi riprovare. Ultime righe del suo log:',
     'wz.s3.failedHelp': 'Controlla il comando e la cartella, poi riprova.',
     'wz.s3.oldLink': 'Uso già pm2 ma qui non vedo nulla', 'wz.s3.newLink': '← Torna ad avviare una nuova app',
@@ -823,6 +856,7 @@ const I18N = {
     'err.npm_not_found': 'npm non trovato: completa prima il passo 1 (Node.js)', 'err.process_exists': 'esiste già un processo chiamato "{name}"',
     'err.process_failed': 'l\'app si è fermata subito ({status})', 'err.install_in_progress': 'un\'installazione è già in corso',
     'err.install_failed': 'installazione non riuscita', 'err.pm2_missing_after_install': 'pm2 è stato installato ma non riesco a trovarlo',
+    'err.open_unavailable': 'questo computer non ha un modo per aprire una cartella da qui (su Linux installa xdg-utils)', 'err.open_failed': 'il gestore dei file non è riuscito ad aprire la cartella',
     'err.bad_label_name': 'un nome deve avere da 1 a 30 caratteri', 'err.label_exists': 'esiste già un\'etichetta con quel nome',
     'err.kind_exists': 'esiste già un tipo con quel nome', 'err.unknown_label': 'etichetta sconosciuta', 'err.unknown_kind': 'tipo sconosciuto', 'err.bad_color': 'il colore non è valido',
     'err.desktop_unavailable': 'questo computer non ha uno strumento per le notifiche del desktop (su Linux installa libnotify, che fornisce notify-send)',
@@ -859,6 +893,35 @@ const errText = (code, params, fallback) => {
   const key = 'err.' + code;
   return (I18N[lang][key] ?? I18N.en[key]) ? t(key, params || {}) : (fallback || code || '');
 };
+// ---- folder of a process: opened by the server in the system's file manager (a web page cannot do it) ----
+function shortPath(path){
+  let shown = path;
+  if(state.home && shown.startsWith(state.home)) shown = '~' + shown.slice(state.home.length);
+  return shown;   // the cell cuts it at the start when it is too long, so the folder's own name always stays visible
+}
+function pathCell(p){
+  if(!p.cwd) return '<span class="dim">–</span>';
+  return `<div class="pwrap"><a class="pathlink" dir="rtl" href="#" data-openfolder="${esc(p.key)}" title="${esc(p.cwd)}&#10;${esc(t('pathOpenHint'))}"><bdi>${esc(shortPath(p.cwd))}</bdi></a><button class="copybtn" data-copypath="${esc(p.key)}" title="${esc(t('pathCopy'))}">⧉</button></div>`;
+}
+async function openFolder(key){
+  try{ const j = await api('/api/open-folder', {key}); if(!j.ok) toast(errText(j.error, j.params, j.output), true); }
+  catch(e){ toast(t('serverDown'), true); }
+}
+// ---- columns the user can hide ----
+const COLUMN_LABELS = {daemon: 'colDaemon', kind: 'colKind', links: 'colLinks', path: 'colPath', cpu: 'colCpu', memory: 'colMemory', uptime: 'colUptime', restarts: 'colRestarts', ord: 'colOrd', domain: 'colDomain'};
+let hiddenColumns = new Set();
+try{ hiddenColumns = new Set(JSON.parse(localStorage.getItem('hiddenColumns') || '[]')); }catch(e){}
+function applyColumns(){
+  $('#list').dataset.hide = [...hiddenColumns].join(' ');
+  $('#colspicker').innerHTML = Object.entries(COLUMN_LABELS).map(([id, key]) =>
+    `<label><input type="checkbox" data-col="${id}" ${hiddenColumns.has(id) ? '' : 'checked'}> ${esc(t(key))}</label>`).join('');
+}
+$('#colspicker').addEventListener('change', e => {
+  const id = e.target.dataset.col; if(!id) return;
+  e.target.checked ? hiddenColumns.delete(id) : hiddenColumns.add(id);
+  try{ localStorage.setItem('hiddenColumns', JSON.stringify([...hiddenColumns])); }catch(x){}
+  applyColumns();
+});
 // ---- types and labels ----
 const kindName = k => I18N[lang]['kind.' + k] ? t('kind.' + k) : k;   // backend / frontend are translated, your own types are shown as typed
 function hslToHex(h, s, l){
@@ -930,7 +993,7 @@ function applyStaticTexts(){
   document.documentElement.lang = lang; document.documentElement.dataset.lang = lang;
   translateIn(document);
   $('#lang').value = lang;
-  applyLogLayout();
+  applyLogLayout(); applyColumns();
   panels.forEach(panel => { panel.fillSelects(); panel.renderTitle(); panel.render(); });
   if(state) renderHelp();
 }
@@ -1031,22 +1094,23 @@ function render(force){
       <button data-da="settings" title="${esc(t('settings'))}">⚙</button></span>`;
     html += '</h2>';
     if(closed) continue;
-    html += `<table><tr><th>${esc(t('colName'))}</th><th>${esc(t('colDaemon'))}</th><th>${esc(t('colStatus'))}</th><th>${esc(t('colKind'))}</th><th>${esc(t('colLinks'))}</th><th class="num">${esc(t('colCpu'))}</th><th class="num">${esc(t('colMemory'))}</th>
-    <th class="num">${esc(t('colUptime'))}</th><th class="num">${esc(t('colRestarts'))}</th><th class="num">${esc(t('colOrd'))}</th><th>${esc(t('colDomain'))}</th><th></th></tr>`;
+    html += `<table><tr><th class="c-name">${esc(t('colName'))}</th><th class="c-daemon">${esc(t('colDaemon'))}</th><th class="c-status">${esc(t('colStatus'))}</th><th class="c-kind">${esc(t('colKind'))}</th><th class="c-links">${esc(t('colLinks'))}</th><th class="c-path">${esc(t('colPath'))}</th><th class="num c-cpu">${esc(t('colCpu'))}</th><th class="num c-memory">${esc(t('colMemory'))}</th>
+    <th class="num c-uptime">${esc(t('colUptime'))}</th><th class="num c-restarts">${esc(t('colRestarts'))}</th><th class="num c-ord">${esc(t('colOrd'))}</th><th class="c-domain">${esc(t('colDomain'))}</th><th></th></tr>`;
     for(const p of procs){
       const b = busy.has(p.key);
       html += `<tr class="row ${esc(p.status)} ${panels.some(panel => panel.sel && panel.sel.key === p.key) ? 'sel' : ''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
-        <td class="namecell"><span class="dot"></span>${esc(p.name)}<span class="tags">${(p.labels || []).map(tagHtml).join('')}<button class="tagadd" data-tagedit="${esc(p.key)}" title="${esc(t('labelsEdit'))}">＋</button></span></td>
-        <td class="dim">${esc(labelOf[p.daemon])}</td>
-        <td class="st">${esc(I18N[lang]['status.'+p.status] ? t('status.'+p.status) : p.status)}</td>
-        <td class="kindcell">${kindCell(p)}</td>
-        <td class="links">${linkCell(p)}</td>
-        <td class="num">${p.status==='online'?p.cpu+'%':'–'}</td>
-        <td class="num">${p.status==='online'?mem(p.memory):'–'}</td>
-        <td class="num">${dur(p.uptime)}</td>
-        <td class="num ${p.restarts?'warn':''}">${p.restarts}${p.unstable?' '+esc(t('unstable', {n: p.unstable})):''}</td>
-        <td class="num">${p.domain?`<input type="number" data-cfg="order" value="${p.order}" title="${esc(t('orderTitle'))}">`:''}</td>
-        <td><select data-cfg="domain">${domainOptions(p.domain)}</select></td>
+        <td class="c-name namecell"><span class="dot"></span>${esc(p.name)}<span class="tags">${(p.labels || []).map(tagHtml).join('')}<button class="tagadd" data-tagedit="${esc(p.key)}" title="${esc(t('labelsEdit'))}">＋</button></span></td>
+        <td class="c-daemon dim">${esc(labelOf[p.daemon])}</td>
+        <td class="c-status st">${esc(I18N[lang]['status.'+p.status] ? t('status.'+p.status) : p.status)}</td>
+        <td class="c-kind kindcell">${kindCell(p)}</td>
+        <td class="c-links links">${linkCell(p)}</td>
+        <td class="c-path pathcell">${pathCell(p)}</td>
+        <td class="num c-cpu">${p.status==='online'?p.cpu+'%':'–'}</td>
+        <td class="num c-memory">${p.status==='online'?mem(p.memory):'–'}</td>
+        <td class="num c-uptime">${dur(p.uptime)}</td>
+        <td class="num c-restarts ${p.restarts?'warn':''}">${p.restarts}${p.unstable?' '+esc(t('unstable', {n: p.unstable})):''}</td>
+        <td class="num c-ord">${p.domain?`<input type="number" data-cfg="order" value="${p.order}" title="${esc(t('orderTitle'))}">`:''}</td>
+        <td class="c-domain"><select data-cfg="domain">${domainOptions(p.domain)}</select></td>
         <td><div class="btns">
           ${p.status==='online'
             ? `<button data-a="restart" ${b?'disabled':''}>${esc(t('restart'))}</button><button data-a="stop" ${b?'disabled':''}>${esc(t('stop'))}</button>`
@@ -1070,6 +1134,13 @@ $('#list').addEventListener('click', async e => {
   if(e.target.closest('[data-setup]')) return openWizard();
   const domainBtn = e.target.closest('[data-da]');
   if(domainBtn) return domainAction(domainBtn.closest('[data-domain]').dataset.domain, domainBtn.dataset.da);
+  const folderLink = e.target.closest('[data-openfolder]'); if(folderLink){ e.preventDefault(); return openFolder(folderLink.dataset.openfolder); }
+  const copyButton = e.target.closest('[data-copypath]');
+  if(copyButton){
+    const proc = state.procs.find(x => x.key === copyButton.dataset.copypath);
+    try{ await navigator.clipboard.writeText(proc.cwd); toast(t('pathCopied')); }catch(err){ toast(t('wz.copyFailed'), true); }
+    return;
+  }
   const tagButton = e.target.closest('[data-tagedit]'); if(tagButton) return openLabelMenu(tagButton.dataset.tagedit, tagButton);
   const filterLabel = e.target.closest('[data-filter-label]');
   if(filterLabel){ const n = filterLabel.dataset.filterLabel; filt.labels.has(n) ? filt.labels.delete(n) : filt.labels.add(n); saveFilter(); return render(true); }
@@ -1256,7 +1327,7 @@ const OS_COMMANDS = {
 };
 let setup = null, wizardOffered = false;
 const wiz = {step: 1, os: 'linux', osChosen: false, oldMode: false, adding: false, manualOpen: false, cmdHelpOpen: false,
-             folder: '', name: '', command: '', kind: null, inspected: false, busy: false, result: null,
+             folder: '', name: '', command: '', kind: null, candidates: [], pick: 0, inspected: false, busy: false, result: null,
              installState: null, output: '', fallback: false, timer: null, auto: null, advancing: false};
 
 async function loadSetup(){
@@ -1332,6 +1403,15 @@ function wizStep2(){
 function wizValid(){
   return {folder: !!wiz.folder.trim(), name: /^[A-Za-z0-9][A-Za-z0-9_.\-]{0,59}$/.test(wiz.name.trim()), command: !!wiz.command.trim()};
 }
+const wizSummary = () => t('wz.s3.summary', {command: wiz.command.trim(), folder: wiz.folder.trim(), name: wiz.name.trim()});
+function candidatesHtml(){
+  const other = wiz.pick === 'other' || !wiz.candidates.length;
+  const rows = wiz.candidates.map((c, i) => `<label class="choice ${wiz.pick === i ? 'on' : ''}"><input type="radio" name="wizpick" value="${i}" ${wiz.pick === i ? 'checked' : ''}>
+    <span><b>${esc(t(`wz.kind.${c.kind}`))}</b><br><code>${esc(c.command)}</code></span></label>`).join('');
+  return rows + (wiz.candidates.length ? `<label class="choice ${other ? 'on' : ''}"><input type="radio" name="wizpick" value="other" ${other ? 'checked' : ''}><span>${esc(t('wz.s3.other'))}</span></label>` : '')
+    + (other ? `<input id="wizcmd" value="${esc(wiz.command)}" placeholder="npm start" autocomplete="off"><p class="hint">${esc(t('wz.s3.otherHint'))}</p>
+      <details data-wdet="cmdhelp" ${wiz.cmdHelpOpen ? 'open' : ''}><summary>${esc(t('wz.s3.commandHelp'))}</summary><p class="hint">${esc(t('wz.s3.commandHelpText'))}</p></details>` : '');
+}
 function wizNewApp(){
   const v = wizValid(), ready = v.folder, canStart = v.folder && v.name && v.command && !wiz.busy;
   let h = `<div class="sub"><h4><span class="n">1</span>${esc(t('wz.s3.sub1'))}</h4><p class="hint">${esc(t('wz.s3.sub1hint'))}</p>
@@ -1339,15 +1419,12 @@ function wizNewApp(){
     <button class="primary" data-wact="browse">${esc(t('wz.s3.browse'))}</button></div>${pickerHtml('project')}</div>`;
   h += `<div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">2</span>${esc(t('wz.s3.sub2'))}</h4>`;
   if(ready){
-    h += `<p class="hint">${esc(t('wz.s3.sub2hint'))}</p>`;
-    if(wiz.inspected) h += wiz.command ? `<p class="okbox">${esc(t('wz.s3.suggest', {kind: t(`wz.kind.${wiz.kind}`)}))}</p>` : `<p class="warnbox">${esc(t('wz.s3.noSuggest'))}</p>`;
-    h += `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" class="${wiz.name && !v.name ? 'invalid' : ''}" value="${esc(wiz.name)}" autocomplete="off">
-      <p class="hint bad" id="wiznamebad" ${wiz.name && !v.name ? '' : 'hidden'}>${esc(t('wz.s3.nameBad'))}</p>
-      <label>${esc(t('wz.s3.command'))}</label><input id="wizcmd" value="${esc(wiz.command)}" placeholder="npm start" autocomplete="off">
-      <p class="hint">${esc(t('wz.s3.commandHint'))}</p>
-      <details data-wdet="cmdhelp" ${wiz.cmdHelpOpen ? 'open' : ''}><summary>${esc(t('wz.s3.commandHelp'))}</summary><p class="hint">${esc(t('wz.s3.commandHelpText'))}</p></details>`;
+    h += wiz.candidates.length ? `<p class="hint">${esc(t('wz.s3.sub2hint'))}</p>` : (wiz.inspected ? `<p class="warnbox">${esc(t('wz.s3.noSuggest'))}</p>` : '');
+    h += candidatesHtml() + `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" class="${wiz.name && !v.name ? 'invalid' : ''}" value="${esc(wiz.name)}" autocomplete="off">
+      <p class="hint bad" id="wiznamebad" ${wiz.name && !v.name ? '' : 'hidden'}>${esc(t('wz.s3.nameBad'))}</p>`;
   }
   h += `</div><div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">3</span>${esc(t('wz.s3.sub3'))}</h4>
+    <p class="okbox" id="wizsummary" ${canStart ? '' : 'hidden'}>${esc(wizSummary())}</p>
     <button class="primary bigbtn" data-wact="addproc" ${canStart ? '' : 'disabled'}>${esc(wiz.busy ? t('wz.s3.starting') : t('wz.s3.start'))}</button>
     <p class="hint" id="wizfillall" ${canStart || wiz.busy ? 'hidden' : ''}>${esc(t('wz.s3.fillAll'))}</p>${wiz.busy ? waiting(t('wz.s3.starting')) : ''}`;
   if(wiz.result && !wiz.result.ok)
@@ -1361,11 +1438,21 @@ function wizOldPm2(){
     <p><button class="primary" data-wact="browsehome">${esc(t('browse'))}</button></p>${pickerHtml('home')}
     <p><button class="linkbtn" data-wact="newmode">${esc(t('wz.s3.newLink'))}</button></p>`;
 }
+const LAUNCHERS = {windows: 'Start pm2-monitor.bat', macos: 'Start pm2-monitor.command', linux: 'start-pm2-monitor.sh'};
+function nextTimeHtml(){
+  const folder = setup && setup.monitorFolder, port = location.port || '8440';
+  const quoted = folder && folder.includes(' ') ? `"${folder}"` : folder;
+  const command = wiz.os === 'windows' ? `cd /d ${quoted} && python server.py` : `cd ${quoted} && python3 server.py`;
+  return `<div class="card"><h4>${esc(t('wz.next.title'))}</h4><p>${esc(t('wz.next.intro'))}</p>
+    <p>${esc(t('wz.next.dbl', {file: LAUNCHERS[wiz.os]}))}</p>${folder ? `<p class="hint">${esc(t('wz.next.folder'))}</p>${cmdBox(folder)}` : ''}
+    <p>${esc(t('wz.next.cmd'))}</p>${folder ? cmdBox(command) : ''}
+    <p>${esc(t('wz.next.addr', {url: `http://127.0.0.1:${port}`}))}</p>${osSelect()}</div>`;
+}
 function wizStep3(){
   const title = `<h3>${esc(t('wz.s3.title'))}</h3>`;
   if(wiz.result && wiz.result.ok) return `<div class="celebrate"><h3>🎉 ${esc(t('wz.s3.successTitle'))}</h3>
     <p>${esc(t('wz.s3.successText', {name: wiz.result.name}))}</p>
-    <p><button class="primary bigbtn" data-wact="showlist">${esc(t('wz.s3.showList'))}</button> <button data-wact="another">${esc(t('wz.s3.another'))}</button></p></div>`;
+    <p><button class="primary bigbtn" data-wact="showlist">${esc(t('wz.s3.showList'))}</button> <button data-wact="another">${esc(t('wz.s3.another'))}</button></p></div>` + nextTimeHtml();
   if(state.procs.length > 0 && !wiz.adding)
     return title + `<div class="okbox">${esc(t('wz.s3.found', {n: state.procs.length, d: state.daemons.filter(d => !d.hidden).length}))}</div>
       <p><button data-wact="another">${esc(t('wz.s3.another'))}</button></p>`;
@@ -1409,6 +1496,7 @@ function refreshWizardForm(){
   const v = wizValid(), ok = v.folder && v.name && v.command && !wiz.busy;
   const start = $('[data-wact="addproc"]'); if(start) start.disabled = !ok;
   const fill = $('#wizfillall'); if(fill) fill.hidden = ok || wiz.busy;
+  const summary = $('#wizsummary'); if(summary){ summary.hidden = !ok; summary.textContent = wizSummary(); }
   const bad = $('#wiznamebad'); if(bad) bad.hidden = !(wiz.name && !v.name);
   const name = $('#wizname'); if(name) name.classList.toggle('invalid', !!(wiz.name && !v.name));
 }
@@ -1431,12 +1519,12 @@ async function checkProgress(manual){
 const autoCheck = () => { if($('#wizard').open && !wiz.busy && wiz.installState !== 'running' && wiz.step <= 3) checkProgress(false); };
 
 async function inspectFolder(){
-  wiz.inspected = false; wiz.result = null;
+  wiz.inspected = false; wiz.result = null; wiz.candidates = []; wiz.pick = 'other';
   if(!wiz.folder.trim()) return;
   try{
     const j = await (await fetch('/api/inspect?path=' + encodeURIComponent(wiz.folder.trim()))).json();
     if(j.ok === false) return toast(errText(j.error, j.params, j.output), true);
-    Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, inspected: true});
+    Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, candidates: j.candidates || [], pick: j.candidates && j.candidates.length ? 0 : 'other', inspected: true});
   }catch(e){ toast(t('serverDown'), true); }
 }
 async function addFirstProcess(){
@@ -1501,6 +1589,11 @@ $('#wizard').addEventListener('input', e => {
 $('#wizard').addEventListener('change', async e => {
   if(e.target.matches('[data-wos]')){ wiz.os = e.target.value; wiz.osChosen = true; renderWizard(); }
   else if(e.target.id === 'wizfolder'){ await inspectFolder(); renderWizard(); }
+  else if(e.target.name === 'wizpick'){
+    wiz.pick = e.target.value === 'other' ? 'other' : +e.target.value;
+    wiz.command = wiz.pick === 'other' ? '' : wiz.candidates[wiz.pick].command;
+    renderWizard();
+  }
 });
 $('#wizard').addEventListener('toggle', e => {   // <details> does not bubble: listen while capturing
   if(e.target.dataset && e.target.dataset.wdet === 'manual') wiz.manualOpen = e.target.open;

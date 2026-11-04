@@ -149,6 +149,9 @@ class Handler(BaseHTTPRequestHandler):
             elif path == "/api/shutdown":
                 self.send_json({"ok": True})  # the answer is out before the server goes down
                 threading.Thread(target=self.server.shutdown, daemon=True).start()
+            elif path == "/api/open-folder":
+                monitor.open_folder(request.get("key", ""))   # only the key is read: the folder is the process's own
+                self.send_json({"ok": True})
             elif path == "/api/events/clear":
                 (event_log or notifier.EventLog()).clear()
                 self.send_json({"ok": True})

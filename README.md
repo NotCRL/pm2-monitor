@@ -18,6 +18,7 @@ Step-by-step guide (Node.js, pm2, monitor, autostart, for Linux / macOS / Window
 - **Notifications per domain**: be told when an app crashes, stops, restarts by itself or uses too much memory, when a daemon stops, or when a group start finishes. Each domain chooses its severities (errors / warnings / good news), the kinds of event, an optional memory limit and the channels: the bell menu, browser notifications, sound, and desktop notifications that also work while the page is closed. Open the bell in the header.
 - **Start and stop with a double-click**, on any system: `Start pm2-monitor.bat` (Windows), `Start pm2-monitor.command` (macOS), `start-pm2-monitor.sh` (Linux). The power button in the header (or `python3 server.py --stop`) turns it off; your apps keep running under pm2.
 - **Up to two logs side by side**, resizable by dragging the bars, with their own text size.
+- **Folder of each process**: a column with its path; one click opens it in your file manager, a small button copies it. Choose which columns to show in Settings.
 - **Type and labels**: a *type* column (backend / frontend / your own, guessed from what the process runs and editable) and any number of coloured *labels* per process; filter the list by type and labels.
 - **Links to your running apps**: a column shows `localhost:PORT` for each app that serves a web page (found from the ports it listens on, including the program behind `npm start`), one click away.
 - **Collapsible groups** in the list, and a **Settings** menu (gear) for the page size and the language.
@@ -75,5 +76,6 @@ MIT, see [LICENSE](LICENSE).
 - A process is identified as `daemon/name`: two processes with the same name in different daemons are distinct, in the same daemon they are not (as in pm2).
 - Cluster mode is saved (`exec_mode`, `instances`) but only tested in fork mode.
 - The server console output and `--help` are in English only.
+- Opening a folder: Linux needs `xdg-open` (`xdg-utils`); macOS uses `open` and Windows the Explorer, but only Linux has been tried.
 - Links: only Linux has been tried (macOS uses `lsof`, Windows `netstat`). Apps that listen only on a LAN address, or inside a container, are not detected. To tell web pages from other services the monitor sends one `HEAD /` request to each listening port (once per process); it shows up in an app's access log, and the Settings menu can turn it off.
 - Notifications are produced by the running monitor: nothing is reported while it is stopped, and what happened in the meantime is not reported afterwards. Desktop notifications use `notify-send` (Linux), `osascript` (macOS) and PowerShell (Windows); only the Linux one has been exercised, so use the "Send a test" button in the notification settings to check yours.

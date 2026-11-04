@@ -73,6 +73,7 @@ def doctor(monitor):
         "npm": {"path": npm, "version": _run_version([npm, "--version"]) if npm else None},
         "pm2": {"path": monitor.pm2_path, "version": pm2_version(monitor.pm2_path)},
         "pm2Home": str(default_pm2_home()),
+        "monitorFolder": str(Path(__file__).resolve().parent.parent),
     }
 
 
@@ -176,12 +177,36 @@ def sanitize_name(text):
     return re.sub(r"[^A-Za-z0-9_.\-]+", "-", text or "").strip("-.")[:60]
 
 
+def _quote(token):
+    """A file name with spaces must stay one argument: double quotes are understood on every system."""
+    return f'"{token}"' if " " in token else token
+
+
+def _java_archives(path):
+    """Runnable archives of a project, in the places build tools leave them."""
+    found = []
+    for folder in (path, path / "target", path / "build" / "libs"):
+        for pattern in ("*.jar", "*.war"):
+            found += [f for f in sorted(folder.glob(pattern))
+                      if not f.name.endswith(("-sources.jar", "-javadoc.jar", ".original"))]
+    return [f.relative_to(path).as_posix() for f in found][:2]
+
+
 def suggest_command(folder):
-    """Guesses name and start command of the project in a folder. command is empty when unsure."""
+    """What the project in a folder looks like and the commands that could start it, most likely first.
+
+    Returns name, the first candidate's command and kind (empty when nothing is recognised), and `candidates`:
+    [{kind, command, detail}]. A beginner picks one instead of writing a command."""
     path = Path(str(folder or "")).expanduser()
     if not path.is_dir():
         raise ActionError("folder_not_found", path=str(folder))
-    name = sanitize_name(path.name) or "my-app"
+    name, candidates = sanitize_name(path.name) or "my-app", []
+
+    def add(kind, command, detail=""):
+        if command not in [c["command"] for c in candidates]:
+            candidates.append({"kind": kind, "command": command, "detail": detail})
+
+    python = "python" if IS_WINDOWS else "python3"
     package = path / "package.json"
     if package.is_file():
         try:
@@ -191,16 +216,31 @@ def suggest_command(folder):
         data = data if isinstance(data, dict) else {}
         name = sanitize_name(str(data.get("name") or "")) or name
         scripts = data.get("scripts") if isinstance(data.get("scripts"), dict) else {}
-        if "start" in scripts:
-            return {"name": name, "command": "npm start", "kind": "npm"}
-        for candidate in (data.get("main"), "server.js", "app.js", "index.js"):
-            if isinstance(candidate, str) and (path / candidate).is_file():
-                return {"name": name, "command": f"node {candidate}", "kind": "node"}
-    python = "python" if IS_WINDOWS else "python3"
-    for candidate in ("main.py", "app.py", "server.py"):
-        if (path / candidate).is_file():
-            return {"name": name, "command": f"{python} {candidate}", "kind": "python"}
-    return {"name": name, "command": "", "kind": None}
+        for script in ("start", "dev", "serve"):
+            if script in scripts:
+                add("npm", "npm start" if script == "start" else f"npm run {script}", script)
+        for entry in (data.get("main"), "server.js", "app.js", "index.js"):
+            if isinstance(entry, str) and (path / entry).is_file():
+                add("node", f"node {_quote(entry)}", entry)
+    if (path / "manage.py").is_file():
+        add("django", f"{python} manage.py runserver", "manage.py")
+    for entry in ("main.py", "app.py", "server.py", "run.py"):
+        if (path / entry).is_file():
+            add("python", f"{python} {entry}", entry)
+    for archive in _java_archives(path):
+        add("java", f"java -jar {_quote(archive)}", archive)
+    if (path / "pom.xml").is_file():
+        add("maven", "mvn spring-boot:run", "pom.xml")
+    if (path / "gradlew").is_file() or (path / "gradlew.bat").is_file():
+        add("gradle", "gradlew.bat bootRun" if IS_WINDOWS else "./gradlew bootRun", "gradlew")
+    for stem in ("start", "run", "serve"):
+        for extension in ((".bat", ".cmd") if IS_WINDOWS else (".sh",)):
+            if (path / f"{stem}{extension}").is_file():
+                add("script", f".\\{stem}{extension}" if IS_WINDOWS else f"./{stem}{extension}", f"{stem}{extension}")
+    candidates = candidates[:6]
+    first = candidates[0] if candidates else None
+    return {"name": name, "command": first["command"] if first else "", "kind": first["kind"] if first else None,
+            "candidates": candidates}
 
 
 # --- starting the first app -----------------------------------------------------------------------
@@ -234,6 +274,18 @@ def _log_tail(monitor, key):
     return "\n".join(parts)
 
 
+def split_command(command):
+    """The words of a typed command. Quotes group a name with spaces; on Windows shlex keeps them in the word,
+    and the program must not receive them."""
+    try:
+        tokens = shlex.split(command or "", posix=not IS_WINDOWS)
+    except ValueError:
+        raise ActionError("bad_command")
+    if IS_WINDOWS:
+        tokens = [tok[1:-1] if len(tok) > 1 and tok[0] == tok[-1] == '"' else tok for tok in tokens]
+    return tokens
+
+
 def add_process(monitor, name, folder, command):
     """Starts a first app under pm2 and saves the list. If it does not stay up, it is removed again
     so the user can retry with another command."""
@@ -243,10 +295,7 @@ def add_process(monitor, name, folder, command):
     cwd = Path(str(folder or "").strip()).expanduser()
     if not cwd.is_dir():
         raise ActionError("folder_not_found", path=str(folder))
-    try:
-        tokens = shlex.split(command or "", posix=not IS_WINDOWS)
-    except ValueError:
-        raise ActionError("bad_command")
+    tokens = split_command(command)
     if not tokens:
         raise ActionError("empty_command")
     if not monitor.pm2_path:

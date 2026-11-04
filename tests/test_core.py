@@ -146,7 +146,7 @@ class TranslationsTest(unittest.TestCase):
         expected |= {f"nt.lvl.{s}" for s in SEVERITIES} | {f"nt.lvl.{s}Hint" for s in SEVERITIES}
         expected |= {f"wz.step{n}" for n in range(1, 6)} | {f"wz.os.{o}" for o in ("windows", "macos", "linux")}
         expected |= {f"wz.term.{o}" for o in ("windows", "macos", "linux")} | {f"wz.node.{o}Note" for o in ("windows", "macos", "linux")}
-        expected |= {f"wz.kind.{k}" for k in ("npm", "node", "python")} | {f"nt.browserState.{s}" for s in ("granted", "denied", "default", "unsupported")}
+        expected |= {f"wz.kind.{k}" for k in ("npm", "node", "python", "django", "java", "maven", "gradle", "script")} | {f"nt.browserState.{s}" for s in ("granted", "denied", "default", "unsupported")}
         expected |= {"kind.backend", "kind.frontend"}
         expected |= {f"status.{s}" for s in ("online", "stopped", "errored", "launching", "stopping", "offline", "absent")}
         self.assertEqual(expected - keys, set())

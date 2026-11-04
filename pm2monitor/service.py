@@ -4,8 +4,11 @@ User-facing messages are not built here: errors carry a stable `code` plus `para
 and the UI translates them (see the `err.*` entries in index.html).
 """
 import json
+import os
 import re
+import shutil
 import subprocess
+import sys
 import threading
 import time
 import uuid
@@ -16,7 +19,7 @@ from . import ISSUES_URL, __version__, classify, ports
 from .discovery import (daemon_alive, discover_homes, extract_launch_spec, looks_like_pm2_home,
                         make_daemon_id, read_dump)
 from .notifier import EVENT_TYPES, LANGUAGES, normalize_settings
-from .osenv import find_pm2, pm2_environment, subprocess_flags
+from .osenv import HOME, IS_WINDOWS, find_pm2, pm2_environment, subprocess_flags
 from .store import BUILTIN_KINDS, DEFAULT_ORDER
 
 ACTIONS = {"start", "stop", "restart"}
@@ -25,6 +28,7 @@ LOG_TAIL_BYTES = 256 * 1024
 SCAN_INTERVAL_SECONDS = 30
 STABLE_SECONDS = 2  # a process counts as started only if it stays online for this long
 MAX_JOBS_KEPT = 20
+OPEN_WAIT_SECONDS = 3  # a file manager that is still running after this long has opened the folder
 RETRY_PROBE_SECONDS = 60.0  # a port that did not answer like a web server may just not have been ready
 PORTS_TTL_SECONDS = 8.0  # scanning the system for listening ports is dearer than reading pm2: do it less often
 SNAPSHOT_TTL_SECONDS = 2.0  # the page and the notification watcher share one reading of pm2
@@ -41,6 +45,29 @@ class ActionError(Exception):
         super().__init__(f"{code} {params}" if params else code)
         self.code = code
         self.params = params
+
+
+def open_in_file_manager(path):
+    """Shows a folder in the system's file manager. The caller decides which folder: this never takes one from a request."""
+    path = str(path)
+    if IS_WINDOWS:
+        os.startfile(path)  # noqa: S606 - Windows only; opens the folder in Explorer
+        return
+    if sys.platform == "darwin":
+        command = ["open", path]
+    else:
+        tool = shutil.which("xdg-open")
+        if not tool:
+            raise ActionError("open_unavailable")
+        command = [tool, path]
+    process = subprocess.Popen(command, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
+                               start_new_session=True)
+    try:
+        failed = process.wait(timeout=OPEN_WAIT_SECONDS) != 0
+    except subprocess.TimeoutExpired:
+        return  # still running: the file manager is up and keeps the command alive
+    if failed:
+        raise ActionError("open_failed")
 
 
 def split_key(key):
@@ -210,7 +237,7 @@ class Monitor:
         return {"time": time.time(), "language": self.store.data.get("language", "en"),
                 "kinds": {"builtin": list(BUILTIN_KINDS), "custom": list(self.store.data["kinds"])}, "labels": self._label_list(),
                 "notifyDefault": normalize_settings(self.store.data.get("notifyDefault")), "probeLinks": self.store.data.get("probeLinks", True), "eventTypes": EVENT_TYPES, "pm2": self.pm2_path, "warning": self.store.warning,
-                "version": __version__, "issuesUrl": ISSUES_URL,
+                "version": __version__, "home": str(HOME), "issuesUrl": ISSUES_URL,
                 "configPath": str(self.store.path), "daemons": daemons, "domains": domains,
                 "procs": procs, "jobs": self.active_jobs()}
 
@@ -279,6 +306,19 @@ class Monitor:
             "kind": kind, "kindAuto": None if kind else classify.guess_kind(saved.get("spec")),
             "labels": [label for label in saved.get("labels", []) if label in self.store.data["labels"]],
         }
+
+    def open_folder(self, key):
+        """Opens the working folder of a process the monitor knows (never a path coming from the request)."""
+        daemon_id, _ = split_key(key)
+        if daemon_id not in self.store.data["daemons"]:
+            raise ActionError("unknown_daemon", id=daemon_id)
+        row = next((p for p in self.snapshot()["procs"] if p["key"] == key), None)
+        if not row:
+            raise ActionError("unknown_process")
+        folder = row.get("cwd")
+        if not folder or not os.path.isdir(folder):
+            raise ActionError("folder_not_found", path=str(folder or ""))
+        open_in_file_manager(folder)
 
     def find_logs(self, key):
         """Log paths as reported by pm2 itself (live or from the dump), never guessed."""

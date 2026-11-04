@@ -10,7 +10,7 @@ from http.server import ThreadingHTTPServer
 from unittest import mock
 
 import server
-from pm2monitor import control, notifier
+from pm2monitor import control, notifier, service
 from pm2monitor.service import ActionError, Monitor
 from pm2monitor.store import ConfigStore
 
@@ -78,7 +78,7 @@ class ServerTest(unittest.TestCase):
 
     def test_setup_report_has_the_tools_and_the_os(self):
         report = json.loads(self.request("/api/setup")[1])
-        self.assertEqual({"os", "home", "node", "npm", "pm2", "pm2Home"}, set(report))
+        self.assertEqual({"os", "home", "node", "npm", "pm2", "pm2Home", "monitorFolder"}, set(report))
         self.assertIn(report["os"], ("windows", "macos", "linux"))
 
     def test_browse_and_inspect_a_folder(self):
@@ -170,6 +170,15 @@ class ServerTest(unittest.TestCase):
         status, _ = self.request("/api/shutdown", {}, headers={"Origin": "http://evil.example"})
         self.assertEqual(status, 403)
         self.assertTrue(control.running_version(self.httpd.server_port))
+
+    def test_open_folder_reads_only_the_key_never_a_path(self):
+        with mock.patch.object(service, "open_in_file_manager") as opener:
+            status, body = self.request("/api/open-folder", {"key": "ghost/x", "path": "/etc", "folder": "/etc"})
+        self.assertEqual((status, json.loads(body)["error"]), (400, "unknown_daemon"))
+        opener.assert_not_called()
+
+    def test_the_state_tells_the_home_folder_for_shortening_paths(self):
+        self.assertTrue(json.loads(self.request("/api/state")[1])["home"])
 
     def test_domain_can_be_created_and_listed(self):
         status, _ = self.request("/api/config", {"op": "createDomain", "name": "backend"})

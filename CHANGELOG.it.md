@@ -5,6 +5,14 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.5.0] - 2026-11-04
+
+### Aggiunto
+- **Cartella di ogni processo.** Una colonna "cartella" mostra dove gira un processo (la parte finale del percorso resta sempre visibile). Un clic apre la cartella nel gestore dei file del sistema: è il monitor a chiederlo al sistema, perché una pagina web non può, e apre solo la cartella di un processo che conosce, mai un percorso arrivato da una richiesta. Un piccolo pulsante copia il percorso. Su Linux serve `xdg-open` (pacchetto `xdg-utils`); macOS usa `open` e Windows Esplora risorse (è stato provato solo Linux).
+- **Configurazione guidata riscritta per chi parte da zero (passo 3).** Dice chiaramente che stai aggiungendo UN programma (un sito, un'API...) da tenere acceso; guarda nella cartella e propone tutti i modi trovati per avviarlo (npm, node, Python, Django, archivi Java, Maven, Gradle, script di avvio) come scelte da selezionare invece di una casella vuota; e dice cosa sta per fare ("Eseguirò ... nella cartella ... e lo chiamerò ...") prima del pulsante Avvia. Gestiti i nomi di file con spazi.
+- **Riquadro "La prossima volta"** dopo l'avvio del primo programma: come riaprire il monitor (il file da cliccare due volte, o il comando da scrivere, e l'indirizzo).
+- **Scegli le colonne:** Impostazioni > Colonne nasconde quelle che non ti servono (con memoria).
+
 ## [1.4.0] - 2026-11-04
 
 ### Aggiunto

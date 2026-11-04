@@ -5,6 +5,14 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] - 2026-11-04
+
+### Added
+- **Folder of each process.** A "folder" column shows where a process runs (the end of the path always stays visible). A click opens the folder in the system's file manager: the monitor asks the system to do it, because a web page cannot, and it only ever opens the folder of a process it knows, never a path coming from a request. A small button copies the path. Linux needs `xdg-open` (package `xdg-utils`); macOS uses `open` and Windows the Explorer (only Linux has been tried).
+- **Guided setup rewritten for beginners (step 3).** It now says plainly that you are adding ONE program (a site, an API...) to keep running; it looks in the folder and offers every way it found to start it (npm, node, Python, Django, Java archives, Maven, Gradle, start scripts) as radio buttons instead of a blank command box; and it spells out what it is about to do ("I will run ... in the folder ... and call it ...") before the Start button. File names with spaces are handled.
+- **"Next time" box** after the first program starts: how to open the monitor again (the file to double-click, or the command to type, and the address).
+- **Choose your columns:** Settings > Columns hides the columns you do not need (remembered).
+
 ## [1.4.0] - 2026-11-04
 
 ### Added
