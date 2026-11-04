@@ -125,13 +125,14 @@ class Monitor:
         self.pm2_path = find_pm2(self.store.data["pm2Path"])
         return self.pm2_path
 
-    def run_pm2(self, daemon_id, args, timeout=60, cwd=None):
+    def run_pm2(self, daemon_id, args, timeout=60, cwd=None, env_extra=None):
         if not self.pm2_path:
             raise ActionError("pm2_not_found")
         home = self.home_of(daemon_id)
         if args and args[0] != "jlist":
             self.invalidate_snapshot()  # anything but a read changes what the next snapshot must show
-        return subprocess.run([self.pm2_path, *args], env=pm2_environment(self.pm2_path, home),
+        env = {**pm2_environment(self.pm2_path, home), **(env_extra or {})}   # e.g. the Java a project needs
+        return subprocess.run([self.pm2_path, *args], env=env,
                               capture_output=True, text=True, timeout=timeout, cwd=cwd, **subprocess_flags())
 
     def read_live(self, daemon_id):

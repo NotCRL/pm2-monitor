@@ -5,6 +5,18 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.7.0] - 2026-11-04
+
+### Added
+- **A much smarter folder scan.** Besides npm, node and Python scripts it now recognises: the project's own **Maven/Gradle wrapper** (`mvnw`, `gradlew`; `mvnw.cmd` on Windows) before a global `mvn`; **Spring** projects with their development profiles (`dev`, plus `swagger` for JHipster); **FastAPI/Flask** apps (`python -m uvicorn module:app --app-dir src`), including the `app = create_app()` style; packages with a `__main__.py` (`python -m name`); **Makefile** start targets (`start`, `run`, `dev`, `serve`, `avvia`...); and it uses the project's own **virtual environment** (`.venv`, `venv`).
+- **The right Java.** It reads the Java version a project asks for (pom.xml, Gradle, `.java-version`, or the build info inside the `.jar`/`.war`), looks for installed Javas where each system keeps them (JAVA_HOME, PATH, `~/.jdks`, SDKMAN, `/usr/lib/jvm`, Program Files, Adoptium, Corretto, Zulu, macOS...) and starts the program with the matching `JAVA_HOME`. If only a newer Java exists it says so; if none exists it tells you to install it.
+- Commands whose tool is not installed on the computer go last, are marked, and are never tried automatically.
+- When a project uses Docker services (a database...), the guide shows the command to start them first (`docker compose up -d`) and does not start the program by itself; it never starts the services.
+
+### Fixed
+- Programs such as `java`, `npm`, `mvnw` or `make` were handed to pm2 as if they were JavaScript files and failed. They now run as programs.
+- On Windows, `.cmd`/`.bat` files, `npm` and `mvn` are started through `cmd /c` (written from pm2's documented behaviour, not tried on Windows).
+
 ## [1.6.0] - 2026-11-04
 
 ### Added

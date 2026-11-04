@@ -14,9 +14,11 @@ import time
 import uuid
 from pathlib import Path
 
+from . import jdk
 from .discovery import looks_like_pm2_home, make_daemon_id
 from .osenv import (HOME, IS_WINDOWS, find_node, find_npm, os_name, refresh_tool_cache,
                     subprocess_flags, tool_environment)
+from .scanner import sanitize_name, suggest_command  # noqa: F401  (re-exported: the server and the tests use them from here)
 from .service import ActionError, strip_ansi, tail
 
 NAME_PATTERN = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.\-]{0,59}$")
@@ -26,6 +28,8 @@ MAX_FOLDERS_LISTED = 500
 PLACE_NAMES = ("Desktop", "Documents", "Downloads", "Projects", "projects", "dev", "code", "work", "workspace", "src", "repos")
 USER_DIRS = re.compile(r'^XDG_(?:DESKTOP|DOCUMENTS|DOWNLOAD)_DIR="(.*)"$')
 LOG_LINES_SHOWN = 15
+PM2_KNOWS_INTERPRETER = {".js", ".mjs", ".cjs", ".ts", ".sh", ".py", ".rb", ".php", ".pl"}   # pm2 picks the right interpreter for these
+WINDOWS_SCRIPT_TOOLS = {"npm", "npx", "mvn", "gradle", "yarn", "pnpm"}
 
 _install_jobs = {}
 _install_lock = threading.Lock()
@@ -173,76 +177,6 @@ def _places():
     return places
 
 
-def sanitize_name(text):
-    return re.sub(r"[^A-Za-z0-9_.\-]+", "-", text or "").strip("-.")[:60]
-
-
-def _quote(token):
-    """A file name with spaces must stay one argument: double quotes are understood on every system."""
-    return f'"{token}"' if " " in token else token
-
-
-def _java_archives(path):
-    """Runnable archives of a project, in the places build tools leave them."""
-    found = []
-    for folder in (path, path / "target", path / "build" / "libs"):
-        for pattern in ("*.jar", "*.war"):
-            found += [f for f in sorted(folder.glob(pattern))
-                      if not f.name.endswith(("-sources.jar", "-javadoc.jar", ".original"))]
-    return [f.relative_to(path).as_posix() for f in found][:2]
-
-
-def suggest_command(folder):
-    """What the project in a folder looks like and the commands that could start it, most likely first.
-
-    Returns name, the first candidate's command and kind (empty when nothing is recognised), and `candidates`:
-    [{kind, command, detail}]. A beginner picks one instead of writing a command."""
-    path = Path(str(folder or "")).expanduser()
-    if not path.is_dir():
-        raise ActionError("folder_not_found", path=str(folder))
-    name, candidates = sanitize_name(path.name) or "my-app", []
-
-    def add(kind, command, detail=""):
-        if command not in [c["command"] for c in candidates]:
-            candidates.append({"kind": kind, "command": command, "detail": detail})
-
-    python = "python" if IS_WINDOWS else "python3"
-    package = path / "package.json"
-    if package.is_file():
-        try:
-            data = json.loads(package.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
-            data = {}
-        data = data if isinstance(data, dict) else {}
-        name = sanitize_name(str(data.get("name") or "")) or name
-        scripts = data.get("scripts") if isinstance(data.get("scripts"), dict) else {}
-        for script in ("start", "dev", "serve"):
-            if script in scripts:
-                add("npm", "npm start" if script == "start" else f"npm run {script}", script)
-        for entry in (data.get("main"), "server.js", "app.js", "index.js"):
-            if isinstance(entry, str) and (path / entry).is_file():
-                add("node", f"node {_quote(entry)}", entry)
-    if (path / "manage.py").is_file():
-        add("django", f"{python} manage.py runserver", "manage.py")
-    for entry in ("main.py", "app.py", "server.py", "run.py"):
-        if (path / entry).is_file():
-            add("python", f"{python} {entry}", entry)
-    for archive in _java_archives(path):
-        add("java", f"java -jar {_quote(archive)}", archive)
-    if (path / "pom.xml").is_file():
-        add("maven", "mvn spring-boot:run", "pom.xml")
-    if (path / "gradlew").is_file() or (path / "gradlew.bat").is_file():
-        add("gradle", "gradlew.bat bootRun" if IS_WINDOWS else "./gradlew bootRun", "gradlew")
-    for stem in ("start", "run", "serve"):
-        for extension in ((".bat", ".cmd") if IS_WINDOWS else (".sh",)):
-            if (path / f"{stem}{extension}").is_file():
-                add("script", f".\\{stem}{extension}" if IS_WINDOWS else f"./{stem}{extension}", f"{stem}{extension}")
-    candidates = candidates[:6]
-    first = candidates[0] if candidates else None
-    return {"name": name, "command": first["command"] if first else "", "kind": first["kind"] if first else None,
-            "candidates": candidates}
-
-
 MAX_NAME_ATTEMPTS = 20
 
 
@@ -255,7 +189,9 @@ def auto_start(monitor, folder, name=None):
     if not suggestion["candidates"]:
         raise ActionError("no_command_found")
     base, failed = (name or suggestion["name"]).strip(), []
-    for candidate in suggestion["candidates"]:
+    runnable = [c for c in suggestion["candidates"] if c["available"]]
+    missing = [c["command"] for c in suggestion["candidates"] if not c["available"]]
+    for candidate in runnable:
         for attempt in range(1, MAX_NAME_ATTEMPTS + 1):
             current = base if attempt == 1 else f"{base}-{attempt}"[:60]
             try:
@@ -269,7 +205,7 @@ def auto_start(monitor, folder, name=None):
                     break                         # this command does not work: try the next one
                 raise                             # pm2 missing, bad folder...: no other command would help
             return {**result, "name": current, "command": candidate["command"], "kind": candidate["kind"], "failed": failed}
-    raise ActionError("auto_start_failed", tried=failed)
+    raise ActionError("auto_start_failed", tried=failed, missing=missing, notes=suggestion["notes"])
 
 
 # --- starting the first app -----------------------------------------------------------------------
@@ -290,11 +226,17 @@ def ensure_default_daemon(monitor):
 def _pm2_launch(tokens):
     """(script, arguments, extra pm2 options) for a typed command such as 'node app.js' or 'npm start'."""
     first = Path(tokens[0]).name.lower()
+    if IS_WINDOWS and (Path(first).suffix in (".cmd", ".bat") or Path(first).stem in WINDOWS_SCRIPT_TOOLS):
+        return "cmd", ["/c", *tokens], []   # these are batch files there: pm2 cannot run them directly
     if first in ("node", "nodejs", "node.exe") and len(tokens) > 1:
         return tokens[1], tokens[2:], []
     if (first.startswith("python") or first in ("py", "py.exe")) and len(tokens) > 1:
+        if tokens[1] == "-m":               # "python -m module": the interpreter itself is the program to run
+            return tokens[0], tokens[1:], []
         return tokens[1], tokens[2:], ["--interpreter", tokens[0]]
-    return tokens[0], tokens[1:], []
+    if Path(tokens[0]).suffix.lower() in PM2_KNOWS_INTERPRETER:
+        return tokens[0], tokens[1:], []
+    return tokens[0], tokens[1:], ["--interpreter", "none"]   # a program (java, npm, mvnw, make): pm2 would run it as JavaScript
 
 
 def _log_tail(monitor, key):
@@ -335,7 +277,7 @@ def add_process(monitor, name, folder, command):
 
     script, args, extra = _pm2_launch(tokens)
     start = ["start", script, "--name", name, *extra] + (["--", *args] if args else [])
-    result = monitor.run_pm2(daemon_id, start, timeout=90, cwd=str(cwd))
+    result = monitor.run_pm2(daemon_id, start, timeout=90, cwd=str(cwd), env_extra=jdk.environment_for(cwd, tokens))
     if result.returncode != 0:
         raise ActionError("pm2_failed", output=strip_ansi(result.stdout + result.stderr)[-1500:])
 

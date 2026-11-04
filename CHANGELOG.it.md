@@ -5,6 +5,18 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.7.0] - 2026-11-04
+
+### Aggiunto
+- **Scansione della cartella molto più intelligente.** Oltre a npm, node e script Python ora riconosce: il **wrapper Maven/Gradle** del progetto (`mvnw`, `gradlew`; `mvnw.cmd` su Windows) prima di un `mvn` globale; i progetti **Spring** con i profili di sviluppo (`dev`, più `swagger` per JHipster); le app **FastAPI/Flask** (`python -m uvicorn modulo:app --app-dir src`), anche nello stile `app = create_app()`; i pacchetti con `__main__.py` (`python -m nome`); i comandi di avvio del **Makefile** (`start`, `run`, `dev`, `serve`, `avvia`...); e usa l'**ambiente virtuale** del progetto (`.venv`, `venv`).
+- **Il Java giusto.** Legge la versione di Java richiesta dal progetto (pom.xml, Gradle, `.java-version`, o le informazioni di compilazione dentro il `.jar`/`.war`), cerca i Java installati dove ogni sistema li tiene (JAVA_HOME, PATH, `~/.jdks`, SDKMAN, `/usr/lib/jvm`, Program Files, Adoptium, Corretto, Zulu, macOS...) e avvia il programma con il `JAVA_HOME` giusto. Se esiste solo un Java più nuovo lo dice; se non ne esiste nessuno ti dice di installarlo.
+- I comandi il cui strumento non è installato sul computer vanno in fondo, sono segnati e non vengono mai provati in automatico.
+- Quando un progetto usa servizi Docker (un database...), la guida mostra il comando per avviarli prima (`docker compose up -d`) e non avvia il programma da sola; non avvia mai i servizi.
+
+### Corretto
+- Programmi come `java`, `npm`, `mvnw` o `make` venivano passati a pm2 come se fossero file JavaScript e fallivano. Ora girano come programmi.
+- Su Windows i file `.cmd`/`.bat`, `npm` e `mvn` partono tramite `cmd /c` (scritto in base al comportamento documentato di pm2, non provato su Windows).
+
 ## [1.6.0] - 2026-11-04
 
 ### Aggiunto

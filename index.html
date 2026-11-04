@@ -625,6 +625,11 @@ const I18N = {
     'wz.s3.autoTrying': 'Looking at the folder and starting it by myself… I may try a few ways, this can take up to a minute.',
     'wz.s3.autoFailedTitle': 'I tried to start it by myself, but these ways did not work:', 'wz.s3.autoFailedHelp': 'Pick another way below, or type the command yourself.',
     'wz.s3.autoUsed': 'I started it with: {command}',
+    'wz.kind.fastapi': 'a Python web app (FastAPI)', 'wz.kind.flask': 'a Python web app (Flask)', 'wz.kind.make': 'a Makefile command',
+    'wz.s3.javaUses': 'Runs on Java {version}, found on this computer.', 'wz.s3.javaNewer': 'The project asks for Java {wanted}, which is not installed: it will run on Java {version}, which may not work.', 'wz.s3.unavailable': 'The program this needs is not installed on this computer.',
+    'wz.s3.autoMissing': 'Not tried, because the program they need is not installed here:',
+    'note.java_missing': 'This project needs Java {version} and I could not find it on this computer. Install it (for example from adoptium.net), then choose the folder again.',
+    'note.services': 'This project also uses other services (for example a database). Start them first, or it will start and stop at once. In a terminal, inside the folder:',
     'wz.s3.sub3': 'Start it', 'wz.s3.start': 'Start my program', 'wz.s3.starting': 'Starting… this takes a few seconds.',
     'wz.s3.fillAll': 'Choose the folder, how it starts and a name to continue.',
     'wz.s3.successTitle': 'Your program is running!',
@@ -809,6 +814,11 @@ const I18N = {
     'wz.s3.autoTrying': 'Guardo la cartella e lo avvio da solo… posso provare più modi, può volerci fino a un minuto.',
     'wz.s3.autoFailedTitle': 'Ho provato ad avviarlo da solo, ma questi modi non hanno funzionato:', 'wz.s3.autoFailedHelp': 'Scegli un altro modo qui sotto, oppure scrivi tu il comando.',
     'wz.s3.autoUsed': 'L\'ho avviato con: {command}',
+    'wz.kind.fastapi': 'un\'app web Python (FastAPI)', 'wz.kind.flask': 'un\'app web Python (Flask)', 'wz.kind.make': 'un comando del Makefile',
+    'wz.s3.javaUses': 'Gira con Java {version}, trovato su questo computer.', 'wz.s3.javaNewer': 'Il progetto chiede Java {wanted}, che non è installato: girerà con Java {version}, e potrebbe non funzionare.', 'wz.s3.unavailable': 'Il programma che serve non è installato su questo computer.',
+    'wz.s3.autoMissing': 'Non provati, perché il programma che richiedono non è installato qui:',
+    'note.java_missing': 'Questo progetto richiede Java {version} e non l\'ho trovato su questo computer. Installalo (per esempio da adoptium.net), poi scegli di nuovo la cartella.',
+    'note.services': 'Questo progetto usa anche altri servizi (per esempio un database). Avviali prima, altrimenti parte e si ferma subito. In un terminale, dentro la cartella:',
     'wz.s3.sub3': 'Avvialo', 'wz.s3.start': 'Avvia il mio programma', 'wz.s3.starting': 'Avvio in corso… ci vogliono pochi secondi.',
     'wz.s3.fillAll': 'Scegli la cartella, come si avvia e un nome per continuare.',
     'wz.s3.successTitle': 'Il tuo programma è in esecuzione!',
@@ -1333,7 +1343,7 @@ const OS_COMMANDS = {
 };
 let setup = null, wizardOffered = false;
 const wiz = {step: 1, os: 'linux', osChosen: false, oldMode: false, adding: false, manualOpen: false, cmdHelpOpen: false,
-             folder: '', name: '', command: '', kind: null, candidates: [], pick: 0, inspected: false, busyKey: 'wz.s3.starting', autoTried: null, busy: false, result: null,
+             folder: '', name: '', command: '', kind: null, candidates: [], notes: [], missing: [], pick: 0, inspected: false, busyKey: 'wz.s3.starting', autoTried: null, busy: false, result: null,
              installState: null, output: '', fallback: false, timer: null, auto: null, advancing: false};
 
 async function loadSetup(){
@@ -1410,10 +1420,17 @@ function wizValid(){
   return {folder: !!wiz.folder.trim(), name: /^[A-Za-z0-9][A-Za-z0-9_.\-]{0,59}$/.test(wiz.name.trim()), command: !!wiz.command.trim()};
 }
 const wizSummary = () => t('wz.s3.summary', {command: wiz.command.trim(), folder: wiz.folder.trim(), name: wiz.name.trim()});
+function notesHtml(){
+  return wiz.notes.map(n => n.note === 'services'
+    ? `<div class="warnbox">${esc(t('note.services'))}</div>${cmdBox(n.params.command)}`
+    : `<div class="warnbox">${esc(t(`note.${n.note}`, n.params))}</div>`).join('');
+}
 function candidatesHtml(){
   const other = wiz.pick === 'other' || !wiz.candidates.length;
   const rows = wiz.candidates.map((c, i) => `<label class="choice ${wiz.pick === i ? 'on' : ''}"><input type="radio" name="wizpick" value="${i}" ${wiz.pick === i ? 'checked' : ''}>
-    <span><b>${esc(t(`wz.kind.${c.kind}`))}</b><br><code>${esc(c.command)}</code></span></label>`).join('');
+    <span><b>${esc(t(`wz.kind.${c.kind}`))}</b><br><code>${esc(c.command)}</code>
+    ${c.java && c.java.major ? `<br><span class="hint ${c.java.exact ? '' : 'bad'}">${esc(t(c.java.exact ? 'wz.s3.javaUses' : 'wz.s3.javaNewer', {version: c.java.major, wanted: c.java.required}))}</span>` : ''}
+    ${c.available === false ? `<br><span class="hint bad">${esc(t('wz.s3.unavailable'))}</span>` : ''}</span></label>`).join('');
   return rows + (wiz.candidates.length ? `<label class="choice ${other ? 'on' : ''}"><input type="radio" name="wizpick" value="other" ${other ? 'checked' : ''}><span>${esc(t('wz.s3.other'))}</span></label>` : '')
     + (other ? `<input id="wizcmd" value="${esc(wiz.command)}" placeholder="npm start" autocomplete="off"><p class="hint">${esc(t('wz.s3.otherHint'))}</p>
       <details data-wdet="cmdhelp" ${wiz.cmdHelpOpen ? 'open' : ''}><summary>${esc(t('wz.s3.commandHelp'))}</summary><p class="hint">${esc(t('wz.s3.commandHelpText'))}</p></details>` : '');
@@ -1426,7 +1443,7 @@ function wizNewApp(){
   h += `<div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">2</span>${esc(t('wz.s3.sub2'))}</h4>`;
   if(ready){
     h += wiz.candidates.length ? `<p class="hint">${esc(t('wz.s3.sub2hint'))}</p>` : (wiz.inspected ? `<p class="warnbox">${esc(t('wz.s3.noSuggest'))}</p>` : '');
-    h += candidatesHtml() + `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" class="${wiz.name && !v.name ? 'invalid' : ''}" value="${esc(wiz.name)}" autocomplete="off">
+    h += notesHtml() + candidatesHtml() + `<label>${esc(t('wz.s3.name'))}</label><input id="wizname" class="${wiz.name && !v.name ? 'invalid' : ''}" value="${esc(wiz.name)}" autocomplete="off">
       <p class="hint bad" id="wiznamebad" ${wiz.name && !v.name ? '' : 'hidden'}>${esc(t('wz.s3.nameBad'))}</p>`;
   }
   h += `</div><div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">3</span>${esc(t('wz.s3.sub3'))}</h4>
@@ -1434,7 +1451,7 @@ function wizNewApp(){
     <button class="primary bigbtn" data-wact="addproc" ${canStart ? '' : 'disabled'}>${esc(wiz.busy ? t(wiz.busyKey) : t('wz.s3.start'))}</button>
     <p class="hint" id="wizfillall" ${canStart || wiz.busy ? 'hidden' : ''}>${esc(t('wz.s3.fillAll'))}</p>${wiz.busy ? waiting(t(wiz.busyKey)) : ''}`;
   if(wiz.autoTried) h += `<div class="warnbox">${esc(t('wz.s3.autoFailedTitle'))}</div>` + wiz.autoTried.map(a =>
-    `<details><summary><code>${esc(a.command)}</code> (${esc(a.status || '')})</summary><pre class="out">${esc(a.log || '–')}</pre></details>`).join('') + `<p class="hint">${esc(t('wz.s3.autoFailedHelp'))}</p>`;
+    `<details><summary><code>${esc(a.command)}</code> (${esc(a.status || '')})</summary><pre class="out">${esc(a.log || '–')}</pre></details>`).join('') + (wiz.missing.length ? `<p class="hint">${esc(t('wz.s3.autoMissing'))} ${wiz.missing.map(c => `<code>${esc(c)}</code>`).join(', ')}</p>` : '') + `<p class="hint">${esc(t('wz.s3.autoFailedHelp'))}</p>`;
   if(wiz.result && !wiz.result.ok)
     h += `<div class="badbox">${esc(t('wz.s3.failedTitle', {status: wiz.result.status}))}</div><pre class="out">${esc(wiz.result.log || '–')}</pre><p class="hint">${esc(t('wz.s3.failedHelp'))}</p>`;
   return h + `</div><p><button class="linkbtn" data-wact="oldmode">${esc(t('wz.s3.oldLink'))}</button></p>`;
@@ -1527,22 +1544,22 @@ async function checkProgress(manual){
 const autoCheck = () => { if($('#wizard').open && !wiz.busy && wiz.installState !== 'running' && wiz.step <= 3) checkProgress(false); };
 
 async function inspectFolder(){
-  wiz.inspected = false; wiz.result = null; wiz.candidates = []; wiz.pick = 'other'; wiz.autoTried = null;
+  wiz.inspected = false; wiz.result = null; wiz.candidates = []; wiz.notes = []; wiz.missing = []; wiz.pick = 'other'; wiz.autoTried = null;
   if(!wiz.folder.trim()) return;
   try{
     const j = await (await fetch('/api/inspect?path=' + encodeURIComponent(wiz.folder.trim()))).json();
     if(j.ok === false) return toast(errText(j.error, j.params, j.output), true);
-    Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, candidates: j.candidates || [], pick: j.candidates && j.candidates.length ? 0 : 'other', inspected: true});
+    Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, candidates: j.candidates || [], notes: j.notes || [], pick: j.candidates && j.candidates.length ? 0 : 'other', inspected: true});
   }catch(e){ toast(t('serverDown'), true); }
 }
 // Picking a folder is enough: the server scans it and tries the likely commands one by one until one stays up.
 async function autoStartFolder(){
-  if(wiz.busy || !wiz.candidates.length) return;
+  if(wiz.busy || !wiz.candidates.length || wiz.notes.length) return;   // a note (services to start, Java to install) must be read first
   Object.assign(wiz, {busy: true, busyKey: 'wz.s3.autoTrying', result: null, autoTried: null}); renderWizard();
   try{
     const j = await api('/api/setup/auto-start', {folder: wiz.folder});
     if(j.ok){ Object.assign(wiz, {name: j.name, command: j.command, result: {ok: true, name: j.name, command: j.command}}); await poll(true); }
-    else if(j.error === 'auto_start_failed') wiz.autoTried = j.params.tried;
+    else if(j.error === 'auto_start_failed'){ wiz.autoTried = j.params.tried; wiz.missing = j.params.missing || []; }
     else toast(errText(j.error, j.params, j.output), true);
   }catch(e){ toast(t('serverDown'), true); }
   wiz.busy = false; renderWizard();

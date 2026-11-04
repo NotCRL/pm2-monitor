@@ -7,7 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest import mock
 
-from pm2monitor import setup
+from pm2monitor import scanner, setup
 from pm2monitor.service import ActionError
 from pm2monitor.store import ConfigStore
 
@@ -19,6 +19,9 @@ def make_monitor(pm2_path="/bin/pm2", store_dir=None):
 
 class SuggestCommandTest(unittest.TestCase):
     def setUp(self):
+        for patcher in (mock.patch.object(scanner, "tool_available", return_value=True), mock.patch.object(scanner.jdk, "installed_jdks", return_value=[])):
+            patcher.start()
+            self.addCleanup(patcher.stop)
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.dir = Path(self.tmp.name)
@@ -48,7 +51,7 @@ class SuggestCommandTest(unittest.TestCase):
         (self.dir / "pom.xml").write_text("")
         candidates = setup.suggest_command(self.dir)["candidates"]
         self.assertEqual([(c["kind"], c["command"]) for c in candidates],
-                         [("java", 'java -jar "target/my app.jar"'), ("maven", "mvn spring-boot:run")])
+                         [("java", 'java -Dfile.encoding=UTF-8 -jar "target/my app.jar"')])
 
     def test_start_scripts_and_django(self):
         (self.dir / "manage.py").write_text("")
@@ -58,11 +61,11 @@ class SuggestCommandTest(unittest.TestCase):
         self.assertTrue(kinds["django"].endswith("manage.py runserver"))
         self.assertEqual(kinds["script"], "./start.sh")          # the .bat is for Windows only
 
-    def test_there_are_never_more_than_six_candidates(self):
+    def test_there_are_never_more_than_the_limit_of_candidates(self):
         (self.dir / "package.json").write_text(json.dumps({"scripts": {"start": "a", "dev": "b", "serve": "c"}}))
-        for name in ("server.js", "app.js", "index.js", "main.py", "app.py"):
+        for name in ("server.js", "app.js", "index.js", "main.py", "app.py", "server.py", "run.py"):
             (self.dir / name).write_text("")
-        self.assertEqual(len(setup.suggest_command(self.dir)["candidates"]), 6)
+        self.assertEqual(len(setup.suggest_command(self.dir)["candidates"]), scanner.MAX_CANDIDATES)
 
     def test_python_app(self):
         (self.dir / "app.py").write_text("")
@@ -216,7 +219,7 @@ class LaunchTest(unittest.TestCase):
         self.assertEqual(setup._pm2_launch(["python3", "app.py"]), ("app.py", [], ["--interpreter", "python3"]))
 
     def test_npm_command_is_kept(self):
-        self.assertEqual(setup._pm2_launch(["npm", "start"]), ("npm", ["start"], []))
+        self.assertEqual(setup._pm2_launch(["npm", "start"]), ("npm", ["start"], ["--interpreter", "none"]))
 
 
 class AddProcessValidationTest(unittest.TestCase):
