@@ -5,6 +5,15 @@
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/);
 versions follow [Semantic Versioning](https://semver.org/).
 
+## [1.8.0] - 2026-11-04
+
+### Added
+- **You can always tell the program is working.** A slim bar at the top slides while something takes more than a moment (an action, a scan, loading a log, reading a folder). A row shows a small spinner while its start/stop/restart is running, the Scan button spins until it is done, a log dims while it reloads, and the guided setup says "Looking inside the folder…" while it reads one.
+- Windows, menus and messages now open with a short, quiet animation. Everything stops moving if your system is set to reduce motion.
+
+### Fixed
+- **The guided setup opened late and looked frozen.** It waited for the computer check (Node, npm, pm2) before showing anything. It now opens at once and says "Checking what is installed on this computer… a few seconds."
+
 ## [1.7.0] - 2026-11-04
 
 ### Added

@@ -5,6 +5,15 @@
 Formato basato su [Keep a Changelog](https://keepachangelog.com/it-IT/1.1.0/);
 le versioni seguono il [Semantic Versioning](https://semver.org/lang/it/).
 
+## [1.8.0] - 2026-11-04
+
+### Aggiunto
+- **Si capisce sempre che il programma sta lavorando.** Una sottile barra in alto scorre quando qualcosa richiede più di un attimo (un'azione, una scansione, il caricamento di un log, la lettura di una cartella). Una riga mostra un piccolo spinner mentre start/stop/restart è in corso, il pulsante Scansiona gira finché non ha finito, un log si attenua mentre si ricarica e la configurazione guidata dice "Guardo dentro la cartella…" mentre ne legge una.
+- Finestre, menu e messaggi si aprono con una breve animazione discreta. Tutto resta fermo se il sistema è impostato per ridurre i movimenti.
+
+### Corretto
+- **La configurazione guidata si apriva in ritardo e sembrava bloccata.** Aspettava il controllo del computer (Node, npm, pm2) prima di mostrare qualcosa. Ora si apre subito e dice "Controllo cosa è installato su questo computer… pochi secondi."
+
 ## [1.7.0] - 2026-11-04
 
 ### Aggiunto

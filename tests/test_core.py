@@ -151,6 +151,11 @@ class TranslationsTest(unittest.TestCase):
         expected |= {f"status.{s}" for s in ("online", "stopped", "errored", "launching", "stopping", "offline", "absent")}
         self.assertEqual(expected - keys, set())
 
+    def test_motion_is_switched_off_for_people_who_ask_for_less(self):
+        html = (self.root / "index.html").read_text(encoding="utf-8")
+        self.assertRegex(html, r"@media \(prefers-reduced-motion:reduce\)\{\*,\*::before,\*::after\{animation-duration:0\.01ms!important")
+        self.assertIn('id="busybar"', html)
+
     def test_every_size_scales_with_the_zoom_buttons(self):
         """Sizes must be rem so the zoom buttons move everything; only 1-2px hairlines and the root size stay in px."""
         html = (self.root / "index.html").read_text(encoding="utf-8")

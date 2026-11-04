@@ -91,6 +91,23 @@ border:1px solid var(--line);padding:0.615rem 1.077rem;border-radius:0.462rem;di
 #toast.bad{border-color:var(--bad)}
 dialog{background:var(--bg);color:var(--fg);border:1px solid var(--line);border-radius:0.615rem;padding:1.231rem;min-width:36.923rem;max-width:80vw}
 dialog::backdrop{background:#0008}
+/* motion: short, quiet, and switched off for people who ask their system for less of it */
+@keyframes pop{from{opacity:0;transform:translateY(0.5rem) scale(0.98)}}
+@keyframes fade{from{opacity:0}}
+@keyframes drop{from{opacity:0;transform:translateY(-0.3rem)}}
+@keyframes rise{from{opacity:0;transform:translate(-50%,0.6rem)}}
+@keyframes slide{from{left:-35%}to{left:100%}}
+dialog[open]{animation:pop 0.18s ease-out}
+dialog[open]::backdrop{animation:fade 0.18s ease-out}
+.menu:not([hidden]){animation:drop 0.14s ease-out}
+#toast{animation:rise 0.2s ease-out}
+#busybar{position:fixed;top:0;left:0;right:0;height:0.2rem;z-index:100;overflow:hidden;opacity:0;transition:opacity 0.2s;pointer-events:none}
+#busybar.on{opacity:1}
+#busybar::before{content:"";position:absolute;top:0;bottom:0;width:35%;background:var(--acc);border-radius:0.2rem;animation:slide 1.1s ease-in-out infinite}
+tr.row.working td.c-status::after{content:"";display:inline-block;width:0.8rem;height:0.8rem;margin-left:0.5rem;vertical-align:-0.1rem;border:2px solid var(--line);border-top-color:var(--acc);border-radius:50%;animation:spin 0.8s linear infinite}
+.hbtn.working .ico{display:inline-block;animation:spin 1s linear infinite}
+.lp-text.loading{opacity:0.55;transition:opacity 0.15s}
+@media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:0.01ms!important;animation-iteration-count:1!important;transition-duration:0.01ms!important}}
 dialog h3{margin:0 0 0.769rem;font-size:1.077rem}
 dialog .line{display:flex;gap:0.615rem;align-items:center;margin:0.462rem 0}
 dialog .line .grow{flex:1}
@@ -286,6 +303,7 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
 </style>
 </head>
 <body>
+<div id="busybar" role="progressbar" aria-hidden="true"></div>
 <header>
   <div class="brand">
     <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path d="M2 12h4l2.5-7 5 14 2.5-7H22" fill="none" stroke="var(--acc)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -315,7 +333,7 @@ h2.grouphead .chev{border:0;background:none;color:var(--dim);padding:0 0.3rem;fo
 </main>
 <div id="jobbar"></div>
 <div id="stopped" hidden><div class="stoppedbox"><h2 data-i18n="quitDone"></h2><p data-i18n="quitDoneHint"></p></div></div>
-<div id="toast"></div>
+<div id="toast" role="status" aria-live="polite"></div>
 
 <dialog id="daemondialog">
   <h3 data-i18n="daemonsTitle"></h3>
@@ -622,6 +640,8 @@ const I18N = {
     'wz.next.dbl': 'Easiest: open the folder below and double-click the file "{file}".',
     'wz.next.cmd': 'Or type this in a terminal:', 'wz.next.addr': 'Then open this address in your browser: {url}',
     'wz.next.folder': 'The monitor folder:',
+    'wz.loading': 'Checking what is installed on this computer… a few seconds.',
+    'wz.s3.scanning': 'Looking inside the folder…',
     'wz.s3.autoTrying': 'Looking at the folder and starting it by myself… I may try a few ways, this can take up to a minute.',
     'wz.s3.autoFailedTitle': 'I tried to start it by myself, but these ways did not work:', 'wz.s3.autoFailedHelp': 'Pick another way below, or type the command yourself.',
     'wz.s3.autoUsed': 'I started it with: {command}',
@@ -811,6 +831,8 @@ const I18N = {
     'wz.next.dbl': 'Il modo più semplice: apri la cartella qui sotto e fai doppio clic sul file "{file}".',
     'wz.next.cmd': 'Oppure scrivi questo in un terminale:', 'wz.next.addr': 'Poi apri questo indirizzo nel browser: {url}',
     'wz.next.folder': 'La cartella del monitor:',
+    'wz.loading': 'Controllo cosa è installato su questo computer… pochi secondi.',
+    'wz.s3.scanning': 'Guardo dentro la cartella…',
     'wz.s3.autoTrying': 'Guardo la cartella e lo avvio da solo… posso provare più modi, può volerci fino a un minuto.',
     'wz.s3.autoFailedTitle': 'Ho provato ad avviarlo da solo, ma questi modi non hanno funzionato:', 'wz.s3.autoFailedHelp': 'Scegli un altro modo qui sotto, oppure scrivi tu il comando.',
     'wz.s3.autoUsed': 'L\'ho avviato con: {command}',
@@ -1020,9 +1042,18 @@ function setLang(next){
   if(state){ render(true); if($('#daemondialog').open) renderDaemonDialog(); if($('#wizard').open) renderWizard(); if(!$('#notifmenu').hidden) renderNotif(); }
 }
 
+// A slim bar at the top shows that something is being done, but only if it takes a noticeable moment.
+let pendingRequests = 0, busyBarTimer = null;
+const BUSY_BAR_DELAY_MS = 300;
+function track(promise){
+  if(++pendingRequests === 1) busyBarTimer = setTimeout(() => $('#busybar').classList.add('on'), BUSY_BAR_DELAY_MS);
+  const done = () => { if(--pendingRequests === 0){ clearTimeout(busyBarTimer); $('#busybar').classList.remove('on'); } };
+  promise.then(done, done);
+  return promise;
+}
+const getJson = url => track(fetch(url).then(r => r.json()));
 async function api(path, body){
-  const r = await fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)});
-  return r.json();
+  return track(fetch(path, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(body)}).then(r => r.json()));
 }
 async function config(body){   // true when the server accepted the change
   let ok = false;
@@ -1114,7 +1145,7 @@ function render(force){
     <th class="num c-uptime">${esc(t('colUptime'))}</th><th class="num c-restarts">${esc(t('colRestarts'))}</th><th class="num c-ord">${esc(t('colOrd'))}</th><th class="c-domain">${esc(t('colDomain'))}</th><th></th></tr>`;
     for(const p of procs){
       const b = busy.has(p.key);
-      html += `<tr class="row ${esc(p.status)} ${panels.some(panel => panel.sel && panel.sel.key === p.key) ? 'sel' : ''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
+      html += `<tr class="row ${esc(p.status)} ${b ? 'working' : ''} ${panels.some(panel => panel.sel && panel.sel.key === p.key) ? 'sel' : ''}" data-key="${esc(p.key)}" title="${esc(p.cwd)}">
         <td class="c-name namecell"><span class="dot"></span>${esc(p.name)}<span class="tags">${(p.labels || []).map(tagHtml).join('')}<button class="tagadd" data-tagedit="${esc(p.key)}" title="${esc(t('labelsEdit'))}">＋</button></span></td>
         <td class="c-daemon dim">${esc(labelOf[p.daemon])}</td>
         <td class="c-status st">${esc(I18N[lang]['status.'+p.status] ? t('status.'+p.status) : p.status)}</td>
@@ -1260,7 +1291,12 @@ $('#newdomain').onclick = () => {
   const name = (prompt(t('newDomainPrompt')) || '').trim();
   if(name) config({op:'createDomain', name});
 };
-$('#scan').onclick = async () => { await config({op:'scan'}); toast(t('scanDone')); };
+$('#scan').onclick = async () => {
+  const button = $('#scan'); if(button.disabled) return;
+  button.disabled = true; button.classList.add('working');
+  try{ await config({op:'scan'}); toast(t('scanDone')); }
+  finally{ button.disabled = false; button.classList.remove('working'); }
+};
 $('#lang').onchange = e => setLang(e.target.value);
 
 function renderDaemonDialog(){
@@ -1343,11 +1379,11 @@ const OS_COMMANDS = {
 };
 let setup = null, wizardOffered = false;
 const wiz = {step: 1, os: 'linux', osChosen: false, oldMode: false, adding: false, manualOpen: false, cmdHelpOpen: false,
-             folder: '', name: '', command: '', kind: null, candidates: [], notes: [], missing: [], pick: 0, inspected: false, busyKey: 'wz.s3.starting', autoTried: null, busy: false, result: null,
+             folder: '', name: '', command: '', kind: null, candidates: [], notes: [], missing: [], pick: 0, inspected: false, busyKey: 'wz.s3.starting', autoTried: null, scanning: false, loading: false, busy: false, result: null,
              installState: null, output: '', fallback: false, timer: null, auto: null, advancing: false};
 
 async function loadSetup(){
-  try{ setup = await (await fetch('/api/setup')).json(); }catch(e){ /* the wizard shows what it can */ }
+  try{ setup = await getJson('/api/setup'); }catch(e){ /* the wizard shows what it can */ }
 }
 function stepDone(n){
   if(n === 1) return setup ? !!setup.node.path : !!(state && state.pm2);
@@ -1378,11 +1414,14 @@ function maybeAutoOpenWizard(){
   openWizard();
 }
 async function openWizard(step){
+  // The window opens at once and says it is checking the computer: that check can take a few seconds.
+  wiz.loading = true; renderWizard();
+  if(!$('#wizard').open) $('#wizard').showModal();
   await loadSetup();
+  wiz.loading = false;
   if(!wiz.osChosen && setup && setup.os) wiz.os = setup.os;
   wiz.step = step || firstPending();
   renderWizard();
-  if(!$('#wizard').open) $('#wizard').showModal();
   clearInterval(wiz.auto); wiz.auto = setInterval(autoCheck, 3000);
 }
 
@@ -1439,7 +1478,7 @@ function wizNewApp(){
   const v = wizValid(), ready = v.folder, canStart = v.folder && v.name && v.command && !wiz.busy;
   let h = `<div class="sub"><h4><span class="n">1</span>${esc(t('wz.s3.sub1'))}</h4><p class="hint">${esc(t('wz.s3.sub1hint'))}</p>
     <div class="line"><input id="wizfolder" value="${esc(wiz.folder)}" placeholder="${esc(setup ? setup.home : '')}" autocomplete="off">
-    <button class="primary" data-wact="browse">${esc(t('wz.s3.browse'))}</button></div>${pickerHtml('project')}</div>`;
+    <button class="primary" data-wact="browse">${esc(t('wz.s3.browse'))}</button></div>${pickerHtml('project')}${wiz.scanning ? waiting(t('wz.s3.scanning')) : ''}</div>`;
   h += `<div class="sub ${ready ? '' : 'locked'}"><h4><span class="n">2</span>${esc(t('wz.s3.sub2'))}</h4>`;
   if(ready){
     h += wiz.candidates.length ? `<p class="hint">${esc(t('wz.s3.sub2hint'))}</p>` : (wiz.inspected ? `<p class="warnbox">${esc(t('wz.s3.noSuggest'))}</p>` : '');
@@ -1501,6 +1540,12 @@ function wizStep5(){
 }
 
 function renderWizard(){
+  if(wiz.loading){
+    $('#wizsteps').innerHTML = ''; $('#wizprogress').textContent = '';
+    $('#wizbody').innerHTML = waiting(t('wz.loading'));
+    $('#wizback').style.visibility = 'hidden'; $('#wizcheck').style.display = 'none'; $('#wiznext').disabled = true;
+    return;
+  }
   const pending = firstPending();
   $('#wizsteps').innerHTML = [1, 2, 3, 4, 5].map(n => {
     const done = stepDone(n), reachable = n <= pending || pending === 4;
@@ -1546,11 +1591,13 @@ const autoCheck = () => { if($('#wizard').open && !wiz.busy && wiz.installState 
 async function inspectFolder(){
   wiz.inspected = false; wiz.result = null; wiz.candidates = []; wiz.notes = []; wiz.missing = []; wiz.pick = 'other'; wiz.autoTried = null;
   if(!wiz.folder.trim()) return;
+  wiz.scanning = true; renderWizard();
   try{
-    const j = await (await fetch('/api/inspect?path=' + encodeURIComponent(wiz.folder.trim()))).json();
+    const j = await getJson('/api/inspect?path=' + encodeURIComponent(wiz.folder.trim()));
     if(j.ok === false) return toast(errText(j.error, j.params, j.output), true);
     Object.assign(wiz, {name: j.name, command: j.command, kind: j.kind, candidates: j.candidates || [], notes: j.notes || [], pick: j.candidates && j.candidates.length ? 0 : 'other', inspected: true});
   }catch(e){ toast(t('serverDown'), true); }
+  wiz.scanning = false;
 }
 // Picking a folder is enough: the server scans it and tries the likely commands one by one until one stays up.
 async function autoStartFolder(){
@@ -1972,7 +2019,7 @@ const pickerIsPm2 = ctx => ctx !== 'project';
 async function pickerLoad(ctx, path){
   const pk = pickers[ctx] || (pickers[ctx] = {hidden: pickerIsPm2(ctx)});   // pm2 keeps its data in a hidden folder
   try{
-    const j = await (await fetch(`/api/browse?path=${encodeURIComponent(path)}&hidden=${pk.hidden ? 1 : 0}`)).json();
+    const j = await getJson(`/api/browse?path=${encodeURIComponent(path)}&hidden=${pk.hidden ? 1 : 0}`);
     if(j.ok === false) toast(errText(j.error, j.params, j.output), true); else Object.assign(pk, j, {hidden: pk.hidden});
   }catch(e){ toast(t('serverDown'), true); }
   pickerHosts[ctx]();
@@ -2189,8 +2236,10 @@ class LogPanel{
   }
   async load(reset){
     if(!this.sel) return;
-    try{ this.data = await (await fetch(`/api/logs?key=${encodeURIComponent(this.sel.key)}&n=${this.f.lines}`)).json(); }
+    const text = this.q('.lp-text'); text.classList.add('loading');
+    try{ this.data = await getJson(`/api/logs?key=${encodeURIComponent(this.sel.key)}&n=${this.f.lines}`); }
     catch(e){ this.data = {ok: false, error: 'error_detail', params: {detail: t('serverDown')}, output: t('serverDown')}; }
+    text.classList.remove('loading');
     this.render(reset ? 'reset' : null);
   }
   render(scrollMode){
